@@ -88,7 +88,22 @@
           "properties": {
             "type": "object",
             "description": "知覚情報の構造（JSON Schema形式）",
-            "additionalProperties": true
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "知覚情報の名前（例: vision, audio)"
+              },
+              "type": {
+                "type": "image",
+                "enum": ["object", "text", "image"],
+                "description": "知覚情報の種類。構造化されたobject、画像、テキスト"
+              },
+              "body": {
+                "type": "string",
+                "description": "データ本体"
+              }
+            },
+            "required": ["title"]
           },
           "required": {
             "type": "array",
@@ -122,5 +137,5 @@
       }
     }
   },
-  "required": ["name", "actions", "perceptions"]
+  "required": ["name", "actions", "perceptions", "events"]
 }
