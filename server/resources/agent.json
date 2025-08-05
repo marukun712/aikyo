@@ -74,8 +74,8 @@
           "type": "string",
           "description": "知覚情報の名前（例: vision, audio)"
         },
-        "type": {
-          "type": "image",
+        "format": {
+          "type": "string",
           "enum": ["object", "text", "image"],
           "description": "知覚情報の種類。構造化されたobject、画像、テキスト"
         },
@@ -95,7 +95,7 @@
           "type": "string",
           "description": "知覚情報の名前（例: vision, audio)"
         },
-        "type": {
+        "format": {
           "type": "string",
           "enum": ["object", "text", "image"],
           "description": "知覚情報の種類。構造化されたobject、画像、テキスト"

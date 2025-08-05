@@ -1,7 +1,7 @@
-import { Agent, LanguageModel } from "@mastra/core";
+import { Agent, type LanguageModel } from "@mastra/core";
 import { Memory } from "@mastra/memory";
 import { LibSQLStore, LibSQLVector } from "@mastra/libsql";
-import { mcp } from "../tools/mcp";
+import { mcp } from "../tools/mcp.ts";
 
 interface AgentInterface {
   llm: LanguageModel;

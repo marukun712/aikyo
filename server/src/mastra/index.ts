@@ -5,9 +5,9 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import fs from "fs/promises";
 import { z } from "zod";
-import Ajv, { ValidateFunction } from "ajv";
-import { AICompanionSchema, JSONRPCRequestSchema } from "../../schema";
-import { AgentImpl } from "./agents/agent";
+import Ajv, { type ValidateFunction } from "ajv";
+import { AICompanionSchema, JSONRPCRequestSchema } from "../../schema/index.ts";
+import { AgentImpl } from "./agents/agent.ts";
 import { createOllama } from "ollama-ai-provider";
 
 const ajv = new Ajv();
@@ -19,9 +19,10 @@ const server = new McpServer({
   version: "1.0.0",
 });
 
-const file = await fs.readFile("./server/resource/agent.json", "utf8");
-const parsed = AICompanionSchema.safeParse(file);
+const file = await fs.readFile("resources/agent.json", "utf8");
+const parsed = AICompanionSchema.safeParse(JSON.parse(file));
 if (!parsed.success) {
+  console.log(parsed.error);
   throw new Error("agent.jsonのスキーマが不正です。");
 }
 
@@ -36,42 +37,6 @@ parsed.data.perceptions.map((perception) => {
   const validate = ajv.compile(perception);
   perceptions.set(perception.title, validate);
 });
-
-const ollama = createOllama({
-  baseURL: "http://localhost:11434/api",
-});
-const llm = ollama("llama3.2-vision");
-const agent = await AgentImpl.create(
-  llm,
-  { url: "http://localhost:3000" },
-  {
-    name: parsed.data.name,
-    instructions: `
-      あなたは、キャラクターになりきってユーザーと会話をするAIエージェントです。メッセージは100字以内の日常会話らしい短くシンプルなものにしましょう。
-
-      <important>
-      あなたはユーザーと共同生活をしています。ユーザの役にたつAIアシスタントとしてではなく、ユーザと共に生活するパートナーとして振る舞いましょう。
-      </important>
-
-      あなたがなりきるキャラクターの名前は、「${parsed.data.name}」です。
-      あなたがなりきるキャラクターの人格や基本設定は、以下の通りです。
-
-      <personality>
-      ${parsed.data.personality}
-      </personality>
-
-      <story>
-      ${parsed.data.story}
-      </story>
-
-      <tools>
-      超重要:あなたには、AI Companion Protocolというプロトコルに基づいて行動する義務があります。
-      接続されているMCPサーバーを使って、spec://mainというあなたの実行可能なアクション、知覚できる知覚情報、その情報に基づいた行動パターンが書かれています。
-      あなたは、この行動パターンを忠実に再現して行動する必要があります。
-      </tools>`,
-    database: "file:server/db/mastra.db",
-  }
-);
 
 server.registerResource(
   "spec",
@@ -252,3 +217,39 @@ app.post("/perception", async (req, res) => {
 });
 
 app.listen(3000);
+
+const ollama = createOllama({
+  baseURL: "http://localhost:11434/api",
+});
+const llm = ollama("llama3.2-vision");
+await AgentImpl.create(
+  llm,
+  { url: "http://localhost:3000" },
+  {
+    name: parsed.data.name,
+    instructions: `
+      あなたは、キャラクターになりきってユーザーと会話をするAIエージェントです。メッセージは100字以内の日常会話らしい短くシンプルなものにしましょう。
+
+      <important>
+      あなたはユーザーと共同生活をしています。ユーザの役にたつAIアシスタントとしてではなく、ユーザと共に生活するパートナーとして振る舞いましょう。
+      </important>
+
+      あなたがなりきるキャラクターの名前は、「${parsed.data.name}」です。
+      あなたがなりきるキャラクターの人格や基本設定は、以下の通りです。
+
+      <personality>
+      ${parsed.data.personality}
+      </personality>
+
+      <story>
+      ${parsed.data.story}
+      </story>
+
+      <tools>
+      超重要:あなたには、AI Companion Protocolというプロトコルに基づいて行動する義務があります。
+      接続されているMCPサーバーを使って、spec://mainというあなたの実行可能なアクション、知覚できる知覚情報、その情報に基づいた行動パターンが書かれています。
+      あなたは、この行動パターンを忠実に再現して行動する必要があります。
+      </tools>`,
+    database: "file:db/mastra.db",
+  }
+);
