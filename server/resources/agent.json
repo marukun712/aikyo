@@ -84,7 +84,7 @@
           "description": "データ本体"
         }
       },
-      "required": ["title", "type", "body"]
+      "required": ["title", "format", "body"]
     },
     {
       "title": "input",
@@ -105,7 +105,7 @@
           "description": "データ本体"
         }
       },
-      "required": ["title", "type", "body"]
+      "required": ["title", "format", "body"]
     }
   ],
   "events": [
@@ -122,7 +122,7 @@
     {
       "perception": "input",
       "action": "speak",
-      "condition": "ユーザーが入力をしてきたら、それにあった返答をspeakします。"
+      "condition": "ユーザーがinputしてきたら、フレンドリーに返します。"
     },
     {
       "perception": "input",

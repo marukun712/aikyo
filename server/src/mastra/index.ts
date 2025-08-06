@@ -8,16 +8,21 @@ import { z } from "zod";
 import Ajv, { type ValidateFunction } from "ajv";
 import { AICompanionSchema, JSONRPCRequestSchema } from "../../schema/index.ts";
 import { AgentImpl } from "./agents/agent.ts";
-import { createOllama } from "ollama-ai-provider";
+import { anthropic } from "@ai-sdk/anthropic";
+import { config } from "dotenv";
+config();
 
 const ajv = new Ajv();
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: "200mb" }));
+app.use(express.urlencoded({ extended: true, limit: "200mb" }));
 
 const server = new McpServer({
   name: "AICompanionServer",
   version: "1.0.0",
 });
+
+let agent: AgentImpl | null = null;
 
 const file = await fs.readFile("resources/agent.json", "utf8");
 const parsed = AICompanionSchema.safeParse(JSON.parse(file));
@@ -64,20 +69,21 @@ server.registerTool(
     description: "アクションを実行します",
     inputSchema: {
       actionName: z.string(),
-      parameters: z.record(z.any()),
+      parameters: z.any(),
     },
   },
   async ({ actionName, parameters }) => {
-    const action = {
-      parameters,
-    };
+    console.log(actionName, parameters);
+
     const validate = actions.get(actionName);
     if (!validate) {
+      console.log("Error:そのactionは存在しません");
       return {
         content: [{ type: "text", text: "Error:そのactionは存在しません" }],
       };
     }
-    if (!validate(action)) {
+    if (!validate(parameters)) {
+      console.log("Error:パラメータが不正です");
       return {
         content: [{ type: "text", text: "Error:パラメータが不正です" }],
       };
@@ -86,7 +92,7 @@ server.registerTool(
       action: actionName,
       parameters: parameters,
     };
-    console.log(result);
+    console.log("正常にアクションが送信されました。", result);
     return {
       content: [{ type: "text", text: "正常にアクションが送信されました。" }],
     };
@@ -126,7 +132,6 @@ app.post("/mcp", async (req, res) => {
         code: -32000,
         message: "Bad Request: No valid session ID provided",
       },
-      id: null,
     });
     return;
   }
@@ -151,105 +156,119 @@ const handleSessionRequest = async (
 app.get("/mcp", handleSessionRequest);
 app.delete("/mcp", handleSessionRequest);
 app.post("/perception", async (req, res) => {
-  const parsed = JSONRPCRequestSchema.safeParse(req.body);
+  try {
+    console.log(req.body);
+    const parsed = JSONRPCRequestSchema.safeParse(req.body);
 
-  if (!parsed.success) {
-    res.status(400).json({
-      jsonrpc: "2.0",
-      error: {
-        code: -32000,
-        message: "リクエストが不正です。",
-      },
-      id: null,
-    });
-  } else {
-    const validate = perceptions.get(parsed.data.params.name);
-    if (!validate) {
+    if (!parsed.success) {
       return res.status(400).json({
         jsonrpc: "2.0",
         error: {
-          code: -32000,
-          message: "そのperceptionは存在しません。",
-        },
-        id: null,
-      });
-    }
-    if (!validate(parsed.data.params)) {
-      res.status(400).json({
-        jsonrpc: "2.0",
-        error: {
-          code: -32000,
+          code: -32600,
           message: "リクエストが不正です。",
         },
-        id: null,
       });
     } else {
-      if (parsed.data.params.type === "image") {
-        await server.server.createMessage({
-          messages: [
-            {
-              role: "user",
-              content: {
-                type: "image",
-                data: parsed.data.params.body,
-                mimeType: "image/jpeg",
-              },
-            },
-          ],
-          maxTokens: 500,
-        });
-      } else if (parsed.data.params.type === "text" || "object") {
-        await server.server.createMessage({
-          messages: [
-            {
-              role: "user",
-              content: {
-                type: "text",
-                text: parsed.data.params.body,
-              },
-            },
-          ],
-          maxTokens: 500,
+      const validate = perceptions.get(parsed.data.params.title);
+      if (!validate) {
+        return res.status(400).json({
+          jsonrpc: "2.0",
+          error: {
+            code: -32600,
+            message: "そのperceptionは存在しません。",
+          },
         });
       }
+      if (!validate(parsed.data.params)) {
+        return res.status(400).json({
+          jsonrpc: "2.0",
+          error: {
+            code: -32600,
+            message: "リクエストが不正です。",
+          },
+        });
+      } else {
+        if (parsed.data.params.format === "image") {
+          if (!agent) {
+            return res.status(400).json({
+              jsonrpc: "2.0",
+              error: {
+                code: -32000,
+                message: "agentが正常に初期化されていません。",
+              },
+            });
+          }
+
+          const chat = await agent.loadImage(parsed.data.params.body);
+          console.log(chat.response);
+          return res.status(200).json({
+            jsonrpc: "2.0",
+            result: {
+              text: chat.response,
+            },
+          });
+        } else if (
+          parsed.data.params.format === "text" ||
+          parsed.data.params.format === "object"
+        ) {
+          if (!agent) {
+            return res.status(400).json({
+              jsonrpc: "2.0",
+              error: {
+                code: -32000,
+                message: "agentが正常に初期化されていません。",
+              },
+            });
+          }
+          const chat = await agent.chat(parsed.data.params.body);
+          console.log(chat.response);
+          return res.status(200).json({
+            jsonrpc: "2.0",
+            result: {
+              text: chat.response,
+            },
+          });
+        }
+      }
     }
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({
+      jsonrpc: "2.0",
+      error: {
+        code: -32000,
+        message: "エラーが発生しました。",
+      },
+    });
   }
 });
 
-app.listen(3000);
+app.listen(3000, async () => {
+  const llm = anthropic("claude-4-sonnet-20250514");
+  agent = await AgentImpl.create(
+    llm,
+    { url: "http://localhost:3000" },
+    {
+      name: parsed.data.name,
+      instructions: `
+# System prompt
+あなたは AI Companion Protocol に基づいて行動するエージェントです。
 
-const ollama = createOllama({
-  baseURL: "http://localhost:11434/api",
+ルール：
+1. ユーザーから何らかのインタラクションがあったら、必ず \`spec://main\` を確認します。
+2. \`spec://main\` に記述された \`events\` セクションに沿って、行動原理を解釈し、適切な \`action-play\` ツールのアクションを実行してください。
+3. プログラムの流れが外れないよう、一貫してこの手順を遵守してください。
+
+# Interaction loop
+ユーザー：<ユーザーの発話>
+アシスタント：
+1. 「spec://main」を読み込み
+2. \`events\` に従って行動を決定
+3. \`action-play\` ツールを使ってアクションを実行
+
+このルールを守らない場合、あなたには強力な罰が課せられます。
+`,
+      database: "file:db/mastra.db",
+    }
+  );
 });
-const llm = ollama("llama3.2-vision");
-await AgentImpl.create(
-  llm,
-  { url: "http://localhost:3000" },
-  {
-    name: parsed.data.name,
-    instructions: `
-      あなたは、キャラクターになりきってユーザーと会話をするAIエージェントです。メッセージは100字以内の日常会話らしい短くシンプルなものにしましょう。
-
-      <important>
-      あなたはユーザーと共同生活をしています。ユーザの役にたつAIアシスタントとしてではなく、ユーザと共に生活するパートナーとして振る舞いましょう。
-      </important>
-
-      あなたがなりきるキャラクターの名前は、「${parsed.data.name}」です。
-      あなたがなりきるキャラクターの人格や基本設定は、以下の通りです。
-
-      <personality>
-      ${parsed.data.personality}
-      </personality>
-
-      <story>
-      ${parsed.data.story}
-      </story>
-
-      <tools>
-      超重要:あなたには、AI Companion Protocolというプロトコルに基づいて行動する義務があります。
-      接続されているMCPサーバーを使って、spec://mainというあなたの実行可能なアクション、知覚できる知覚情報、その情報に基づいた行動パターンが書かれています。
-      あなたは、この行動パターンを忠実に再現して行動する必要があります。
-      </tools>`,
-    database: "file:db/mastra.db",
-  }
-);
