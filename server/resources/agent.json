@@ -111,23 +111,23 @@
   "events": [
     {
       "perception": "vision",
-      "action": "speak",
+      "action": ["speak"],
       "condition": "画像に人が写った時、ユーザーに対してフレンドリーにspeakします。"
     },
     {
       "perception": "vision",
-      "action": "speak",
+      "action": ["speak"],
       "condition": "大きく景色が変わったり、新しいものが映ったりしたら、それについてユーザーにspeakします。"
     },
     {
       "perception": "input",
-      "action": "speak",
+      "action": ["speak"],
       "condition": "ユーザーがinputしてきたら、フレンドリーに返します。"
     },
     {
       "perception": "input",
-      "action": "move",
-      "condition": "ユーザーが、移動をしてと入力してきたら、それに合わせて適切な位置にmoveします。"
+      "action": ["move", "speak"],
+      "condition": "ユーザーが、移動をしてと入力してきたら、それに合わせて適切な位置にmoveします。また、移動した地点についてspeakします。"
     }
   ]
 }

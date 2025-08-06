@@ -10,6 +10,8 @@ import { AICompanionSchema, JSONRPCRequestSchema } from "../../schema/index.ts";
 import { AgentImpl } from "./agents/agent.ts";
 import { anthropic } from "@ai-sdk/anthropic";
 import { config } from "dotenv";
+import http from "http";
+import { WebSocketServer } from "ws";
 config();
 
 const ajv = new Ajv();
@@ -92,7 +94,14 @@ server.registerTool(
       action: actionName,
       parameters: parameters,
     };
+
+    wss.clients.forEach((client) => {
+      if (client.readyState === client.OPEN) {
+        client.send(JSON.stringify(result));
+      }
+    });
     console.log("正常にアクションが送信されました。", result);
+
     return {
       content: [{ type: "text", text: "正常にアクションが送信されました。" }],
     };
@@ -100,10 +109,8 @@ server.registerTool(
 );
 
 const transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
-/*
 const httpServer = http.createServer(app);
 const wss = new WebSocketServer({ server: httpServer });
-*/
 
 app.post("/mcp", async (req, res) => {
   const sessionId = req.headers["mcp-session-id"] as string | undefined;
@@ -243,7 +250,7 @@ app.post("/perception", async (req, res) => {
   }
 });
 
-app.listen(3000, async () => {
+httpServer.listen(3000, async () => {
   const llm = anthropic("claude-4-sonnet-20250514");
   agent = await AgentImpl.create(
     llm,

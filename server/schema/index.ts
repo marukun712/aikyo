@@ -26,7 +26,7 @@ const PerceptionSchema = z.object({
 
 const EventSchema = z.object({
   perception: z.string(),
-  action: z.string(),
+  action: z.array(z.string()),
   condition: z.string(),
 });
 

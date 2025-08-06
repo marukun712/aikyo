@@ -125,8 +125,9 @@
             "description": "トリガーとなる知覚情報の名前"
           },
           "action": {
-            "type": "string",
-            "description": "実行するアクションの名前"
+            "type": "array",
+            "description": "実行するアクションの名前",
+            "items": { "type": "string" }
           },
           "condition": {
             "type": "string",
