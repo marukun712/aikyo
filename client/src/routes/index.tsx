@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js";
+import { createSignal, For } from "solid-js";
 
 export default function Home() {
   const [sessionId, setSessionId] = createSignal<string | null>(null);
@@ -9,6 +9,7 @@ export default function Home() {
   const [textInput, setTextInput] = createSignal("");
   const [fileInput, setFileInput] = createSignal<File | null>(null);
   const [isLoading, setIsLoading] = createSignal(false);
+  const [actions, setActions] = createSignal<string[]>([]);
 
   async function init() {
     setIsLoading(true);
@@ -48,7 +49,7 @@ export default function Home() {
     };
 
     ws.onmessage = (event) => {
-      console.log(event.data);
+      setActions((prev) => [...prev, event.data]);
     };
   }
 
@@ -209,7 +210,7 @@ export default function Home() {
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-xl font-semibold text-gray-700">アクション履歴</h2>
           <button
-            onClick={() => {}}
+            onClick={() => setActions([])}
             class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm transition duration-200"
           >
             クリア
@@ -217,7 +218,25 @@ export default function Home() {
         </div>
 
         <div class="space-y-3 max-h-64 overflow-y-auto">
-          <p class="text-gray-500 italic">アクションはまだありません</p>
+          {actions().length <= 0 ? (
+            <p class="text-gray-500 italic">アクションはまだありません</p>
+          ) : (
+            <For each={actions()}>
+              {(action) => {
+                return (
+                  <pre
+                    class={
+                      "mt-2 p-2 overflow-x-auto whitespace-pre-wrap break-words"
+                    }
+                  >
+                    <code class={"text-blue-600 text-xl"}>
+                      {JSON.stringify(JSON.parse(action), undefined, 2)}
+                    </code>
+                  </pre>
+                );
+              }}
+            </For>
+          )}
         </div>
       </div>
     </main>
