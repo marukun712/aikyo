@@ -24,7 +24,7 @@ export class AgentImpl implements AgentInterface {
 
   static async create(
     llm: LanguageModel,
-    mcpConfig: { url: string },
+    mcpConfig: { id: string; url: string },
     config: { name: string; instructions: string; database: string }
   ): Promise<AgentImpl> {
     const memory = new Memory({
@@ -41,7 +41,7 @@ export class AgentImpl implements AgentInterface {
       },
     });
 
-    const mcpClient = mcp(mcpConfig.url);
+    const mcpClient = mcp(mcpConfig.id, mcpConfig.url);
     const tools = await mcpClient.getTools();
 
     const agent = new Agent({
@@ -116,6 +116,8 @@ export class AgentImpl implements AgentInterface {
             ],
           },
         ],
+        resourceId: "user",
+        threadId: "thread",
       }
     );
     return {

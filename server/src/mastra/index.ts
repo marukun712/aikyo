@@ -19,10 +19,12 @@ import http from "http";
 import { WebSocketServer } from "ws";
 import {
   createJsonRpcError,
+  createJsonRpcRequest,
   createJsonRpcResult,
   validateWithMap,
 } from "../utils/index.ts";
 import { SessionManagerImpl } from "./session/index.ts";
+import cors from "cors";
 config();
 
 //初期化とバリデーション
@@ -30,6 +32,8 @@ const ajv = new Ajv();
 const app = express();
 app.use(express.json({ limit: "200mb" }));
 app.use(express.urlencoded({ extended: true, limit: "200mb" }));
+app.use(cors({ origin: "*", methods: ["GET", "POST", "DELETE", "OPTIONS"] }));
+const MCPSessionToAgentId = new Map<string, string>();
 
 const server = new McpServer({
   name: "AICompanionServer",
@@ -103,10 +107,10 @@ server.registerTool(
         ],
       };
     }
-    const result = {
+    const result = createJsonRpcRequest("action.execute", {
       action: actionName,
       parameters: parameters,
-    };
+    });
     if (!sessionId) {
       console.log("Error:SessionIdが正常に初期化されていません。");
       return {
@@ -118,7 +122,19 @@ server.registerTool(
         ],
       };
     }
-    sessionManager.sendMessage(sessionId, JSON.stringify(result));
+    const agentId = MCPSessionToAgentId.get(sessionId);
+    if (!agentId) {
+      console.log("Error:AgentIdとMCP SessionIdが紐づけられていません。");
+      return {
+        content: [
+          {
+            type: "text",
+            text: "Error:AgentIdとMCP SessionIdが紐づけられていません。",
+          },
+        ],
+      };
+    }
+    sessionManager.sendMessage(agentId, JSON.stringify(result));
     return {
       content: [{ type: "text", text: "正常にアクションが送信されました。" }],
     };
@@ -131,9 +147,10 @@ async function initAgent() {
     throw new Error("初期化が完了していません。");
   }
   const llm = anthropic("claude-4-sonnet-20250514");
+  const agentId = randomUUID();
   const agent = await AgentImpl.create(
     llm,
-    { url: "http://localhost:3000" },
+    { id: agentId, url: "http://localhost:3001/mcp/" + agentId },
     {
       name: parsed.data.name,
       instructions: `
@@ -152,15 +169,14 @@ async function initAgent() {
 2. \`events\` に従って行動を決定
 3. \`action-play\` ツールを使ってアクションを実行
 
+絵文字を使ってはいけません。
 このルールを守らない場合、あなたには強力な罰が課せられます。
 `,
       database: "file:db/mastra.db",
     }
   );
-  const sessionId = agent.mcpClient.sessionIds.vccp;
-  sessionManager.addSession(sessionId, agent);
-
-  return sessionId;
+  sessionManager.addSession(agentId, agent);
+  return agentId;
 }
 
 //MCPトランスポートの初期化
@@ -187,7 +203,8 @@ wss.on("connection", (ws) => {
   });
 });
 
-app.post("/mcp", async (req, res) => {
+app.post("/mcp/:id", async (req, res) => {
+  console.log("MCP Request Headers:", req.body);
   const sessionId = req.headers["mcp-session-id"] as string | undefined;
   let transport: StreamableHTTPServerTransport;
   if (sessionId && transports[sessionId]) {
@@ -196,9 +213,12 @@ app.post("/mcp", async (req, res) => {
     transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: () => randomUUID(),
       onsessioninitialized: (sessionId) => {
+        const id = req.params.id;
+        MCPSessionToAgentId.set(sessionId, id);
         transports[sessionId] = transport;
       },
     });
+
     transport.onclose = () => {
       if (transport.sessionId) {
         delete transports[transport.sessionId];
@@ -227,8 +247,8 @@ const handleSessionRequest = async (
   await transport.handleRequest(req, res);
 };
 
-app.get("/mcp", handleSessionRequest);
-app.delete("/mcp", handleSessionRequest);
+app.get("/mcp/:id", handleSessionRequest);
+app.delete("/mcp/:id", handleSessionRequest);
 
 app.post("/init", async (req, res) => {
   try {
@@ -246,14 +266,15 @@ app.post("/init", async (req, res) => {
       })
     );
   } catch (e) {
+    console.log(e);
     return res
       .status(500)
       .json(createJsonRpcError("32000", "エラーが発生しました。"));
   }
 });
 
-app.post("/perception", async (req, res) => {
-  const sessionId = req.headers["mcp-session-id"] as string | undefined;
+app.post("/perception/:id", async (req, res) => {
+  const sessionId = req.params.id;
   if (sessionId) {
     try {
       console.log(req.body);
@@ -305,4 +326,4 @@ app.post("/perception", async (req, res) => {
   }
 });
 
-httpServer.listen(3000);
+httpServer.listen(3001);

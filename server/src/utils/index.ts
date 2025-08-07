@@ -1,4 +1,4 @@
-import { ValidateFunction } from "ajv";
+import { type ValidateFunction } from "ajv";
 
 export const createJsonRpcError = (code: string, error: string) => {
   return {
@@ -14,6 +14,17 @@ export const createJsonRpcResult = (result: Record<string, any>) => {
   return {
     jsonrpc: "2.0",
     result,
+  };
+};
+
+export const createJsonRpcRequest = (
+  method: string,
+  params: Record<string, any>
+) => {
+  return {
+    jsonrpc: "2.0",
+    method,
+    params,
   };
 };
 

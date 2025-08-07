@@ -1,5 +1,5 @@
 import WebSocket from "ws";
-import { AgentImpl } from "../agents/agent";
+import { AgentImpl } from "../agents/agent.ts";
 
 type Session = { agent: AgentImpl; ws: WebSocket[] };
 
