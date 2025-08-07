@@ -1,0 +1,111 @@
+{
+  "metadata": {
+    "id": "15022737-901c-4d72-b06d-bb20b1782086",
+    "name": "maril",
+    "personality": "",
+    "story": "",
+    "url": "http://localhost:4002",
+    "version": "1.0.0",
+    "author": "maril",
+    "tags": ["developer"],
+    "icon": "https://pbs.twimg.com/profile_images/1951985481929093120/QEojfihL_400x400.jpg"
+  },
+  "actions": [
+    {
+      "title": "move",
+      "description": "三次元空間上で座標(x,y,z)に移動します。",
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number",
+          "description": "X座標"
+        },
+        "y": {
+          "type": "number",
+          "description": "Y座標"
+        },
+        "z": {
+          "type": "number",
+          "description": "Z座標"
+        }
+      },
+      "required": ["x", "y", "z"]
+    },
+    {
+      "title": "look",
+      "description": "特定の座標(x,y,z)を注視します。",
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number",
+          "description": "注視するX座標"
+        },
+        "y": {
+          "type": "number",
+          "description": "注視するY座標"
+        },
+        "z": {
+          "type": "number",
+          "description": "注視するZ座標"
+        }
+      },
+      "required": ["x", "y", "z"]
+    },
+    {
+      "title": "speak",
+      "description": "言葉を発します。",
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "description": "発話する内容"
+        }
+      },
+      "required": ["message"]
+    }
+  ],
+  "perceptions": [
+    {
+      "title": "vision",
+      "description": "カメラ映像から人や物体を検出して知覚する。",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "enum": ["vision"],
+          "description": "知覚情報の名前"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["image"],
+          "description": "知覚情報の種類。画像。"
+        },
+        "body": {
+          "type": "string",
+          "description": "データ本体"
+        }
+      },
+      "required": ["title", "format", "body"]
+    }
+  ],
+  "events": [
+    {
+      "messageType": "perception",
+      "request": ["vision"],
+      "response": ["speak"],
+      "condition": "人が映った画像を知覚したとき、送信者にフレンドリーにspeakします。"
+    },
+    {
+      "messageType": "action",
+      "request": ["speak"],
+      "action": ["speak"],
+      "condition": "送信者が入力を送ってきたら、それについて送信者にspeakします。"
+    },
+    {
+      "messageType": "action",
+      "request": ["speak"],
+      "action": ["speak", "move"],
+      "condition": "送信者が、移動をしてと入力してきたら、それに合わせて適切な位置にmoveします。また、移動した地点について送信者にspeakします。"
+    }
+  ]
+}

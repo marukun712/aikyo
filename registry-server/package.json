@@ -1,0 +1,21 @@
+{
+  "name": "registry-server",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "scripts": {
+    "dev": "bun index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.1",
+    "@types/express": "^5.0.3",
+    "express": "^5.1.0",
+    "zod": "^4.0.15"
+  }
+}

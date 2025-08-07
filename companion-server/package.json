@@ -1,0 +1,37 @@
+{
+  "name": "companion-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "mastra dev",
+    "build": "mastra build",
+    "start": "mastra start"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^1.2.12",
+    "@hono/node-server": "^1.18.1",
+    "@mastra/core": "^0.13.1",
+    "@mastra/libsql": "^0.13.1",
+    "@mastra/loggers": "^0.10.6",
+    "@mastra/mcp": "^0.10.10",
+    "@mastra/memory": "^0.12.1",
+    "dotenv": "^17.2.1",
+    "hono": "^4.8.12",
+    "mqtt": "^5.14.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.0",
+    "mastra": "^0.10.20",
+    "typescript": "^5.9.2"
+  }
+}
