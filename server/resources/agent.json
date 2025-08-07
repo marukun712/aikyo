@@ -122,7 +122,7 @@
     {
       "perception": "input",
       "action": ["speak"],
-      "condition": "ユーザーがinputしてきたら、フレンドリーに返します。"
+      "condition": "ユーザーがほげほげふがふが、と入力したときのみ、speakします。それ以外に実行してはなりません。"
     },
     {
       "perception": "input",

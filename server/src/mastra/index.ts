@@ -124,12 +124,12 @@ server.registerTool(
     }
     const agentId = MCPSessionToAgentId.get(sessionId);
     if (!agentId) {
-      console.log("Error:AgentIdとMCP SessionIdが紐づけられていません。");
+      console.log("Error:AgentIdとMCPSessionIdが紐づけられていません。");
       return {
         content: [
           {
             type: "text",
-            text: "Error:AgentIdとMCP SessionIdが紐づけられていません。",
+            text: "Error:AgentIdとMCPSessionIdが紐づけられていません。",
           },
         ],
       };
@@ -204,7 +204,6 @@ wss.on("connection", (ws) => {
 });
 
 app.post("/mcp/:id", async (req, res) => {
-  console.log("MCP Request Headers:", req.body);
   const sessionId = req.headers["mcp-session-id"] as string | undefined;
   let transport: StreamableHTTPServerTransport;
   if (sessionId && transports[sessionId]) {
