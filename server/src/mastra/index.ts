@@ -6,14 +6,26 @@ import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import fs from "fs/promises";
 import { z } from "zod";
 import Ajv, { type ValidateFunction } from "ajv";
-import { AICompanionSchema, JSONRPCRequestSchema } from "../../schema/index.ts";
+import {
+  AgentInitSchema,
+  AICompanionSchema,
+  PerceptionSendSchema,
+  SubscribeRequestSchema,
+} from "../../schema/index.ts";
 import { AgentImpl } from "./agents/agent.ts";
 import { anthropic } from "@ai-sdk/anthropic";
 import { config } from "dotenv";
 import http from "http";
 import { WebSocketServer } from "ws";
+import {
+  createJsonRpcError,
+  createJsonRpcResult,
+  validateWithMap,
+} from "../utils/index.ts";
+import { SessionManagerImpl } from "./session/index.ts";
 config();
 
+//初期化とバリデーション
 const ajv = new Ajv();
 const app = express();
 app.use(express.json({ limit: "200mb" }));
@@ -23,8 +35,6 @@ const server = new McpServer({
   name: "AICompanionServer",
   version: "1.0.0",
 });
-
-let agent: AgentImpl | null = null;
 
 const file = await fs.readFile("resources/agent.json", "utf8");
 const parsed = AICompanionSchema.safeParse(JSON.parse(file));
@@ -45,6 +55,10 @@ parsed.data.perceptions.map((perception) => {
   perceptions.set(perception.title, validate);
 });
 
+//Sessionの初期化
+const sessionManager = new SessionManagerImpl();
+
+//MCPサーバーの初期化
 server.registerResource(
   "spec",
   "spec://main",
@@ -74,185 +88,50 @@ server.registerTool(
       parameters: z.any(),
     },
   },
-  async ({ actionName, parameters }) => {
+  async ({ actionName, parameters }, { sessionId }) => {
     console.log(actionName, parameters);
-
-    const validate = actions.get(actionName);
-    if (!validate) {
-      console.log("Error:そのactionは存在しません");
+    //LLMが送ってきたパラメータをバリデーションする
+    const validate = validateWithMap(actions, actionName, parameters);
+    if (!validate.valid) {
+      console.log(validate.error);
       return {
-        content: [{ type: "text", text: "Error:そのactionは存在しません" }],
-      };
-    }
-    if (!validate(parameters)) {
-      console.log("Error:パラメータが不正です");
-      return {
-        content: [{ type: "text", text: "Error:パラメータが不正です" }],
+        content: [
+          {
+            type: "text",
+            text: validate.error,
+          },
+        ],
       };
     }
     const result = {
       action: actionName,
       parameters: parameters,
     };
-
-    wss.clients.forEach((client) => {
-      if (client.readyState === client.OPEN) {
-        client.send(JSON.stringify(result));
-      }
-    });
-    console.log("正常にアクションが送信されました。", result);
-
+    if (!sessionId) {
+      console.log("Error:SessionIdが正常に初期化されていません。");
+      return {
+        content: [
+          {
+            type: "text",
+            text: "Error:SessionIdが正常に初期化されていません。",
+          },
+        ],
+      };
+    }
+    sessionManager.sendMessage(sessionId, JSON.stringify(result));
     return {
       content: [{ type: "text", text: "正常にアクションが送信されました。" }],
     };
   }
 );
 
-const transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
-const httpServer = http.createServer(app);
-const wss = new WebSocketServer({ server: httpServer });
-
-app.post("/mcp", async (req, res) => {
-  const sessionId = req.headers["mcp-session-id"] as string | undefined;
-  let transport: StreamableHTTPServerTransport;
-
-  if (sessionId && transports[sessionId]) {
-    transport = transports[sessionId];
-  } else if (!sessionId && isInitializeRequest(req.body)) {
-    transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: () => randomUUID(),
-      onsessioninitialized: (sessionId) => {
-        transports[sessionId] = transport;
-      },
-    });
-
-    transport.onclose = () => {
-      if (transport.sessionId) {
-        delete transports[transport.sessionId];
-      }
-    };
-    await server.connect(transport);
-  } else {
-    res.status(400).json({
-      jsonrpc: "2.0",
-      error: {
-        code: -32000,
-        message: "Bad Request: No valid session ID provided",
-      },
-    });
-    return;
+//Agentの初期化メソッド
+async function initAgent() {
+  if (!parsed.data) {
+    throw new Error("初期化が完了していません。");
   }
-
-  await transport.handleRequest(req, res, req.body);
-});
-
-const handleSessionRequest = async (
-  req: express.Request,
-  res: express.Response
-) => {
-  const sessionId = req.headers["mcp-session-id"] as string | undefined;
-  if (!sessionId || !transports[sessionId]) {
-    res.status(400).send("Invalid or missing session ID");
-    return;
-  }
-
-  const transport = transports[sessionId];
-  await transport.handleRequest(req, res);
-};
-
-app.get("/mcp", handleSessionRequest);
-app.delete("/mcp", handleSessionRequest);
-app.post("/perception", async (req, res) => {
-  try {
-    console.log(req.body);
-    const parsed = JSONRPCRequestSchema.safeParse(req.body);
-
-    if (!parsed.success) {
-      return res.status(400).json({
-        jsonrpc: "2.0",
-        error: {
-          code: -32600,
-          message: "リクエストが不正です。",
-        },
-      });
-    } else {
-      const validate = perceptions.get(parsed.data.params.title);
-      if (!validate) {
-        return res.status(400).json({
-          jsonrpc: "2.0",
-          error: {
-            code: -32600,
-            message: "そのperceptionは存在しません。",
-          },
-        });
-      }
-      if (!validate(parsed.data.params)) {
-        return res.status(400).json({
-          jsonrpc: "2.0",
-          error: {
-            code: -32600,
-            message: "リクエストが不正です。",
-          },
-        });
-      } else {
-        if (parsed.data.params.format === "image") {
-          if (!agent) {
-            return res.status(400).json({
-              jsonrpc: "2.0",
-              error: {
-                code: -32000,
-                message: "agentが正常に初期化されていません。",
-              },
-            });
-          }
-
-          const chat = await agent.loadImage(parsed.data.params.body);
-          console.log(chat.response);
-          return res.status(200).json({
-            jsonrpc: "2.0",
-            result: {
-              text: chat.response,
-            },
-          });
-        } else if (
-          parsed.data.params.format === "text" ||
-          parsed.data.params.format === "object"
-        ) {
-          if (!agent) {
-            return res.status(400).json({
-              jsonrpc: "2.0",
-              error: {
-                code: -32000,
-                message: "agentが正常に初期化されていません。",
-              },
-            });
-          }
-          const chat = await agent.chat(parsed.data.params.body);
-          console.log(chat.response);
-          return res.status(200).json({
-            jsonrpc: "2.0",
-            result: {
-              text: chat.response,
-            },
-          });
-        }
-      }
-    }
-  } catch (e) {
-    console.log(e);
-    return res.status(500).json({
-      jsonrpc: "2.0",
-      error: {
-        code: -32000,
-        message: "エラーが発生しました。",
-      },
-    });
-  }
-});
-
-httpServer.listen(3000, async () => {
   const llm = anthropic("claude-4-sonnet-20250514");
-  agent = await AgentImpl.create(
+  const agent = await AgentImpl.create(
     llm,
     { url: "http://localhost:3000" },
     {
@@ -278,4 +157,152 @@ httpServer.listen(3000, async () => {
       database: "file:db/mastra.db",
     }
   );
+  const sessionId = agent.mcpClient.sessionIds.vccp;
+  sessionManager.addSession(sessionId, agent);
+
+  return sessionId;
+}
+
+//MCPトランスポートの初期化
+const transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
+const httpServer = http.createServer(app);
+const wss = new WebSocketServer({ server: httpServer });
+
+wss.on("connection", (ws) => {
+  ws.on("message", (message: string) => {
+    console.log(`Received message => ${message}`);
+    try {
+      const parsed = SubscribeRequestSchema.safeParse(JSON.parse(message));
+      if (!parsed.success) {
+        return ws.send(
+          JSON.stringify(createJsonRpcError("32600", "スキーマが不正です。"))
+        );
+      }
+      sessionManager.connectWebSocket(parsed.data.params.sessionId, ws);
+    } catch (e) {
+      return ws.send(
+        JSON.stringify(createJsonRpcError("32000", "エラーが発生しました。"))
+      );
+    }
+  });
 });
+
+app.post("/mcp", async (req, res) => {
+  const sessionId = req.headers["mcp-session-id"] as string | undefined;
+  let transport: StreamableHTTPServerTransport;
+  if (sessionId && transports[sessionId]) {
+    transport = transports[sessionId];
+  } else if (!sessionId && isInitializeRequest(req.body)) {
+    transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: () => randomUUID(),
+      onsessioninitialized: (sessionId) => {
+        transports[sessionId] = transport;
+      },
+    });
+    transport.onclose = () => {
+      if (transport.sessionId) {
+        delete transports[transport.sessionId];
+      }
+    };
+    await server.connect(transport);
+  } else {
+    res
+      .status(400)
+      .json(createJsonRpcError("32600", "SessionIdが指定されていません。"));
+    return;
+  }
+  await transport.handleRequest(req, res, req.body);
+});
+
+const handleSessionRequest = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  const sessionId = req.headers["mcp-session-id"] as string | undefined;
+  if (!sessionId || !transports[sessionId]) {
+    res.status(400).send("Invalid or missing session ID");
+    return;
+  }
+  const transport = transports[sessionId];
+  await transport.handleRequest(req, res);
+};
+
+app.get("/mcp", handleSessionRequest);
+app.delete("/mcp", handleSessionRequest);
+
+app.post("/init", async (req, res) => {
+  try {
+    console.log(req.body);
+    const parsed = AgentInitSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res
+        .status(400)
+        .json(createJsonRpcError("32600", "リクエストが不正です。"));
+    }
+    const sessionId = await initAgent();
+    return res.status(200).json(
+      createJsonRpcResult({
+        sessionId: sessionId,
+      })
+    );
+  } catch (e) {
+    return res
+      .status(500)
+      .json(createJsonRpcError("32000", "エラーが発生しました。"));
+  }
+});
+
+app.post("/perception", async (req, res) => {
+  const sessionId = req.headers["mcp-session-id"] as string | undefined;
+  if (sessionId) {
+    try {
+      console.log(req.body);
+      const parsed = PerceptionSendSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res
+          .status(400)
+          .json(createJsonRpcError("32600", "リクエストが不正です。"));
+      } else {
+        const agent = sessionManager.getAgent(sessionId);
+        if (!agent) {
+          return res
+            .status(400)
+            .json(
+              createJsonRpcError("32600", "Agentが正しく初期化されていません。")
+            );
+        }
+        if (parsed.data.params.format === "image") {
+          const chat = await agent.loadImage(parsed.data.params.body);
+          console.log(chat.response);
+          return res.status(200).json(
+            createJsonRpcResult({
+              text: chat.response,
+            })
+          );
+        } else if (
+          parsed.data.params.format === "text" ||
+          parsed.data.params.format === "object"
+        ) {
+          const chat = await agent.chat(parsed.data.params.body);
+          console.log(chat.response);
+          return res.status(200).json(
+            createJsonRpcResult({
+              text: chat.response,
+            })
+          );
+        }
+      }
+    } catch (e) {
+      console.log(e);
+      return res
+        .status(500)
+        .json(createJsonRpcError("32000", "エラーが発生しました。"));
+    }
+  } else {
+    res
+      .status(400)
+      .json(createJsonRpcError("32000", "SessionIdが指定されていません。"));
+  }
+});
+
+httpServer.listen(3000);

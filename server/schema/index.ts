@@ -41,9 +41,28 @@ export const AICompanionSchema = z.object({
   events: z.array(EventSchema),
 });
 
-export const JSONRPCRequestSchema = z.object({
+export const PerceptionSendSchema = z.object({
   jsonrpc: z.literal("2.0"),
-  method: z.string(),
-  params: z.record(z.any()),
+  method: z.literal("perception.send"),
+  params: z.object({
+    title: z.string(),
+    format: z.string(),
+    body: z.string(),
+  }),
+  id: z.union([z.string(), z.number()]).optional(),
+});
+
+export const AgentInitSchema = z.object({
+  jsonrpc: z.literal("2.0"),
+  method: z.literal("agent.init"),
+  id: z.union([z.string(), z.number()]).optional(),
+});
+
+export const SubscribeRequestSchema = z.object({
+  jsonrpc: z.literal("2.0"),
+  method: z.literal("subscribe.request"),
+  params: z.object({
+    sessionId: z.string(),
+  }),
   id: z.union([z.string(), z.number()]).optional(),
 });
