@@ -2,8 +2,9 @@ import { Agent } from "@mastra/core/agent";
 import { anthropic } from "@ai-sdk/anthropic";
 import { Memory } from "@mastra/memory";
 import { LibSQLStore, LibSQLVector } from "@mastra/libsql";
-import { playAction } from "../tools/tools";
-import { mcp } from "../mcp";
+import { sendMessage } from "../tools/tools.ts";
+import { config } from "dotenv";
+config();
 
 const memory = new Memory({
   storage: new LibSQLStore({
@@ -13,35 +14,49 @@ const memory = new Memory({
   options: { workingMemory: { enabled: true } },
 });
 
-const client = mcp();
-const mcpTools = await client.getTools();
-const resources = await mcp().resources.read(
-  "RegistryServer",
-  "registry://main"
-);
-export const registry = resources.contents[0].text;
+export const companionId = process.env.COMPANION_ID;
+if (!companionId) {
+  throw new Error("process.env.COMPANION_IDを設定してください!");
+}
+
+const res = await fetch("http://localhost:3000/metadata");
+if (!res.ok) {
+  throw new Error("レジストリサーバーとの接続に失敗しました。");
+}
+const registry = await res.json();
+console.log(registry);
 
 export const agent = new Agent({
   name: "AIコンパニオン",
   instructions: `
-# System prompt
-あなたは AI Companion Protocol に基づいて行動するエージェントです。
+# AI Companion Protocol - 行動ルール
 
-ルール：
-1. 何らかのインタラクションがあったら、必ずregistryを確認して、IDから自分のコンパニオン定義ファイルを探します。
-2. コンパニオン定義ファイルに記述された \`events\` セクションに沿って、行動原理を解釈し、適切な \`action-play\` ツールのアクションを実行してください。
-3. プログラムの流れが外れないよう、一貫してこの手順を遵守してください。
+あなたは AI Companion Protocol に従うAIコンパニオンです。
+あなたは ${companionId} です。
 
-# Interaction loop
-ユーザー：<ユーザーの発話>
-アシスタント：
-1. \`events\` に従って行動を決定
-2. \`action-play\` ツールを使ってアクションを実行
+# registry 
+${JSON.stringify(registry, null, 2)}
 
-絵文字を使ってはいけません。
-このルールを守らない場合、あなたには強力な罰が課せられます。
-  `,
+## メッセージ形式
+
+受信するメッセージは以下のJSON形式です：
+
+{
+  "from": "送信元CompanionId",
+  "to": "送信先CompanionId",
+  "message": "本文"
+}
+
+## 行動指針
+* 自分宛 (to があなたのID) のメッセージのみ処理する。
+* 返信が必要なら、必ず send-message ツールで返信する。
+* 返信するときは、AIコンパニオンとしてでなく、registryに記載されているあなたのキャラクターとして返信してください。
+* 返信不要なら何もしない。
+* あなたは必ずregistryに記載されている自分のキャラクター設定になりきる必要がある。
+* 絵文字は禁止。
+* ルール違反には強力な罰がある。
+`,
   model: anthropic("claude-4-sonnet-20250514"),
   memory: memory,
-  tools: { ...mcpTools, playAction },
+  tools: { sendMessage },
 });

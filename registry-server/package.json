@@ -13,9 +13,10 @@
     "dev": "bun index.ts"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.17.1",
+    "@modelcontextprotocol/sdk": "^1.17.2",
     "@types/express": "^5.0.3",
     "express": "^5.1.0",
-    "zod": "^4.0.15"
+    "hono": "^4.9.0",
+    "zod": "^3.23.8"
   }
 }

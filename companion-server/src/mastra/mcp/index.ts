@@ -1,11 +1,11 @@
 import { MCPClient } from "@mastra/mcp";
 
-export const mcp = () => {
+export const mcp = (url: string) => {
   return new MCPClient({
     servers: {
-      RegistryServer: {
+      BodyServer: {
         command: "npx",
-        args: ["-y", "mcp-remote", `http://localhost:3000/mcp`],
+        args: ["-y", "mcp-remote", url],
       },
     },
   });
