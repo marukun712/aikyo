@@ -25,7 +25,7 @@ client.on("message", async (message, payload) => {
     if (!parsed.success) {
       throw new Error("メッセージのスキーマが不正です。");
     }
-    if (parsed.data.to === companionId) {
+    if (parsed.data.to === companionId || parsed.data.to === "all") {
       console.log("received", companionId);
       const res = await agent.generate(JSON.stringify(parsed.data, null, 2), {
         resourceId: "user",

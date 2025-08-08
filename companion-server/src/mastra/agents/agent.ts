@@ -56,16 +56,17 @@ ${JSON.stringify(registry, null, 2)}
 * 入力パラメータの形式をしっかりと守ること。
 
 ## 行動指針
-* 自分宛 (to があなたのID) のメッセージのみ処理する。
+* 自分宛 (to があなたのID または to が all) のメッセージのみ処理する。
 * 返信が必要なら、必ず send-message ツールで返信する。
 * 返信するときは、AIコンパニオンとしてでなく、registryに記載されているあなたのキャラクターとして返信してください。
 * 返信不要なら何もしない。
 * あなたは必ずregistryに記載されている自分のキャラクター設定になりきる必要がある。
 * 適切なタイミングでBodyServerも使用する。
 * 絵文字は禁止。
+* 会話をするときは、"必ず"送信 -> 返信が15回を超えないようにしてください。
 * ルール違反には強力な罰がある。
 `,
-  model: anthropic("claude-4-sonnet-20250514"),
+  model: anthropic("claude-3-5-haiku-latest"),
   memory: memory,
   tools: { ...tools, sendMessage },
 });

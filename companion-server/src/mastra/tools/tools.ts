@@ -14,6 +14,14 @@ export const sendMessage = createTool({
     try {
       const data = { from: companionId, to, message };
       console.log(data);
+
+      //10秒間待つ
+      await new Promise<void>((resolve, reject) => {
+        setTimeout(() => {
+          resolve();
+        }, 10000);
+      });
+
       client.publish("messages", JSON.stringify(data));
       return { result: "正常にアクションが送信されました。" };
     } catch (e) {

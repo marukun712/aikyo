@@ -155,7 +155,7 @@ server.registerTool(
       const base64 = await generateMotion(prompt);
       const data = {
         from: id,
-        name: "look",
+        name: "animation",
         params: {
           base64,
         },
