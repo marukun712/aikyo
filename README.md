@@ -34,6 +34,8 @@ AI Companion Protocol は以下の目的を達成するために設計されて�
 
 ## 2. プロトコル アーキテクチャ
 
+![network](./assets/network.png)
+
 ### 2.1 システム構成
 
 AI Companion Protocol は 4 つの主要コンポーネントで構成される：
