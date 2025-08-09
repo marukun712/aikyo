@@ -1,0 +1,52 @@
+services:
+  registry-server:
+    build:
+      context: ./registry-server
+    ports:
+      - 3000:3000
+    networks:
+      - app_network
+  relay-server:
+    build:
+      context: ./relay-server
+    ports:
+      - 1883:1883
+    networks:
+      - app_network
+    depends_on:
+      - registry-server
+  body-server:
+    build:
+      context: ./body-server
+    networks:
+      - app_network
+    depends_on:
+      - relay-server
+  companion-1:
+    build:
+      context: ./companion-server
+    environment:
+      - COMPANION_ID=15022737-901c-4d72-b06d-bb20b1782086
+      - PORT=4000
+    ports:
+      - 4000:4000
+    networks:
+      - app_network
+    depends_on:
+      - body-server
+  companion-2:
+    build:
+      context: ./companion-server
+    environment:
+      - COMPANION_ID=ad1ba016-3c1b-4e6d-af14-ce50bfa8d5ae
+      - PORT=4001
+    ports:
+      - 4001:4001
+    networks:
+      - app_network
+    depends_on:
+      - body-server
+
+networks:
+  app_network:
+    driver: bridge

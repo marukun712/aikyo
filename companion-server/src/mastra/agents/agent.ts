@@ -20,13 +20,13 @@ if (!companionId) {
   throw new Error("process.env.COMPANION_IDを設定してください!");
 }
 
-const res = await fetch("http://localhost:3000/metadata");
+const res = await fetch("http://registry-server:3000/metadata");
 if (!res.ok) {
   throw new Error("レジストリサーバーとの接続に失敗しました。");
 }
 const registry = await res.json();
 
-const bodyServer = mcp("http://localhost:8001/mcp");
+const bodyServer = mcp("http://body-server:3001/mcp");
 const tools = await bodyServer.getTools();
 
 export const agent = new Agent({

@@ -5,7 +5,7 @@ export const mcp = (url: string) => {
     servers: {
       BodyServer: {
         command: "npx",
-        args: ["-y", "mcp-remote", url],
+        args: ["-y", "mcp-remote", url, "--allow-http"],
       },
     },
   });

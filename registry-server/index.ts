@@ -5,7 +5,7 @@ import { Hono } from "hono";
 const app = new Hono();
 
 const companions = new Map<string, AiCompanion>();
-const dirPath = "../agents";
+const dirPath = "./agents";
 const fileNames = fs.readdirSync(dirPath);
 
 fileNames.forEach((fileName) => {

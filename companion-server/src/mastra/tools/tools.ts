@@ -19,7 +19,7 @@ export const sendMessage = createTool({
       await new Promise<void>((resolve, reject) => {
         setTimeout(() => {
           resolve();
-        }, 10000);
+        }, Math.random() * (30000 - 10000) + 10000);
       });
 
       client.publish("messages", JSON.stringify(data));

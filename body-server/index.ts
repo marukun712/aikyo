@@ -16,7 +16,7 @@ const server = new McpServer({
   version: "1.0.0",
 });
 
-export const client = mqtt.connect("mqtt://localhost:1883");
+export const client = mqtt.connect("mqtt://relay-server:1883");
 client.on("connect", () => {
   client.subscribe("actions");
 });
@@ -235,6 +235,6 @@ const handleSessionRequest = async (
 app.get("/mcp", handleSessionRequest);
 app.delete("/mcp", handleSessionRequest);
 
-app.listen(8001, () => {
-  console.log("server started and listening on http://localhost:8001");
+app.listen(3001, () => {
+  console.log("server started and listening on http://localhost:3001");
 });
