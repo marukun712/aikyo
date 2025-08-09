@@ -14,9 +14,14 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.2",
+    "@prisma/client": "^6.13.0",
     "@types/express": "^5.0.3",
+    "@types/mongoose": "^5.11.97",
     "express": "^5.1.0",
     "hono": "^4.9.0",
-    "zod": "^3.23.8"
+    "mongoose": "^8.17.1",
+    "prisma": "^6.13.0",
+    "zod": "^4.0.16",
+    "zod-prisma-types": "^3.2.4"
   }
 }
