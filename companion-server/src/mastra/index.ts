@@ -8,7 +8,7 @@ const app = new Hono();
 
 const MessageSchema = z.object({
   from: z.string(),
-  to: z.union([z.enum(["all"]), z.string()]),
+  to: z.union([z.enum(["all", "none"]), z.string()]),
   message: z.string(),
 });
 
@@ -38,4 +38,4 @@ client.on("message", async (message, payload) => {
   }
 });
 
-serve({ fetch: app.fetch, port: process.env.PORT ?? 4000 });
+serve({ fetch: app.fetch, port: Number(process.env.PORT) ?? 4000 });

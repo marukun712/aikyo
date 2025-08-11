@@ -47,190 +47,217 @@ const furnitureUpdateSchema = z.object({
   roomId: z.string().optional(),
 });
 
-app.post(
-  "/rooms",
-  validator("json", (value, c) => {
-    const parsed = roomCreateSchema.safeParse(value);
-    if (!parsed.success) {
-      return c.json({ error: "Invalid Schema." }, 400);
-    }
-    return parsed.data;
-  }),
-  async (c) => {
+const route = app
+  .get("/rooms", async (c) => {
     try {
-      const body = c.req.valid("json");
-      const room = await Room.create(body);
-      return c.json(room, 201);
+      const rooms = await Room.find().lean();
+      return c.json(rooms, 200);
     } catch (e) {
       console.log(e);
-      return c.json({ error: "Failed to create room." }, 500);
+      return c.json({ error: "Failed to fetch rooms." }, 500);
     }
-  }
-);
-
-app.put(
-  "/rooms/:id",
-  validator("json", (value, c) => {
-    const parsed = roomUpdateSchema.safeParse(value);
-    if (!parsed.success) {
-      return c.json({ error: "Invalid Schema" }, 400);
+  })
+  .post(
+    "/rooms",
+    validator("json", (value, c) => {
+      const parsed = roomCreateSchema.safeParse(value);
+      if (!parsed.success) {
+        return c.json({ error: "Invalid Schema." }, 400);
+      }
+      return parsed.data;
+    }),
+    async (c) => {
+      try {
+        const body = c.req.valid("json");
+        const room = await Room.create(body);
+        return c.json(room, 201);
+      } catch (e) {
+        console.log(e);
+        return c.json({ error: "Failed to create room." }, 500);
+      }
     }
-    return parsed.data;
-  }),
-  async (c) => {
+  )
+  .put(
+    "/rooms/:id",
+    validator("json", (value, c) => {
+      const parsed = roomUpdateSchema.safeParse(value);
+      if (!parsed.success) {
+        return c.json({ error: "Invalid Schema" }, 400);
+      }
+      return parsed.data;
+    }),
+    async (c) => {
+      try {
+        const id = c.req.param("id");
+        const body = c.req.valid("json");
+        const room = await Room.findByIdAndUpdate(id, body, {
+          new: true,
+        }).lean();
+        if (!room) {
+          return c.json({ error: "Not found" }, 404);
+        }
+        return c.json(room);
+      } catch (e) {
+        console.log(e);
+        return c.json({ error: "Failed to update room." }, 500);
+      }
+    }
+  )
+  .get("/rooms/:id", async (c) => {
     try {
       const id = c.req.param("id");
-      const body = c.req.valid("json");
-      const room = await Room.findByIdAndUpdate(id, body, { new: true });
+      const room = await Room.findById(id)
+        .populate("furniture")
+        .populate("companions")
+        .lean();
       if (!room) {
         return c.json({ error: "Not found" }, 404);
       }
       return c.json(room);
     } catch (e) {
       console.log(e);
-      return c.json({ error: "Failed to update room." }, 500);
+      return c.json({ error: "Failed to fetch room." }, 500);
     }
-  }
-);
-
-app.get("/rooms/:id", async (c) => {
-  try {
-    const id = c.req.param("id");
-    const room = await Room.findById(id)
-      .populate("furniture")
-      .populate("companions");
-    if (!room) {
-      return c.json({ error: "Not found" }, 404);
-    }
-    return c.json(room);
-  } catch (e) {
-    console.log(e);
-    return c.json({ error: "Failed to fetch room." }, 500);
-  }
-});
-
-app.post(
-  "/companions",
-  validator("json", (value, c) => {
-    const parsed = companionCreateSchema.safeParse(value);
-    if (!parsed.success) {
-      return c.json({ error: "Invalid Schema" }, 400);
-    }
-    return parsed.data;
-  }),
-  async (c) => {
+  })
+  .get("/rooms/:id/companions", async (c) => {
     try {
-      const body = c.req.valid("json");
-      const companion = await Companion.create(body);
-      return c.json(companion, 201);
+      const roomId = c.req.param("id");
+      const companions = await Companion.find({ roomId }).lean();
+      return c.json(companions, 200);
     } catch (e) {
       console.log(e);
-      return c.json({ error: "Failed to create companion." }, 500);
+      return c.json({ error: "Failed to fetch companions." }, 500);
     }
-  }
-);
-
-app.put(
-  "/companions/:id",
-  validator("json", (value, c) => {
-    const parsed = companionUpdateSchema.safeParse(value);
-    if (!parsed.success) {
-      return c.json({ error: "Invalid Schema" }, 400);
+  })
+  .get("/rooms/:id/furniture", async (c) => {
+    try {
+      const roomId = c.req.param("id");
+      const furniture = await Furniture.find({ roomId }).lean();
+      return c.json(furniture, 200);
+    } catch (e) {
+      console.log(e);
+      return c.json({ error: "Failed to fetch furniture." }, 500);
     }
-    return parsed.data;
-  }),
-  async (c) => {
+  })
+  .post(
+    "/companions",
+    validator("json", (value, c) => {
+      const parsed = companionCreateSchema.safeParse(value);
+      if (!parsed.success) {
+        return c.json({ error: "Invalid Schema" }, 400);
+      }
+      return parsed.data;
+    }),
+    async (c) => {
+      try {
+        const body = c.req.valid("json");
+        const companion = await Companion.create(body);
+        return c.json(companion, 201);
+      } catch (e) {
+        console.log(e);
+        return c.json({ error: "Failed to create companion." }, 500);
+      }
+    }
+  )
+  .put(
+    "/companions/:id",
+    validator("json", (value, c) => {
+      const parsed = companionUpdateSchema.safeParse(value);
+      if (!parsed.success) {
+        return c.json({ error: "Invalid Schema" }, 400);
+      }
+      return parsed.data;
+    }),
+    async (c) => {
+      try {
+        const id = c.req.param("id");
+        const body = c.req.valid("json");
+        const companion = await Companion.findByIdAndUpdate(id, body, {
+          new: true,
+        }).lean();
+        if (!companion) {
+          return c.json({ error: "Not found" }, 404);
+        }
+        return c.json(companion);
+      } catch (e) {
+        console.log(e);
+        return c.json({ error: "Failed to update companion." }, 500);
+      }
+    }
+  )
+  .get("/companions/:id", async (c) => {
     try {
       const id = c.req.param("id");
-      const body = c.req.valid("json");
-      const companion = await Companion.findByIdAndUpdate(id, body, {
-        new: true,
-      });
+      const companion = await Companion.findById(id).populate("roomId").lean();
       if (!companion) {
         return c.json({ error: "Not found" }, 404);
       }
       return c.json(companion);
     } catch (e) {
       console.log(e);
-      return c.json({ error: "Failed to update companion." }, 500);
+      return c.json({ error: "Failed to fetch companion." }, 500);
     }
-  }
-);
-
-app.get("/companions/:id", async (c) => {
-  try {
-    const id = c.req.param("id");
-    const companion = await Companion.findById(id).populate("roomId");
-    if (!companion) {
-      return c.json({ error: "Not found" }, 404);
+  })
+  .post(
+    "/furniture",
+    validator("json", (value, c) => {
+      const parsed = furnitureCreateSchema.safeParse(value);
+      if (!parsed.success) {
+        return c.json({ error: "Invalid Schema" }, 400);
+      }
+      return parsed.data;
+    }),
+    async (c) => {
+      try {
+        const body = c.req.valid("json");
+        const furniture = await Furniture.create(body);
+        return c.json(furniture, 201);
+      } catch (e) {
+        console.log(e);
+        return c.json({ error: "Failed to create furniture." }, 500);
+      }
     }
-    return c.json(companion);
-  } catch (e) {
-    console.log(e);
-    return c.json({ error: "Failed to fetch companion." }, 500);
-  }
-});
-
-app.post(
-  "/furniture",
-  validator("json", (value, c) => {
-    const parsed = furnitureCreateSchema.safeParse(value);
-    if (!parsed.success) {
-      return c.json({ error: "Invalid Schema" }, 400);
+  )
+  .put(
+    "/furniture/:id",
+    validator("json", (value, c) => {
+      const parsed = furnitureUpdateSchema.safeParse(value);
+      if (!parsed.success) {
+        return c.json({ error: "Invalid Schema" }, 400);
+      }
+      return parsed.data;
+    }),
+    async (c) => {
+      try {
+        const id = c.req.param("id");
+        const body = c.req.valid("json");
+        const furniture = await Furniture.findByIdAndUpdate(id, body, {
+          new: true,
+        }).lean();
+        if (!furniture) {
+          return c.json({ error: "Not found" }, 404);
+        }
+        return c.json(furniture);
+      } catch (e) {
+        console.log(e);
+        return c.json({ error: "Failed to update furniture." }, 500);
+      }
     }
-    return parsed.data;
-  }),
-  async (c) => {
-    try {
-      const body = c.req.valid("json");
-      const furniture = await Furniture.create(body);
-      return c.json(furniture, 201);
-    } catch (e) {
-      console.log(e);
-      return c.json({ error: "Failed to create furniture." }, 500);
-    }
-  }
-);
-
-app.put(
-  "/furniture/:id",
-  validator("json", (value, c) => {
-    const parsed = furnitureUpdateSchema.safeParse(value);
-    if (!parsed.success) {
-      return c.json({ error: "Invalid Schema" }, 400);
-    }
-    return parsed.data;
-  }),
-  async (c) => {
+  )
+  .get("/furniture/:id", async (c) => {
     try {
       const id = c.req.param("id");
-      const body = c.req.valid("json");
-      const furniture = await Furniture.findByIdAndUpdate(id, body, {
-        new: true,
-      });
+      const furniture = await Furniture.findById(id).populate("roomId").lean();
       if (!furniture) {
         return c.json({ error: "Not found" }, 404);
       }
       return c.json(furniture);
     } catch (e) {
       console.log(e);
-      return c.json({ error: "Failed to update furniture." }, 500);
+      return c.json({ error: "Failed to fetch furniture." }, 500);
     }
-  }
-);
+  });
 
-app.get("/furniture/:id", async (c) => {
-  try {
-    const id = c.req.param("id");
-    const furniture = await Furniture.findById(id).populate("roomId");
-    if (!furniture) {
-      return c.json({ error: "Not found" }, 404);
-    }
-    return c.json(furniture);
-  } catch (e) {
-    console.log(e);
-    return c.json({ error: "Failed to fetch furniture." }, 500);
-  }
-});
+export type routeType = typeof route;
 
 Bun.serve({ fetch: app.fetch, port: 3000 });
