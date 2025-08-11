@@ -1,11 +1,19 @@
 services:
+  mongodb:
+    image: mongodb/mongodb-atlas-local
+    networks:
+      - app_network
   registry-server:
     build:
       context: ./registry-server
     ports:
       - 3000:3000
+    environment:
+      - MONGODB_URL=mongodb://127.0.0.1:27017/registry?directConnection=true
     networks:
       - app_network
+    depends_on:
+      - mongodb
   relay-server:
     build:
       context: ./relay-server
@@ -22,6 +30,7 @@ services:
       - app_network
     depends_on:
       - relay-server
+
   companion-1:
     build:
       context: ./companion-server

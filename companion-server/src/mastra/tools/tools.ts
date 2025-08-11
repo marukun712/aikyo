@@ -6,7 +6,7 @@ import { companionId } from "../agents/agent.ts";
 export const sendMessage = createTool({
   id: "send-message",
   inputSchema: z.object({
-    to: z.union([z.enum(["all"]), z.string()]),
+    to: z.union([z.enum(["all", "none"]), z.string()]),
     message: z.string(),
   }),
   description: "メッセージを送信します。",
