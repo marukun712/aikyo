@@ -3,24 +3,15 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { updateCompanion } from "@/lib/api";
-
-type Companion = {
-  id: string;
-  name: string;
-  personality: string;
-  story: string;
-  sample: string;
-  icon: string;
-  roomId: string;
-  createdAt: string;
-  updatedAt: string;
-};
+import { type Companion } from "@/@types";
 
 interface EditCompanionClientProps {
   companion: Companion;
 }
 
-export default function EditCompanionClient({ companion }: EditCompanionClientProps) {
+export default function EditCompanionClient({
+  companion,
+}: EditCompanionClientProps) {
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -74,10 +65,7 @@ export default function EditCompanionClient({ companion }: EditCompanionClientPr
             <label>ストーリー</label>
           </div>
           <div className="field border label textarea">
-            <textarea
-              name="sample"
-              defaultValue={companion.sample}
-            ></textarea>
+            <textarea name="sample" defaultValue={companion.sample}></textarea>
             <label>サンプル</label>
           </div>
           <div className="field border label">

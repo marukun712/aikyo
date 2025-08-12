@@ -22,6 +22,11 @@ if (!companionId) {
   throw new Error("process.env.COMPANION_IDを設定してください!");
 }
 
+export const bodyServerUrl = process.env.BODYSERVER_URL;
+if (!bodyServerUrl) {
+  throw new Error("process.env.BODYSERVER_URLを設定してください!");
+}
+
 const client = hc<routeType>("http://registry-server:3000/");
 
 const companionRes = await client.companions[":id"].$get({
@@ -47,7 +52,7 @@ if ("error" in furniture) {
   throw new Error(furniture.error);
 }
 
-const bodyServer = mcp("http://body-server:3001/mcp");
+const bodyServer = mcp(bodyServerUrl);
 const tools = await bodyServer.getTools();
 
 export const agent = new Agent({

@@ -2,19 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-
-type Companion = {
-  id: string;
-  name: string;
-  personality: string;
-  story: string;
-  sample: string;
-  icon: string;
-  roomId: string;
-  createdAt: string;
-  updatedAt: string;
-  roomName?: string;
-};
+import { type Companion } from "@/@types";
 
 interface CompanionCardProps {
   companion: Companion;

@@ -4,18 +4,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { RoomResult } from "@/@types";
 import { moveCompanion } from "@/lib/api";
-
-type Companion = {
-  id: string;
-  name: string;
-  personality: string;
-  story: string;
-  sample: string;
-  icon: string;
-  roomId: string;
-  createdAt: string;
-  updatedAt: string;
-};
+import { type Companion } from "@/@types";
 
 interface MoveCompanionClientProps {
   companion: Companion;

@@ -9,7 +9,10 @@ interface AddFurnitureFormProps {
   onAdd: () => void;
 }
 
-export default function AddFurnitureForm({ rooms, onAdd }: AddFurnitureFormProps) {
+export default function AddFurnitureForm({
+  rooms,
+  onAdd,
+}: AddFurnitureFormProps) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
@@ -27,7 +30,7 @@ export default function AddFurnitureForm({ rooms, onAdd }: AddFurnitureFormProps
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="padding">
       <fieldset>
         <legend>家具追加</legend>
         <div className="field border label">

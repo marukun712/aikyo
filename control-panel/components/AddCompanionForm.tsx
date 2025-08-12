@@ -9,8 +9,10 @@ interface AddCompanionFormProps {
   onAdd: () => void;
 }
 
-export default function AddCompanionForm({ rooms, onAdd }: AddCompanionFormProps) {
-
+export default function AddCompanionForm({
+  rooms,
+  onAdd,
+}: AddCompanionFormProps) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -30,7 +32,7 @@ export default function AddCompanionForm({ rooms, onAdd }: AddCompanionFormProps
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="padding">
       <fieldset>
         <legend>コンパニオン追加</legend>
         <div className="field border label">
