@@ -242,3 +242,4 @@ const route = app
 export type routeType = typeof route;
 
 Bun.serve({ fetch: app.fetch, port: 3000 });
+console.log("server started and listening on http://localhost:3000");

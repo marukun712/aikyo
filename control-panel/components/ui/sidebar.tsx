@@ -1,14 +1,20 @@
+import Link from "next/link";
+
 export default function Sidebar() {
   return (
     <nav className="left max">
-      <a>
+      <Link href="/">
         <i>home</i>
         <div>Rooms</div>
-      </a>
-      <a>
+      </Link>
+      <Link href="/companions">
         <i>account_circle</i>
         <div>Companions</div>
-      </a>
+      </Link>
+      <Link href="/furniture">
+        <i>chair</i>
+        <div>Furniture</div>
+      </Link>
     </nav>
   );
 }

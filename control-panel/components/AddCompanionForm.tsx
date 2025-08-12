@@ -1,7 +1,16 @@
-import { RoomResult } from "@/@types";
-import { addCompanion, getRooms } from "@/lib/api";
+"use client";
 
-function AddForm({ rooms }: { rooms: RoomResult }) {
+import React from "react";
+import { RoomResult } from "@/@types";
+import { addCompanion } from "@/lib/api";
+
+interface AddCompanionFormProps {
+  rooms: RoomResult;
+  onAdd: () => void;
+}
+
+export default function AddCompanionForm({ rooms, onAdd }: AddCompanionFormProps) {
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -16,50 +25,47 @@ function AddForm({ rooms }: { rooms: RoomResult }) {
     const room = formData.get("room") as string;
 
     await addCompanion(name, personality, story, sample, icon, room);
+    form.reset();
+    onAdd();
   };
 
   return (
     <form onSubmit={handleSubmit}>
       <fieldset>
-        <legend>Fill all fields</legend>
+        <legend>コンパニオン追加</legend>
         <div className="field border label">
-          <input type="text" name="name" />
-          <label>name</label>
+          <input type="text" name="name" required />
+          <label>名前</label>
         </div>
         <div className="field border label textarea">
           <textarea name="personality"></textarea>
-          <label>personality</label>
+          <label>性格</label>
         </div>
         <div className="field border label textarea">
           <textarea name="story"></textarea>
-          <label>story</label>
+          <label>ストーリー</label>
         </div>
         <div className="field border label textarea">
           <textarea name="sample"></textarea>
-          <label>sample</label>
+          <label>サンプル</label>
         </div>
         <div className="field border label">
           <input type="text" name="icon" />
-          <label>icon</label>
+          <label>アイコン</label>
         </div>
         <div className="field border label">
-          <select name="room">
+          <select name="room" required>
+            <option value="">ルームを選択してください</option>
             {rooms.map((room) => (
-              <option key={room.name} value={room.name}>
+              <option key={room.id} value={room.id}>
                 {room.name}
               </option>
             ))}
           </select>
-          <label>Room</label>
+          <label>ルーム</label>
         </div>
-        <button type="submit">Submit</button>
+        <button type="submit">追加</button>
       </fieldset>
     </form>
   );
-}
-
-export default async function Add() {
-  const rooms = await getRooms();
-
-  return <AddForm rooms={rooms} />;
 }

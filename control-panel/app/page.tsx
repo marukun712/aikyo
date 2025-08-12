@@ -1,19 +1,28 @@
 import { RoomResult } from "@/@types";
 import Card from "@/components/ui/card";
 import { getRooms } from "@/lib/api";
+import Link from "next/link";
 
 function HomeList({ rooms }: { rooms: RoomResult }) {
   return (
-    <div className="grid medium-space">
-      {rooms.map((room) => {
-        return (
-          <Card
-            title={room.name}
-            description={`所属コンパニオン:${room.companions.length} , 家具 ${room.furniture.length}`}
-          />
-        );
-      })}
-    </div>
+    <>
+      <div className="row">
+        <Link href="/rooms/add">
+          <button>新しいルームを追加</button>
+        </Link>
+      </div>
+      <div className="grid medium-space">
+        {rooms.map((room) => {
+          return (
+            <Card
+              title={room.name}
+              key={room.id}
+              description={`所属コンパニオン:${room.companions.length} , 家具 ${room.furniture.length}`}
+            />
+          );
+        })}
+      </div>
+    </>
   );
 }
 

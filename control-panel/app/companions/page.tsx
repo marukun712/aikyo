@@ -1,11 +1,9 @@
-import Card from "@/components/ui/card";
+import React from "react";
+import { getRooms } from "@/lib/api";
+import CompanionsClient from "./CompanionsClient";
 
-export default function Companions() {
-  return (
-    <div className="grid medium-space">
-      <Card title={"Living Room"} description={"所属コンパニオン:2 , 家具:5"} />
-      <Card title={"Living Room"} description={"所属コンパニオン:2 , 家具:5"} />
-      <Card title={"Living Room"} description={"所属コンパニオン:2 , 家具:5"} />
-    </div>
-  );
+export default async function Companions() {
+  const rooms = await getRooms();
+
+  return <CompanionsClient rooms={rooms} />;
 }
