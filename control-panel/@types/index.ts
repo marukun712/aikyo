@@ -37,3 +37,14 @@ export type Companion = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type Furniture = {
+  id: string;
+  label: string;
+  x: number;
+  y: number;
+  z: number;
+  roomId: string;
+  createdAt: string;
+  updatedAt: string;
+};

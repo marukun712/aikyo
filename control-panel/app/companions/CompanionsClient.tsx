@@ -37,7 +37,7 @@ export default function CompanionsClient({
     <>
       <AddCompanionForm rooms={rooms} onAdd={fetchRooms} />
       {rooms.map((room) => (
-        <div key={room.id} style={{ marginBottom: "2rem" }}>
+        <div key={room.id}>
           <h3>{room.name}</h3>
           <hr />
           <div className="grid medium-space">

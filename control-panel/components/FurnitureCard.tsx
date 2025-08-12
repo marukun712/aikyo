@@ -2,17 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-
-type Furniture = {
-  id: string;
-  label: string;
-  x: number;
-  y: number;
-  z: number;
-  roomId: string;
-  createdAt: string;
-  updatedAt: string;
-};
+import { Furniture } from "@/@types";
 
 interface FurnitureCardProps {
   furniture: Furniture & { roomName: string };

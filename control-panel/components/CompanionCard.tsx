@@ -16,10 +16,16 @@ export default function CompanionCard({
   return (
     <article className="s6">
       <div className="padding">
+        <Link href={`/companions/${companion.id}`}>
+          <img className="round" src={companion.icon}></img>
+        </Link>
         <h5>{companion.name}</h5>
         <p>性格: {companion.personality}</p>
         <p>ストーリー: {companion.story}</p>
         <div className="row">
+          <Link href={`/companions/${companion.id}`}>
+            <button className="small">詳細</button>
+          </Link>
           <Link href={`/companions/edit?id=${companion.id}`}>
             <button className="small">編集</button>
           </Link>

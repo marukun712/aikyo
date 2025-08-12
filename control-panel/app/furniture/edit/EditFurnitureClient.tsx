@@ -4,17 +4,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { RoomResult } from "@/@types";
 import { updateFurniture } from "@/lib/api";
-
-type Furniture = {
-  id: string;
-  label: string;
-  x: number;
-  y: number;
-  z: number;
-  roomId: string;
-  createdAt: string;
-  updatedAt: string;
-};
+import { type Furniture } from "@/@types";
 
 interface EditFurnitureClientProps {
   furniture: Furniture;
