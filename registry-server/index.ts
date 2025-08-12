@@ -1,18 +1,15 @@
 import { Hono } from "hono";
 import { validator } from "hono/validator";
 import { z } from "zod";
-import { Room, Companion, Furniture } from "./lib/db";
+import { cors } from "hono/cors";
+import { prisma } from "./lib/db";
 
 const app = new Hono();
 
-const roomCreateSchema = z.object({
-  name: z.string().min(1),
-});
+app.use("*", cors());
 
-const roomUpdateSchema = z.object({
-  name: z.string().min(1).optional(),
-});
-
+const roomCreateSchema = z.object({ name: z.string().min(1) });
+const roomUpdateSchema = z.object({ name: z.string().min(1).optional() });
 const companionCreateSchema = z.object({
   name: z.string().min(1),
   personality: z.string().min(1),
@@ -21,16 +18,7 @@ const companionCreateSchema = z.object({
   icon: z.string().min(1),
   roomId: z.string(),
 });
-
-const companionUpdateSchema = z.object({
-  name: z.string().min(1).optional(),
-  personality: z.string().min(1).optional(),
-  story: z.string().min(1).optional(),
-  sample: z.string().min(1).optional(),
-  icon: z.string().min(1).optional(),
-  roomId: z.string().optional(),
-});
-
+const companionUpdateSchema = companionCreateSchema.partial();
 const furnitureCreateSchema = z.object({
   label: z.string().min(1),
   x: z.number().int(),
@@ -38,223 +26,216 @@ const furnitureCreateSchema = z.object({
   z: z.number().int(),
   roomId: z.string(),
 });
-
-const furnitureUpdateSchema = z.object({
-  label: z.string().min(1).optional(),
-  x: z.number().int().optional(),
-  y: z.number().int().optional(),
-  z: z.number().int().optional(),
-  roomId: z.string().optional(),
-});
+const furnitureUpdateSchema = furnitureCreateSchema.partial();
+const companionMoveSchema = z.object({ roomId: z.string().min(1) });
 
 const route = app
   .get("/rooms", async (c) => {
     try {
-      const rooms = await Room.find().lean();
-      return c.json(rooms, 200);
-    } catch (e) {
-      console.log(e);
+      const rooms = await prisma.room.findMany({
+        include: { furniture: true, companions: true },
+      });
+      return c.json(rooms);
+    } catch {
       return c.json({ error: "Failed to fetch rooms." }, 500);
     }
   })
   .post(
     "/rooms",
-    validator("json", (value, c) => {
-      const parsed = roomCreateSchema.safeParse(value);
-      if (!parsed.success) {
-        return c.json({ error: "Invalid Schema." }, 400);
-      }
-      return parsed.data;
+    validator("json", (v, c) => {
+      const p = roomCreateSchema.safeParse(v);
+      if (!p.success) return c.json({ error: "Invalid Schema." }, 400);
+      return p.data;
     }),
     async (c) => {
       try {
-        const body = c.req.valid("json");
-        const room = await Room.create(body);
+        const room = await prisma.room.create({ data: c.req.valid("json") });
         return c.json(room, 201);
-      } catch (e) {
-        console.log(e);
+      } catch {
         return c.json({ error: "Failed to create room." }, 500);
       }
     }
   )
   .put(
     "/rooms/:id",
-    validator("json", (value, c) => {
-      const parsed = roomUpdateSchema.safeParse(value);
-      if (!parsed.success) {
-        return c.json({ error: "Invalid Schema" }, 400);
-      }
-      return parsed.data;
+    validator("json", (v, c) => {
+      const p = roomUpdateSchema.safeParse(v);
+      if (!p.success) return c.json({ error: "Invalid Schema" }, 400);
+      return p.data;
     }),
     async (c) => {
       try {
-        const id = c.req.param("id");
-        const body = c.req.valid("json");
-        const room = await Room.findByIdAndUpdate(id, body, {
-          new: true,
-        }).lean();
-        if (!room) {
-          return c.json({ error: "Not found" }, 404);
-        }
+        const room = await prisma.room.update({
+          where: { id: c.req.param("id") },
+          data: c.req.valid("json"),
+        });
         return c.json(room);
-      } catch (e) {
-        console.log(e);
+      } catch {
         return c.json({ error: "Failed to update room." }, 500);
       }
     }
   )
   .get("/rooms/:id", async (c) => {
     try {
-      const id = c.req.param("id");
-      const room = await Room.findById(id)
-        .populate("furniture")
-        .populate("companions")
-        .lean();
-      if (!room) {
-        return c.json({ error: "Not found" }, 404);
-      }
+      const room = await prisma.room.findUnique({
+        where: { id: c.req.param("id") },
+        include: { furniture: true, companions: true },
+      });
+      if (!room) return c.json({ error: "Not found" }, 404);
       return c.json(room);
-    } catch (e) {
-      console.log(e);
+    } catch {
       return c.json({ error: "Failed to fetch room." }, 500);
     }
   })
   .get("/rooms/:id/companions", async (c) => {
     try {
-      const roomId = c.req.param("id");
-      const companions = await Companion.find({ roomId }).lean();
-      return c.json(companions, 200);
-    } catch (e) {
-      console.log(e);
+      const companions = await prisma.companion.findMany({
+        where: { roomId: c.req.param("id") },
+      });
+      return c.json(companions);
+    } catch {
       return c.json({ error: "Failed to fetch companions." }, 500);
     }
   })
   .get("/rooms/:id/furniture", async (c) => {
     try {
-      const roomId = c.req.param("id");
-      const furniture = await Furniture.find({ roomId }).lean();
-      return c.json(furniture, 200);
-    } catch (e) {
-      console.log(e);
+      const furniture = await prisma.furniture.findMany({
+        where: { roomId: c.req.param("id") },
+      });
+      return c.json(furniture);
+    } catch {
       return c.json({ error: "Failed to fetch furniture." }, 500);
     }
   })
   .post(
     "/companions",
-    validator("json", (value, c) => {
-      const parsed = companionCreateSchema.safeParse(value);
-      if (!parsed.success) {
-        return c.json({ error: "Invalid Schema" }, 400);
-      }
-      return parsed.data;
+    validator("json", (v, c) => {
+      const p = companionCreateSchema.safeParse(v);
+      if (!p.success) return c.json({ error: "Invalid Schema" }, 400);
+      return p.data;
     }),
     async (c) => {
       try {
-        const body = c.req.valid("json");
-        const companion = await Companion.create(body);
+        const companion = await prisma.companion.create({
+          data: c.req.valid("json"),
+        });
         return c.json(companion, 201);
-      } catch (e) {
-        console.log(e);
+      } catch {
         return c.json({ error: "Failed to create companion." }, 500);
       }
     }
   )
   .put(
     "/companions/:id",
-    validator("json", (value, c) => {
-      const parsed = companionUpdateSchema.safeParse(value);
-      if (!parsed.success) {
-        return c.json({ error: "Invalid Schema" }, 400);
-      }
-      return parsed.data;
+    validator("json", (v, c) => {
+      const p = companionUpdateSchema.safeParse(v);
+      if (!p.success) return c.json({ error: "Invalid Schema" }, 400);
+      return p.data;
     }),
     async (c) => {
       try {
-        const id = c.req.param("id");
-        const body = c.req.valid("json");
-        const companion = await Companion.findByIdAndUpdate(id, body, {
-          new: true,
-        }).lean();
-        if (!companion) {
-          return c.json({ error: "Not found" }, 404);
-        }
+        const companion = await prisma.companion.update({
+          where: { id: c.req.param("id") },
+          data: c.req.valid("json"),
+        });
         return c.json(companion);
-      } catch (e) {
-        console.log(e);
+      } catch {
         return c.json({ error: "Failed to update companion." }, 500);
       }
     }
   )
   .get("/companions/:id", async (c) => {
     try {
-      const id = c.req.param("id");
-      const companion = await Companion.findById(id).populate("roomId").lean();
-      if (!companion) {
-        return c.json({ error: "Not found" }, 404);
-      }
+      const companion = await prisma.companion.findUnique({
+        where: { id: c.req.param("id") },
+      });
+      if (!companion) return c.json({ error: "Not found" }, 404);
       return c.json(companion);
-    } catch (e) {
-      console.log(e);
+    } catch {
       return c.json({ error: "Failed to fetch companion." }, 500);
     }
   })
-  .post(
-    "/furniture",
-    validator("json", (value, c) => {
-      const parsed = furnitureCreateSchema.safeParse(value);
-      if (!parsed.success) {
-        return c.json({ error: "Invalid Schema" }, 400);
-      }
-      return parsed.data;
+  .delete("/companions/:id", async (c) => {
+    try {
+      await prisma.companion.delete({ where: { id: c.req.param("id") } });
+      return c.json({ message: "Companion deleted successfully" });
+    } catch {
+      return c.json({ error: "Failed to delete companion." }, 500);
+    }
+  })
+  .put(
+    "/companions/:id/move",
+    validator("json", (v, c) => {
+      const p = companionMoveSchema.safeParse(v);
+      if (!p.success) return c.json({ error: "Invalid Schema" }, 400);
+      return p.data;
     }),
     async (c) => {
       try {
-        const body = c.req.valid("json");
-        const furniture = await Furniture.create(body);
+        const companion = await prisma.companion.update({
+          where: { id: c.req.param("id") },
+          data: { roomId: c.req.valid("json").roomId },
+        });
+        return c.json({ message: "Companion moved successfully", companion });
+      } catch {
+        return c.json({ error: "Failed to move companion." }, 500);
+      }
+    }
+  )
+  .post(
+    "/furniture",
+    validator("json", (v, c) => {
+      const p = furnitureCreateSchema.safeParse(v);
+      if (!p.success) return c.json({ error: "Invalid Schema" }, 400);
+      return p.data;
+    }),
+    async (c) => {
+      try {
+        const furniture = await prisma.furniture.create({
+          data: c.req.valid("json"),
+        });
         return c.json(furniture, 201);
-      } catch (e) {
-        console.log(e);
+      } catch {
         return c.json({ error: "Failed to create furniture." }, 500);
       }
     }
   )
   .put(
     "/furniture/:id",
-    validator("json", (value, c) => {
-      const parsed = furnitureUpdateSchema.safeParse(value);
-      if (!parsed.success) {
-        return c.json({ error: "Invalid Schema" }, 400);
-      }
-      return parsed.data;
+    validator("json", (v, c) => {
+      const p = furnitureUpdateSchema.safeParse(v);
+      if (!p.success) return c.json({ error: "Invalid Schema" }, 400);
+      return p.data;
     }),
     async (c) => {
       try {
-        const id = c.req.param("id");
-        const body = c.req.valid("json");
-        const furniture = await Furniture.findByIdAndUpdate(id, body, {
-          new: true,
-        }).lean();
-        if (!furniture) {
-          return c.json({ error: "Not found" }, 404);
-        }
+        const furniture = await prisma.furniture.update({
+          where: { id: c.req.param("id") },
+          data: c.req.valid("json"),
+        });
         return c.json(furniture);
-      } catch (e) {
-        console.log(e);
+      } catch {
         return c.json({ error: "Failed to update furniture." }, 500);
       }
     }
   )
   .get("/furniture/:id", async (c) => {
     try {
-      const id = c.req.param("id");
-      const furniture = await Furniture.findById(id).populate("roomId").lean();
-      if (!furniture) {
-        return c.json({ error: "Not found" }, 404);
-      }
+      const furniture = await prisma.furniture.findUnique({
+        where: { id: c.req.param("id") },
+      });
+      if (!furniture) return c.json({ error: "Not found" }, 404);
       return c.json(furniture);
-    } catch (e) {
-      console.log(e);
+    } catch {
       return c.json({ error: "Failed to fetch furniture." }, 500);
+    }
+  })
+  .delete("/furniture/:id", async (c) => {
+    try {
+      await prisma.furniture.delete({ where: { id: c.req.param("id") } });
+      return c.json({ message: "Furniture deleted successfully" });
+    } catch {
+      return c.json({ error: "Failed to delete furniture." }, 500);
     }
   });
 
