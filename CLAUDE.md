@@ -59,6 +59,21 @@ This is an AI Companion Protocol system - a distributed microservices architectu
 
 ## Development Commands
 
+### Taskfile (Recommended)
+
+The project uses Taskfile for orchestrated development:
+
+```bash
+# Start all core services (registry, relay, control-panel, body-server)
+task run
+
+# Start individual services
+task registry-server:up
+task relay-server:up  
+task control-panel:up
+task body-server:up
+```
+
 ### Individual Services
 
 **registry-server, body-server, relay-server:**

@@ -15,13 +15,6 @@ export const sendMessage = createTool({
       const data = { from: companionId, to, message };
       console.log(data);
 
-      //10~30秒間待つ
-      await new Promise<void>((resolve, reject) => {
-        setTimeout(() => {
-          resolve();
-        }, Math.random() * (30000 - 10000) + 10000);
-      });
-
       client.publish("messages/" + room, JSON.stringify(data));
       return { result: "正常にアクションが送信されました。" };
     } catch (e) {

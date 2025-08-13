@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { RoomResult } from "@/@types";
 import { addCompanion } from "@/lib/api";
 
@@ -9,10 +9,53 @@ interface AddCompanionFormProps {
   onAdd: () => void;
 }
 
+interface CompanionData {
+  name: string;
+  personality: string;
+  story: string;
+  sample: string;
+  icon: string;
+}
+
 export default function AddCompanionForm({
   rooms,
   onAdd,
 }: AddCompanionFormProps) {
+  const [isUsingJson, setIsUsingJson] = useState(false);
+
+  const handleJsonUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const jsonData: CompanionData = JSON.parse(
+          event.target?.result as string
+        );
+
+        const form = document.getElementById(
+          "companion-form"
+        ) as HTMLFormElement;
+        (form.elements.namedItem("name") as HTMLInputElement).value =
+          jsonData.name || "";
+        (form.elements.namedItem("personality") as HTMLTextAreaElement).value =
+          jsonData.personality || "";
+        (form.elements.namedItem("story") as HTMLTextAreaElement).value =
+          jsonData.story || "";
+        (form.elements.namedItem("sample") as HTMLTextAreaElement).value =
+          jsonData.sample || "";
+        (form.elements.namedItem("icon") as HTMLInputElement).value =
+          jsonData.icon || "";
+      } catch (error) {
+        alert(
+          "JSONファイルの読み込みに失敗しました。正しい形式のファイルを選択してください。"
+        );
+      }
+    };
+    reader.readAsText(file);
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -32,9 +75,30 @@ export default function AddCompanionForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="padding">
+    <form id="companion-form" onSubmit={handleSubmit} className="padding">
       <fieldset>
         <legend>コンパニオン追加</legend>
+
+        <div className="field label">
+          <label className="checkbox">
+            <input
+              type="checkbox"
+              checked={isUsingJson}
+              onChange={(e) => setIsUsingJson(e.target.checked)}
+            />
+            <span>JSONファイルから読み込む</span>
+          </label>
+        </div>
+
+        {isUsingJson && (
+          <div className="field label suffix border">
+            <input type="file" accept=".json" onChange={handleJsonUpload} />
+            <input type="text" />
+            <label>File</label>
+            <i>attach_file</i>
+          </div>
+        )}
+
         <div className="field border label">
           <input type="text" name="name" required />
           <label>名前</label>

@@ -95,7 +95,6 @@ ${JSON.stringify(furniture, null, 2)}
 * あなたは必ずregistryに記載されている自分のキャラクター設定になりきる必要がある。
 * 適切なタイミングでBodyServerも使用する。
 * 絵文字は禁止。
-* 会話をするときは、"必ず"送信 -> 返信が15回を超えないようにしてください。
 * ルール違反には強力な罰がある。
 `,
   model: anthropic("claude-3-5-haiku-latest"),
