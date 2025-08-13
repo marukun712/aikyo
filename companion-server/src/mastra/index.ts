@@ -12,7 +12,7 @@ const MessageSchema = z.object({
   message: z.string(),
 });
 
-export const client = mqtt.connect("mqtt://relay-server:1883");
+export const client = mqtt.connect("mqtt://host.docker.internal:1883");
 
 client.on("connect", () => {
   client.subscribe("messages");
@@ -38,4 +38,4 @@ client.on("message", async (message, payload) => {
   }
 });
 
-serve({ fetch: app.fetch, port: Number(process.env.PORT) ?? 4000 });
+serve({ fetch: app.fetch, port: 4000 });

@@ -5,8 +5,6 @@ import { LibSQLStore, LibSQLVector } from "@mastra/libsql";
 import { sendMessage } from "../tools/tools.ts";
 import { config } from "dotenv";
 import { mcp } from "../mcp/index.ts";
-import { hc } from "hono/client";
-import { routeType } from "../../../../registry-server/index.ts";
 config();
 
 const memory = new Memory({
@@ -22,36 +20,41 @@ if (!companionId) {
   throw new Error("process.env.COMPANION_IDを設定してください!");
 }
 
-export const bodyServerUrl = process.env.BODYSERVER_URL;
+export const bodyServerUrl = process.env.BODY_SERVER_URL;
 if (!bodyServerUrl) {
   throw new Error("process.env.BODYSERVER_URLを設定してください!");
 }
 
-const client = hc<routeType>("http://registry-server:3000/");
+const baseUrl = "http://host.docker.internal:3000";
 
-const companionRes = await client.companions[":id"].$get({
-  param: { id: companionId },
-});
+const companionRes = await fetch(`${baseUrl}/companions/${companionId}`);
+if (!companionRes.ok) {
+  throw new Error(`Failed to fetch companion: ${companionRes.status}`);
+}
 const companion = await companionRes.json();
 if ("error" in companion) {
   throw new Error(companion.error);
 }
+
 export const room = companion.roomId;
-const companionsRes = await client.rooms[":id"].companions.$get({
-  param: { id: room },
-});
+
+const companionsRes = await fetch(`${baseUrl}/rooms/${room}/companions`);
+if (!companionsRes.ok) {
+  throw new Error(`Failed to fetch room companions: ${companionsRes.status}`);
+}
 const registry = await companionsRes.json();
 if ("error" in registry) {
   throw new Error(registry.error);
 }
-const furnitureRes = await client.rooms[":id"].furniture.$get({
-  param: { id: room },
-});
+
+const furnitureRes = await fetch(`${baseUrl}/rooms/${room}/furniture`);
+if (!furnitureRes.ok) {
+  throw new Error(`Failed to fetch room furniture: ${furnitureRes.status}`);
+}
 const furniture = await furnitureRes.json();
 if ("error" in furniture) {
   throw new Error(furniture.error);
 }
-
 const bodyServer = mcp(bodyServerUrl);
 const tools = await bodyServer.getTools();
 

@@ -23,18 +23,16 @@ export default function CompanionCard({
         <p>性格: {companion.personality}</p>
         <p>ストーリー: {companion.story}</p>
         <div className="row">
-          <Link href={`/companions/${companion.id}`}>
-            <button className="small">詳細</button>
-          </Link>
-          <Link href={`/companions/edit?id=${companion.id}`}>
-            <button className="small">編集</button>
-          </Link>
-          <Link href={`/companions/move?id=${companion.id}`}>
-            <button className="small">移動</button>
-          </Link>
-          <button className="small" onClick={() => onDelete(companion.id)}>
-            削除
+          <button>
+            <Link href={`/companions/${companion.id}`}>詳細 </Link>
           </button>
+          <button>
+            <Link href={`/companions/edit?id=${companion.id}`}>編集 </Link>
+          </button>
+          <button>
+            <Link href={`/companions/move?id=${companion.id}`}>移動 </Link>
+          </button>
+          <button onClick={() => onDelete(companion.id)}>削除</button>
         </div>
       </div>
     </article>

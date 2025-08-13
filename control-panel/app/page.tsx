@@ -17,7 +17,7 @@ function HomeList({ rooms }: { rooms: RoomResult }) {
             <Card
               title={room.name}
               key={room.id}
-              description={`所属コンパニオン:${room.companions.length} , 家具 ${room.furniture.length}`}
+              description={`所属コンパニオン ${room.companions.length} , 家具 ${room.furniture.length}`}
             />
           );
         })}
