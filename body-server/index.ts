@@ -16,7 +16,7 @@ const server = new McpServer({
   version: "1.0.0",
 });
 
-export const client = mqtt.connect("mqtt://host.docker.internal:1883");
+export const client = mqtt.connect("mqtt://localhost:1883");
 client.on("connect", () => {
   client.subscribe("actions");
 });

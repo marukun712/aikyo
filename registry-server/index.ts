@@ -107,6 +107,16 @@ const route = app
       return c.json({ error: "Failed to fetch furniture." }, 500);
     }
   })
+  .get("/rooms/:id/reset", async (c) => {
+    try {
+      await prisma.furniture.deleteMany({
+        where: { roomId: c.req.param("id") },
+      });
+      return c.json({ message: "Furniture deleted successfully" });
+    } catch {
+      return c.json({ error: "Failed to fetch furniture." }, 500);
+    }
+  })
   .post(
     "/companions",
     validator("json", (v, c) => {

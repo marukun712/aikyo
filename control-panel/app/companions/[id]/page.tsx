@@ -1,4 +1,4 @@
-import { getCompanion, getRooms } from "@/lib/api";
+import { getCompanion, getRoom } from "@/lib/api";
 import CompanionDetailClient from "./CompanionDetailClient";
 
 export default async function CompanionDetailPage({
@@ -13,12 +13,8 @@ export default async function CompanionDetailPage({
   }
 
   try {
-    const [companion, rooms] = await Promise.all([
-      getCompanion(id),
-      getRooms(),
-    ]);
-
-    const room = rooms.find((r) => r.companions.some((c) => c.id === id));
+    const companion = await getCompanion(id);
+    const room = await getRoom(companion.roomId);
 
     return <CompanionDetailClient companion={companion} room={room} />;
   } catch (error) {

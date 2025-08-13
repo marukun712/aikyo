@@ -15,7 +15,7 @@ export const sendMessage = createTool({
       const data = { from: companionId, to, message };
       console.log(data);
 
-      //10秒間待つ
+      //10~30秒間待つ
       await new Promise<void>((resolve, reject) => {
         setTimeout(() => {
           resolve();

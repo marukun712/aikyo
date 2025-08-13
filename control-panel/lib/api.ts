@@ -1,7 +1,7 @@
 import { hc } from "hono/client";
 import { routeType } from "../../registry-server";
 
-const client = hc<routeType>("http://host.docker.internal:3000/");
+const client = hc<routeType>("http://localhost:3000/");
 
 export const addCompanion = async (
   name: string,

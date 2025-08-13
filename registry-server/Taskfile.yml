@@ -1,0 +1,9 @@
+version: "3"
+
+tasks:
+  up:
+    cmds:
+      - bun i
+      - docker-compose up -d
+      - bun prisma db push
+      - bun run dev

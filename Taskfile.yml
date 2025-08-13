@@ -1,0 +1,27 @@
+version: "3"
+
+tasks:
+  run:
+    cmds:
+      - npx oh-my-logo "MRTalk" sunset --filled
+      - task: up
+  up:
+    deps:
+      - task: registry-server:up
+      - task: relay-server:up
+      - task: control-panel:up
+      - task: body-server:up
+
+includes:
+  registry-server:
+    taskfile: ./registry-server/Taskfile.yml
+    dir: ./registry-server
+  relay-server:
+    taskfile: ./relay-server/Taskfile.yml
+    dir: ./relay-server
+  control-panel:
+    taskfile: ./control-panel/Taskfile.yml
+    dir: ./control-panel
+  body-server:
+    taskfile: ./body-server/Taskfile.yml
+    dir: ./body-server

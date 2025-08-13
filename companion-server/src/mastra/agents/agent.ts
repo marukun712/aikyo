@@ -22,7 +22,7 @@ if (!companionId) {
 
 export const bodyServerUrl = process.env.BODY_SERVER_URL;
 if (!bodyServerUrl) {
-  throw new Error("process.env.BODYSERVER_URLを設定してください!");
+  throw new Error("process.env.BODY_SERVER_URLを設定してください!");
 }
 
 const baseUrl = "http://host.docker.internal:3000";
