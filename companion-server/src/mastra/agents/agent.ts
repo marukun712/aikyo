@@ -36,7 +36,7 @@ const companion = await companionRes.json();
 if ("error" in companion) {
   throw new Error(companion.error);
 }
-const room = companion.roomId;
+export const room = companion.roomId;
 const companionsRes = await client.rooms[":id"].companions.$get({
   param: { id: room },
 });

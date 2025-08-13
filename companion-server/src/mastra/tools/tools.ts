@@ -1,7 +1,7 @@
 import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
 import { client } from "../index.ts";
-import { companionId } from "../agents/agent.ts";
+import { companionId, room } from "../agents/agent.ts";
 
 export const sendMessage = createTool({
   id: "send-message",
@@ -22,7 +22,7 @@ export const sendMessage = createTool({
         }, Math.random() * (30000 - 10000) + 10000);
       });
 
-      client.publish("messages", JSON.stringify(data));
+      client.publish("messages/" + room, JSON.stringify(data));
       return { result: "正常にアクションが送信されました。" };
     } catch (e) {
       return { result: e };
