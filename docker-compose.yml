@@ -24,6 +24,7 @@ services:
       context: ./relay-server
     ports:
       - "1883:1883"
+      - "8080:8080"
     networks:
       - app_network
     depends_on:

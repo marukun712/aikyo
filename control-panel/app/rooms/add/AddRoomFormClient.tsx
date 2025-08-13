@@ -15,7 +15,7 @@ export default function AddRoomFormClient() {
     const name = formData.get("name") as string;
 
     await addRoom(name);
-    router.push("/rooms");
+    router.push("/");
   };
 
   return (

@@ -16,33 +16,10 @@ const server = new McpServer({
   version: "1.0.0",
 });
 
-export const client = mqtt.connect("mqtt://relay-server:1883");
+export const client = mqtt.connect("mqtt://host.docker.internal:1883");
 client.on("connect", () => {
   client.subscribe("actions");
 });
-
-const Response = z.object({ file: z.string() });
-
-export const generateMotion = async (prompt: string) => {
-  const res = await fetch("http://100.73.74.135:8000/t2m", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text: prompt }),
-  });
-
-  if (!res.ok) {
-    throw new Error("Motion generation failed.");
-  }
-
-  const file = await res.json();
-  const parsed = Response.safeParse(file);
-
-  if (parsed.success) {
-    return parsed.data.file;
-  } else {
-    throw new Error("Invalid Schema.");
-  }
-};
 
 server.registerTool(
   "move",
@@ -139,25 +116,22 @@ server.registerTool(
 );
 
 server.registerTool(
-  "animation",
+  "gesture",
   {
-    title: "Animation",
-    description:
-      "あなたの動きを表現する。プロンプトは必ず英語の短い文章にしてください。",
+    title: "Gesture",
+    description: "体の動きを表現する",
     inputSchema: {
       id: z.string().uuid(),
-      prompt: z.string(),
+      type: z.enum(["wave", "jump", "dance", "nod", "stretch", "clap"]),
     },
   },
-  async ({ id, prompt }) => {
-    console.log(id, prompt);
+  async ({ id, type }) => {
     try {
-      const base64 = await generateMotion(prompt);
       const data = {
         from: id,
-        name: "animation",
+        name: "gesture",
         params: {
-          base64,
+          type,
         },
       };
       console.log(data);

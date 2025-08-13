@@ -2,7 +2,7 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import z from "zod";
 import mqtt from "mqtt";
-import { agent, companionId } from "./agents/agent.ts";
+import { agent, companionId, room } from "./agents/agent.ts";
 
 const app = new Hono();
 
@@ -15,7 +15,7 @@ const MessageSchema = z.object({
 export const client = mqtt.connect("mqtt://host.docker.internal:1883");
 
 client.on("connect", () => {
-  client.subscribe("messages");
+  client.subscribe("messages/" + room);
 });
 
 client.on("message", async (message, payload) => {
@@ -38,4 +38,7 @@ client.on("message", async (message, payload) => {
   }
 });
 
-serve({ fetch: app.fetch, port: 4000 });
+serve({
+  fetch: app.fetch,
+  port: process.env.PORT ? Number(process.env.PORT) : 4000,
+});

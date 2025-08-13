@@ -1,15 +1,13 @@
 FROM node:24-alpine
 
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
 WORKDIR /app
 
 COPY . .
 
-WORKDIR /app/companion-server
-RUN npm install
+RUN pnpm install
 
-WORKDIR /app/registry-server
-RUN npm install
-
-WORKDIR /app/companion-server
-
-CMD npm run dev;
+CMD pnpm run dev;
