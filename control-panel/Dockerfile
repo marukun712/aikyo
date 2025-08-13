@@ -6,4 +6,4 @@ COPY . .
 
 RUN bun install
 
-CMD bun prisma db push && bun run dev
+CMD bun run dev -p 8000;
