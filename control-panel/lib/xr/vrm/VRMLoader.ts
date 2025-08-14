@@ -1,4 +1,4 @@
-import { VRMLoaderPlugin } from "@pixiv/three-vrm";
+import { VRM, VRMLoaderPlugin } from "@pixiv/three-vrm";
 import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import * as THREE from "three";
 import { VRMAnimationLoaderPlugin } from "@pixiv/three-vrm-animation";
@@ -50,7 +50,11 @@ function loadVRM(
 }
 
 export class VRMLoader {
-  async load(path: string) {
+  async load(path: string): Promise<{
+    gltf: GLTF;
+    vrm: VRM;
+    helperRoot: THREE.Group<THREE.Object3DEventMap>;
+  }> {
     const data = await loadVRM(path);
 
     return {

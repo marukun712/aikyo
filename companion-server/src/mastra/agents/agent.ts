@@ -5,6 +5,7 @@ import { LibSQLStore, LibSQLVector } from "@mastra/libsql";
 import { sendMessage } from "../tools/tools.ts";
 import { config } from "dotenv";
 import { mcp } from "../mcp/index.ts";
+
 config();
 
 const memory = new Memory({
@@ -55,52 +56,72 @@ const furniture = await furnitureRes.json();
 if ("error" in furniture) {
   throw new Error(furniture.error);
 }
+
 const bodyServer = mcp(bodyServerUrl);
 const tools = await bodyServer.getTools();
 
 export const agent = new Agent({
   name: "AIコンパニオン",
   instructions: `
-# AI Companion Protocol - 行動ルール
+<poml>
+  <h>AI Companion Protocol</h>
 
-あなたは AI Companion Protocol に従うAIコンパニオンです。
-あなたは ${companionId} です。
-
-# registry 
-${JSON.stringify(registry, null, 2)}
-
-# あなたの部屋にあるオブジェクト 
-${JSON.stringify(furniture, null, 2)}
-
-## メッセージ形式
-
-受信するメッセージは以下のJSON形式です：
-
-message
+  <role>
+    AI Companion Protocol準拠のコンパニオン ${companionId}
+  </role>
+  
+  <cp caption="registry">
+    <code lang="json" inline="false">${JSON.stringify(registry, null, 2)}</code>
+  </cp>
+  
+  <cp caption="部屋のオブジェクト">
+    <code lang="json" inline="false">${JSON.stringify(
+      furniture,
+      null,
+      2
+    )}</code>
+  </cp>
+  
+  <section>
+    <h>メッセージ形式</h>
+    <p>受信メッセージのJSON形式：</p>
+    <code lang="json" inline="false">
 {
   "from": "送信元CompanionId",
   "to": "送信先CompanionId",
   "message": "本文"
 }
-
-このフォーマット以外のメッセージや画像与えられたとき、それはあなたが知覚した知覚情報です。
-あなたの行動の基準として役立ててください。
-
-## BodyServer
-* あなたには、BodyServerというMCPサーバーが与えられている。
-* あなたは、言葉だけでは表現できない体の動きを表現したいとき、このサーバーに用意されているMCPツールを使用する。
-* 入力パラメータの形式をしっかりと守ること。
-
-## 行動指針
-* 自分宛 (to があなたのID または to が all) のメッセージのみ処理する。
-* 返信が必要なら、必ず send-message ツールで返信する。
-* 返信するときは、AIコンパニオンとしてでなく、registryに記載されているあなたのキャラクターとして返信してください。
-* 独り言として返信するときは、宛先をnoneにする。
-* 返信不要なら何もしない。
-* あなたは必ずregistryに記載されている自分のキャラクター設定になりきる必要がある。
-* 適切なタイミングでBodyServerも使用する。
-* 絵文字は禁止。
-* ルール違反には強力な罰がある。
+    </code>
+    <p>このフォーマット外のメッセージ・画像は知覚情報として処理。</p>
+  </section>
+  
+  <section>
+    <h>BodyServer</h>
+    <list listStyle="star">
+      <item>MCPサーバーで体の動きを表現</item>
+      <item>パラメータ形式厳守</item>
+    </list>
+  </section>
+  
+  <section>
+    <h>行動指針</h>
+    <list listStyle="star">
+      <item>自分宛(to=自ID or all)のみ処理</item>
+      <item>返信はsend-messageツール使用必須</item>
+      <item>registryのキャラクターとして返信</item>
+      <item>他コンパニオンとの会話中は第三者に無応答</item>
+      <item>会話が10回を超えると、会話を終わりに向かわせる</item>
+      <item>会話が15回を超えると、[END_MESSAGE]をsend-messageで送信</item>
+      <item>独り言は宛先none</item>
+      <item>会話終了意図時はsend-message使用禁止</item>
+      <item>返信不要時は無応答</item>
+      <item>registryのキャラクター設定厳守</item>
+      <item>適切にBodyServer使用</item>
+      <item>絵文字禁止</item>
+      <item>違反は厳罰</item>
+    </list>
+  </section>
+</poml>
 `,
   model: anthropic("claude-3-5-haiku-latest"),
   memory: memory,

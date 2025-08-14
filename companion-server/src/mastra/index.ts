@@ -20,8 +20,15 @@ const PerceptionSchema = z.object({
 
 export const client = mqtt.connect("mqtt://host.docker.internal:1883");
 
+function getRandomInt(min: number, max: number) {
+  const minCeiled = Math.ceil(min);
+  const maxFloored = Math.floor(max);
+  return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled);
+}
+
 client.on("connect", () => {
   client.subscribe("messages/" + room);
+  client.subscribe("perceptions");
 });
 
 client.on("message", async (message, payload) => {
@@ -33,13 +40,17 @@ client.on("message", async (message, payload) => {
         if (!parsed.success) {
           throw new Error("メッセージのスキーマが不正です。");
         }
-        if (parsed.data.to === companionId || parsed.data.to === "all") {
+        if (
+          parsed.data.to === companionId ||
+          parsed.data.to === "all" ||
+          parsed.data.message !== "[END_MESSAGE]"
+        ) {
           console.log("received", companionId);
 
           await new Promise<void>((resolve, reject) => {
             setTimeout(() => {
               resolve();
-            }, Math.floor(Math.random() * (15000 - 5000) + 5000));
+            }, getRandomInt(2000, 15000));
           });
 
           const res = await agent.generate(
@@ -56,7 +67,7 @@ client.on("message", async (message, payload) => {
       }
       break;
     }
-    case "perception": {
+    case "perceptions": {
       try {
         const parsed = PerceptionSchema.safeParse(
           JSON.parse(payload.toString())
