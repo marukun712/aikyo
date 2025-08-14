@@ -1,160 +1,86 @@
 # CLAUDE.md
 
-必ず日本語で回答してください。
-
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Architecture
+必ず日本語で回答してください。
 
-This is an AI Companion Protocol system - a distributed microservices architecture for AI companions that can interact with each other and their environment through MQTT messaging. The system consists of 5 core services:
+## 開発コマンド
 
-### Core Services
-
-**registry-server** (Port 3000)
-
-- PostgreSQL database with Prisma ORM
-- REST API for managing Rooms, Companions, and Furniture
-- Database schema: Room → Companions & Furniture (one-to-many relationships)
-- Companions have personality, story, sample dialogue, and icon
-- Furniture has 3D coordinates (x, y, z) and labels
-
-**companion-server** (Ports 4000, 4001...)
-
-- Each companion runs as a separate service instance
-- Mastra.js-based AI agents using Google Gemini 2.5 Flash Lite
-- Connected to registry-server for character data and room information
-- MQTT client subscribing to "messages" topic for inter-companion communication
-- Uses MCP (Model Context Protocol) to communicate with body-server for physical actions
-- Memory system with LibSQL for working memory and vector storage
-
-**relay-server** (Port 1883)
-
-- MQTT broker using Aedes
-- Handles message routing between companions and body actions
-- Two main topics: "messages" (text communication) and "actions" (physical movements)
-
-**body-server** (Port 3001)
-
-- MCP server providing physical action capabilities
-- Tools: move(x,y,z), look(x,y,z), gesture(wave/jump/dance/nod/stretch/clap)
-- Publishes actions to MQTT "actions" topic for visualization
-
-**control-panel** (Port 8000)
-
-- Next.js web interface for system management
-- CRUD operations for rooms, companions, and furniture
-- Drag-and-drop interface using @dnd-kit
-- Direct API communication with registry-server
-
-**visualization** (Optional)
-
-- Next.js + Three.js VRM viewer for 3D companion visualization
-- Subscribes to MQTT actions for real-time companion movement display
-
-### Data Flow
-
-1. Text messages flow: companion → MQTT "messages" → other companions
-2. Physical actions flow: companion → body-server (MCP) → MQTT "actions" → visualization
-3. Management flow: control-panel ↔ registry-server ↔ database
-
-## Development Commands
-
-### Taskfile (Recommended)
-
-The project uses Taskfile for orchestrated development:
-
+### 全サービス起動
 ```bash
-# Start all core services (registry, relay, control-panel, body-server)
 task run
-
-# Start individual services
-task registry-server:up
-task relay-server:up  
-task control-panel:up
-task body-server:up
 ```
 
-### Individual Services
-
-**registry-server, body-server, relay-server:**
-
+### 個別サービス開発
 ```bash
-cd [service-directory]
-bun install
-bun run dev  # or bun index.ts
+# Registry Server (データ管理)
+cd registry-server && bun run dev
+
+# Control Panel (Web UI)
+cd control-panel && bun run dev
+
+# Companion Server (AI)
+cd companion-server && bun run dev
+
+# Body Server (物理動作)
+cd body-server && bun run dev
+
+# Relay Server (通信ハブ)
+cd relay-server && bun run dev
 ```
 
-**companion-server:**
-
+### ビルド・デプロイ
 ```bash
-cd companion-server
-npm install
-npm run dev      # Development
-npm run build    # Build with Mastra
-npm run start    # Production start
+# Control Panel
+cd control-panel && bun run build && bun run start
+
+# Companion Server
+cd companion-server && bun run build && bun run start
 ```
 
-**control-panel, visualization:**
-
+### データベース操作
 ```bash
-cd [service-directory]
-npm install
-npm run dev      # Next.js dev server
-npm run build    # Production build
-npm run lint     # ESLint
-```
-
-### Docker Deployment
-
-Full system with PostgreSQL:
-
-```bash
-docker-compose up --build
-```
-
-Companion instances only:
-
-```bash
-docker-compose -f companions.yml up --build
-```
-
-### Database Management
-
-```bash
+# Registry Server内でPrismaコマンド実行
 cd registry-server
-# Generate Prisma client and Zod schemas
-npx prisma generate
-# Run migrations
-npx prisma migrate dev
-# Reset database
-npx prisma migrate reset
+bun prisma generate  # Prismaクライアント生成
+bun prisma migrate dev  # マイグレーション実行
+bun prisma studio  # データベースGUI
 ```
 
-## Configuration
+## アーキテクチャ
 
-### Environment Variables
+AICompanionProtocolは仮想空間でのAIコンパニオンシステムです。
 
-**companion-server** requires:
+### コアコンポーネント
 
-- `COMPANION_ID`: UUID from registry database
-- `BODY_SERVER_URL`: MCP endpoint (e.g., http://host.docker.internal:3001/mcp)
+1. **registry-server** (ポート3000)
+   - Prisma + PostgreSQLによるデータ管理
+   - Room、Companion、Furnitureモデル
+   - REST API提供
 
-**registry-server** requires:
+2. **companion-server** 
+   - Mastraフレームワーク + Claude 3.5 Haiku
+   - MQTT経由でメッセージ受信・AI応答生成
+   - MCP経由でbody-serverのツール利用
 
-- `DATABASE_URL`: PostgreSQL connection string
+3. **control-panel** (ポート8000)
+   - Next.js + React管理画面
+   - コンパニオン・部屋・家具の視覚的管理
 
-### MQTT Topics
+4. **body-server** (ポート3001)
+   - MCPサーバーとして物理動作ツール提供
+   - move、look、gestureアクション
 
-- `messages`: JSON format `{from: string, to: string|"all"|"none", message: string}`
-- `actions`: Physical actions from body-server tools
+5. **relay-server**
+   - MQTT通信ハブ
 
-## Key Implementation Notes
+### 通信フロー
+Control Panel → Registry Server → Companion Server → Body Server → MQTT
 
-- Each companion is a separate container instance with unique COMPANION_ID
-- Companions fetch their character data and room information from registry-server on startup
-- MCP tools require UUID companion ID and coordinate parameters
-- The system enforces conversation limits (15 exchanges max) to prevent infinite loops
-- Bun runtime is used for TypeScript execution in several services
-- Prisma generates both client code and Zod validation schemas
-- All services use Zod for runtime validation
-- MQTT connections use Docker internal networking (host.docker.internal)
+### 技術スタック
+- **フロントエンド**: Next.js 15, React 19, Tailwind CSS 4
+- **バックエンド**: Hono, Bun runtime
+- **AI**: Mastra + Claude 3.5 Haiku
+- **データベース**: Prisma + PostgreSQL
+- **通信**: MQTT, MCP (Model Context Protocol)
+- **コンテナ**: Docker

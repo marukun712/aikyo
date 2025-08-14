@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Sidebar() {
   return (
-    <nav className="left max">
+    <nav className="left">
       <Link href="/">
         <i>home</i>
         <div>Rooms</div>

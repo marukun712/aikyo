@@ -1,4 +1,6 @@
 import { spawn } from "child_process";
+export const fetchCache = "default-no-store";
+export const dynamic = "force-dynamic";
 
 export async function HEAD(request: Request) {
   const url = new URL(request.url);

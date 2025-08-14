@@ -1,5 +1,7 @@
 import { getFurniture, getRooms } from "@/lib/api";
 import EditFurnitureClient from "./EditFurnitureClient";
+export const fetchCache = "default-no-store";
+export const dynamic = "force-dynamic";
 
 export default async function EditFurniture({
   searchParams,
@@ -14,10 +16,9 @@ export default async function EditFurniture({
   }
 
   try {
-    const [furniture, rooms] = await Promise.all([
-      getFurniture(furnitureId),
-      getRooms(),
-    ]);
+    const furniture = await getFurniture(furnitureId);
+    const rooms = await getRooms();
+
     return <EditFurnitureClient furniture={furniture} rooms={rooms} />;
   } catch (error) {
     return <div>データの取得に失敗しました</div>;

@@ -72,7 +72,7 @@ export default function EditCompanionClient({
             <input type="text" name="icon" defaultValue={companion.icon} />
             <label>アイコン</label>
           </div>
-          <div className="row">
+          <div>
             <button type="submit">更新</button>
             <button type="button" onClick={handleCancel}>
               キャンセル

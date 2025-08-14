@@ -1,5 +1,7 @@
 import { getCompanion, getRoom } from "@/lib/api";
 import CompanionDetailClient from "./CompanionDetailClient";
+export const fetchCache = "default-no-store";
+export const dynamic = "force-dynamic";
 
 export default async function CompanionDetailPage({
   params,

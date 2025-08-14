@@ -21,13 +21,11 @@ export default function FurnitureCard({
           座標: ({furniture.x}, {furniture.y}, {furniture.z})
         </p>
         <p>部屋: {furniture.roomName}</p>
-        <div className="row">
-          <Link href={`/furniture/edit?id=${furniture.id}`}>
-            <button className="small">編集</button>
-          </Link>
-          <button className="small" onClick={() => onDelete(furniture.id)}>
-            削除
+        <div>
+          <button>
+            <Link href={`/furniture/edit?id=${furniture.id}`}>編集</Link>
           </button>
+          <button onClick={() => onDelete(furniture.id)}>削除</button>
         </div>
       </div>
     </article>

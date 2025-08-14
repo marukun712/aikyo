@@ -2,11 +2,13 @@ import { RoomResult } from "@/@types";
 import Card from "@/components/ui/card";
 import { getRooms } from "@/lib/api";
 import Link from "next/link";
+export const fetchCache = "default-no-store";
+export const dynamic = "force-dynamic";
 
 function HomeList({ rooms }: { rooms: RoomResult }) {
   return (
     <>
-      <div className="row">
+      <div>
         <Link href="/rooms/add">
           <button>新しいルームを追加</button>
         </Link>

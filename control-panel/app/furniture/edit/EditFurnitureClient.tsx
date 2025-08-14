@@ -56,7 +56,7 @@ export default function EditFurnitureClient({
             />
             <label>名前</label>
           </div>
-          <div className="row">
+          <div>
             <div className="field border label">
               <input
                 type="number"
@@ -95,7 +95,7 @@ export default function EditFurnitureClient({
             </select>
             <label>部屋</label>
           </div>
-          <div className="row">
+          <div>
             <button type="submit">更新</button>
             <button type="button" onClick={handleCancel}>
               キャンセル

@@ -50,7 +50,7 @@ export default function MoveCompanionClient({
             </select>
             <label>移動先ルーム</label>
           </div>
-          <div className="row">
+          <div>
             <button type="submit">移動</button>
             <button type="button" onClick={handleCancel}>
               キャンセル

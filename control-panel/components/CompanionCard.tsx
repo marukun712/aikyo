@@ -66,7 +66,7 @@ export default function CompanionCard({
         </p>
         <p>性格: {companion.personality}</p>
         <p>ストーリー: {companion.story}</p>
-        <div className="row">
+        <div>
           <button>
             <Link href={`/companions/${companion.id}`}>詳細 </Link>
           </button>

@@ -20,6 +20,7 @@
     "@ai-sdk/anthropic": "^1.2.12",
     "@hono/node-server": "^1.18.1",
     "@mastra/core": "^0.13.1",
+    "@mastra/evals": "^0.12.0",
     "@mastra/libsql": "^0.13.1",
     "@mastra/loggers": "^0.10.6",
     "@mastra/mcp": "^0.10.10",

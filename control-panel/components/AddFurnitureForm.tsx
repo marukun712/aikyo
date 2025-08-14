@@ -37,7 +37,7 @@ export default function AddFurnitureForm({
           <input type="text" name="label" required />
           <label>名前</label>
         </div>
-        <div className="row">
+        <div>
           <div className="field border label">
             <input type="number" name="x" required />
             <label>X座標</label>

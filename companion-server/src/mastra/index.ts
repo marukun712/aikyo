@@ -27,6 +27,13 @@ client.on("message", async (message, payload) => {
     }
     if (parsed.data.to === companionId || parsed.data.to === "all") {
       console.log("received", companionId);
+
+      await new Promise<void>((resolve, reject) => {
+        setTimeout(() => {
+          resolve();
+        }, Math.floor(Math.random() * (15000 - 5000) + 5000));
+      });
+
       const res = await agent.generate(JSON.stringify(parsed.data, null, 2), {
         resourceId: "user",
         threadId: "thread",

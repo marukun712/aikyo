@@ -1,5 +1,5 @@
 import { spawn } from "child_process";
-
+export const fetchCache = "default-no-store";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {

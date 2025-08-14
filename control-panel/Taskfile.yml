@@ -4,4 +4,5 @@ tasks:
   up:
     cmds:
       - bun i
-      - bun run dev -p 8000
+      - bun run build
+      - bun run start -p 8000

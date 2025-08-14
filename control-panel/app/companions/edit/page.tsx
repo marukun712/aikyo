@@ -1,5 +1,7 @@
 import { getCompanion } from "@/lib/api";
 import EditCompanionClient from "./EditCompanionClient";
+export const fetchCache = "default-no-store";
+export const dynamic = "force-dynamic";
 
 export default async function EditCompanion({
   searchParams,
@@ -15,6 +17,7 @@ export default async function EditCompanion({
 
   try {
     const companion = await getCompanion(companionId);
+
     return <EditCompanionClient companion={companion} />;
   } catch (error) {
     return <div>コンパニオンが見つかりませんでした</div>;
