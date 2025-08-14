@@ -8,7 +8,7 @@ import { type Companion } from "@/@types";
 
 interface MoveCompanionClientProps {
   companion: Companion;
-  rooms: RoomResult;
+  rooms: RoomResult[];
 }
 
 export default function MoveCompanionClient({

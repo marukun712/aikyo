@@ -288,3 +288,19 @@ export const deleteFurniture = async (id: string) => {
     throw new Error(e as string);
   }
 };
+
+export const resetFurniture = async (id: string) => {
+  try {
+    const res = await client.rooms[":id"].reset.$get({ param: { id } });
+
+    const json = await res.json();
+
+    if ("error" in json) {
+      throw new Error(json.error);
+    } else {
+      return json;
+    }
+  } catch (e) {
+    throw new Error(e as string);
+  }
+};

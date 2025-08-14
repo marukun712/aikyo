@@ -9,9 +9,9 @@ import AddFurnitureForm from "@/components/AddFurnitureForm";
 export default function FurnitureClient({
   rooms: initialRooms,
 }: {
-  rooms: RoomResult;
+  rooms: RoomResult[];
 }) {
-  const [rooms, setRooms] = useState<RoomResult>(initialRooms);
+  const [rooms, setRooms] = useState<RoomResult[]>(initialRooms);
 
   const fetchRooms = async () => {
     try {

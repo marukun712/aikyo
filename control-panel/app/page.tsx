@@ -5,7 +5,7 @@ import Link from "next/link";
 export const fetchCache = "default-no-store";
 export const dynamic = "force-dynamic";
 
-function HomeList({ rooms }: { rooms: RoomResult }) {
+function HomeList({ rooms }: { rooms: RoomResult[] }) {
   return (
     <>
       <div>

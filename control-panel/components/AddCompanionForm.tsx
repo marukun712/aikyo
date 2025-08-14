@@ -5,7 +5,7 @@ import { RoomResult } from "@/@types";
 import { addCompanion } from "@/lib/api";
 
 interface AddCompanionFormProps {
-  rooms: RoomResult;
+  rooms: RoomResult[];
   onAdd: () => void;
 }
 

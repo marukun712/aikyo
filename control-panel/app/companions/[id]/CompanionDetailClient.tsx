@@ -8,7 +8,7 @@ import { deleteCompanion } from "@/lib/api";
 
 interface CompanionDetailClientProps {
   companion: Companion;
-  room: RoomResult[0];
+  room: RoomResult;
 }
 export default function CompanionDetailClient({
   companion,

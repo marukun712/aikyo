@@ -9,9 +9,9 @@ import AddCompanionForm from "@/components/AddCompanionForm";
 export default function CompanionsClient({
   rooms: initialRooms,
 }: {
-  rooms: RoomResult;
+  rooms: RoomResult[];
 }) {
-  const [rooms, setRooms] = useState<RoomResult>(initialRooms);
+  const [rooms, setRooms] = useState<RoomResult[]>(initialRooms);
 
   const fetchRooms = async () => {
     try {

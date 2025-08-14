@@ -5,7 +5,7 @@ import { RoomResult } from "@/@types";
 import { addFurniture } from "@/lib/api";
 
 interface AddFurnitureFormProps {
-  rooms: RoomResult;
+  rooms: RoomResult[];
   onAdd: () => void;
 }
 

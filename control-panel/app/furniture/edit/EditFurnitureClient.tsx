@@ -8,7 +8,7 @@ import { type Furniture } from "@/@types";
 
 interface EditFurnitureClientProps {
   furniture: Furniture;
-  rooms: RoomResult;
+  rooms: RoomResult[];
 }
 
 export default function EditFurnitureClient({
