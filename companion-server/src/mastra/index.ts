@@ -12,6 +12,12 @@ const MessageSchema = z.object({
   message: z.string(),
 });
 
+const PerceptionSchema = z.object({
+  to: z.union([z.enum(["all"]), z.string()]),
+  type: z.enum(["text", "image"]),
+  body: z.string(),
+});
+
 export const client = mqtt.connect("mqtt://host.docker.internal:1883");
 
 client.on("connect", () => {
@@ -19,29 +25,86 @@ client.on("connect", () => {
 });
 
 client.on("message", async (message, payload) => {
-  try {
-    const parsed = MessageSchema.safeParse(JSON.parse(payload.toString()));
-    console.log(parsed);
-    if (!parsed.success) {
-      throw new Error("メッセージのスキーマが不正です。");
-    }
-    if (parsed.data.to === companionId || parsed.data.to === "all") {
-      console.log("received", companionId);
+  switch (message) {
+    case "messages/" + room: {
+      try {
+        const parsed = MessageSchema.safeParse(JSON.parse(payload.toString()));
+        console.log(parsed);
+        if (!parsed.success) {
+          throw new Error("メッセージのスキーマが不正です。");
+        }
+        if (parsed.data.to === companionId || parsed.data.to === "all") {
+          console.log("received", companionId);
 
-      await new Promise<void>((resolve, reject) => {
-        setTimeout(() => {
-          resolve();
-        }, Math.floor(Math.random() * (15000 - 5000) + 5000));
-      });
+          await new Promise<void>((resolve, reject) => {
+            setTimeout(() => {
+              resolve();
+            }, Math.floor(Math.random() * (15000 - 5000) + 5000));
+          });
 
-      const res = await agent.generate(JSON.stringify(parsed.data, null, 2), {
-        resourceId: "user",
-        threadId: "thread",
-      });
-      console.log(res.text);
+          const res = await agent.generate(
+            JSON.stringify(parsed.data, null, 2),
+            {
+              resourceId: "user",
+              threadId: "thread",
+            }
+          );
+          console.log(res.text);
+        }
+      } catch (e) {
+        console.log(e);
+      }
+      break;
     }
-  } catch (e) {
-    console.log(e);
+    case "perception": {
+      try {
+        const parsed = PerceptionSchema.safeParse(
+          JSON.parse(payload.toString())
+        );
+        console.log(parsed);
+        if (!parsed.success) {
+          throw new Error("メッセージのスキーマが不正です。");
+        }
+        if (parsed.data.to === companionId || parsed.data.to === "all") {
+          console.log("received", companionId);
+
+          switch (parsed.data.type) {
+            case "text": {
+              const res = await agent.generate(parsed.data.body, {
+                resourceId: "user",
+                threadId: "thread",
+              });
+              console.log(res.text);
+              break;
+            }
+            case "image": {
+              const res = await agent.generate(
+                [
+                  {
+                    role: "user",
+                    content: [
+                      {
+                        type: "image",
+                        image: `data:image/jpeg;base64,${parsed.data.body}`,
+                        mimeType: "image/jpeg",
+                      },
+                    ],
+                  },
+                ],
+                {
+                  resourceId: "user",
+                  threadId: "thread",
+                }
+              );
+              console.log(res.text);
+              break;
+            }
+          }
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    }
   }
 });
 

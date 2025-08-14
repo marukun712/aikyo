@@ -8,6 +8,14 @@
 
 ## Usage
 
+companion-server/.env を作成します。
+
+API キー を入力します。
+
+```
+ANTHROPIC_API_KEY=
+```
+
 サービスを実行します。
 
 ```

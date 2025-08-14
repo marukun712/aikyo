@@ -17,7 +17,7 @@ export const sendMessage = createTool({
       if (count >= 5) {
         const data = {
           from: "system",
-          to: "all",
+          to,
           message: "会話を終了に向かわせてください。",
         };
         client.publish("messages/" + room, JSON.stringify(data));
