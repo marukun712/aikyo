@@ -6,10 +6,10 @@ import { agent, companionId, room } from "./agents/agent.ts";
 
 const app = new Hono();
 
-const MessageSchema = z.object({
-  from: z.string(),
-  to: z.union([z.enum(["all", "none"]), z.string()]),
-  message: z.string(),
+const TopicSchema = z.object({
+  id: z.string(),
+  description: z.string(),
+  event: z.enum(["open", "close"]),
 });
 
 const PerceptionSchema = z.object({
@@ -20,52 +20,31 @@ const PerceptionSchema = z.object({
 
 export const client = mqtt.connect("mqtt://host.docker.internal:1883");
 
-function getRandomInt(min: number, max: number) {
-  const minCeiled = Math.ceil(min);
-  const maxFloored = Math.floor(max);
-  return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled);
-}
+export const mainTopic = `messages/${room}/general`;
 
 client.on("connect", () => {
-  client.subscribe("messages/" + room);
+  client.subscribe(mainTopic);
   client.subscribe("perceptions");
 });
 
 client.on("message", async (message, payload) => {
   switch (message) {
-    case "messages/" + room: {
+    case mainTopic: {
       try {
-        const parsed = MessageSchema.safeParse(JSON.parse(payload.toString()));
+        const parsed = TopicSchema.safeParse(JSON.parse(payload.toString()));
         console.log(parsed);
         if (!parsed.success) {
           throw new Error("メッセージのスキーマが不正です。");
         }
-        if (
-          parsed.data.to === companionId ||
-          parsed.data.to === "all" ||
-          parsed.data.message !== "[END_MESSAGE]"
-        ) {
-          console.log("received", companionId);
-
-          await new Promise<void>((resolve, reject) => {
-            setTimeout(() => {
-              resolve();
-            }, getRandomInt(2000, 15000));
-          });
-
-          const res = await agent.generate(
-            JSON.stringify(parsed.data, null, 2),
-            {
-              resourceId: "user",
-              threadId: "thread",
-            }
-          );
-          console.log(res.text);
-        }
+        const res = await agent.generate(JSON.stringify(parsed.data, null, 2), {
+          resourceId: "user",
+          threadId: "thread",
+        });
+        console.log(res.text);
+        break;
       } catch (e) {
         console.log(e);
       }
-      break;
     }
     case "perceptions": {
       try {

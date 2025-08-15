@@ -1,3 +1,4 @@
+"use client";
 import { RoomResult } from "@/@types";
 import {
   AgentManager,

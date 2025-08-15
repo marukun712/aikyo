@@ -1,3 +1,4 @@
+"use client";
 import { RoomResult } from "@/@types";
 import { useXRMeshes, XRMeshModel, XRSpace } from "@react-three/xr";
 import { useEffect } from "react";
@@ -29,7 +30,7 @@ export default function Scan({ room }: { room: RoomResult }) {
   const meshes = useMeshStore((state) => state.meshes);
   const setMeshes = useMeshStore((state) => state.setMeshes);
 
-  const setupNavMesh = async () => {
+  const scan = async () => {
     await resetFurniture(room.id);
     await Promise.all(
       [...meshes].map(async ([label, value]) => {
@@ -63,7 +64,7 @@ export default function Scan({ room }: { room: RoomResult }) {
   };
 
   useEffect(() => {
-    setupNavMesh();
+    scan();
   }, [meshes]);
 
   return (
@@ -78,7 +79,7 @@ export default function Scan({ room }: { room: RoomResult }) {
           >
             <meshPhongMaterial
               color={getColorByLabel(mesh.semanticLabel!)}
-              opacity={0}
+              opacity={0.5}
               transparent={true}
             />
           </XRMeshModel>

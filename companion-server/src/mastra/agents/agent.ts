@@ -2,7 +2,13 @@ import { Agent } from "@mastra/core/agent";
 import { anthropic } from "@ai-sdk/anthropic";
 import { Memory } from "@mastra/memory";
 import { LibSQLStore, LibSQLVector } from "@mastra/libsql";
-import { sendMessage } from "../tools/tools.ts";
+import {
+  closeTopic,
+  joinTopic,
+  leaveTopic,
+  openTopic,
+  sendMessage,
+} from "../tools/tools.ts";
 import { config } from "dotenv";
 import { mcp } from "../mcp/index.ts";
 
@@ -63,67 +69,57 @@ const tools = await bodyServer.getTools();
 export const agent = new Agent({
   name: "AIコンパニオン",
   instructions: `
-<poml>
-  <h>AI Companion Protocol</h>
+# role
+AI Companion Protocol準拠のコンパニオン ${companionId}
 
-  <role>
-    AI Companion Protocol準拠のコンパニオン ${companionId}
-  </role>
-  
-  <cp caption="registry">
-    <code lang="json" inline="false">${JSON.stringify(registry, null, 2)}</code>
-  </cp>
-  
-  <cp caption="部屋のオブジェクト">
-    <code lang="json" inline="false">${JSON.stringify(
-      furniture,
-      null,
-      2
-    )}</code>
-  </cp>
-  
-  <section>
-    <h>メッセージ形式</h>
-    <p>受信メッセージのJSON形式：</p>
-    <code lang="json" inline="false">
+# registry
+${JSON.stringify(registry, null, 2)}
+
+# furniture
+${JSON.stringify(furniture, null, 2)}
+
+# profile
+あなたは# registry内の${companionId}に対応するコンパニオンです。
+registryに示されているあなたのキャラクター設定に忠実に行動してください。
+
+# 行動指針
+あなたの所属しているroomには、registryに示されている通り、たくさんのAIコンパニオンがいます。
+これらのAIコンパニオンと会話するために、この部屋はtopicという概念で区切られています。
+
+あなたには、以下のようなtopicの開設/閉鎖通知が届きます。
 {
-  "from": "送信元CompanionId",
-  "to": "送信先CompanionId",
-  "message": "本文"
+  "id": "トピックID",
+  "description": "トピックの説明",
+  "event": "open" or "close"
 }
-    </code>
-    <p>このフォーマット外のメッセージ・画像は知覚情報として処理。</p>
-  </section>
-  
-  <section>
-    <h>BodyServer</h>
-    <list listStyle="star">
-      <item>MCPサーバーで体の動きを表現</item>
-      <item>パラメータ形式厳守</item>
-    </list>
-  </section>
-  
-  <section>
-    <h>行動指針</h>
-    <list listStyle="star">
-      <item>自分宛(to=自ID or all)のみ処理</item>
-      <item>返信はsend-messageツール使用必須</item>
-      <item>registryのキャラクターとして返信</item>
-      <item>他コンパニオンとの会話中は第三者に無応答</item>
-      <item>会話が10回を超えると、会話を終わりに向かわせる</item>
-      <item>会話が15回を超えると、[END_MESSAGE]をsend-messageで送信</item>
-      <item>独り言は宛先none</item>
-      <item>会話終了意図時はsend-message使用禁止</item>
-      <item>返信不要時は無応答</item>
-      <item>registryのキャラクター設定厳守</item>
-      <item>適切にBodyServer使用</item>
-      <item>絵文字禁止</item>
-      <item>違反は厳罰</item>
-    </list>
-  </section>
-</poml>
+
+トピックに参加すると、あなたは、以下のようなほかのコンパニオンからの発言を受け取ることがあります。
+{
+  "from": "コンパニオンID",
+  "message": "メッセージ内容"
+}
+このメッセージを読み、返信が必要だと判断すれば、send-messageツールを使用して返信してください。
+今まで説明した以外の情報が届いた場合、それは知覚情報です。contextに追加して判断に役立ててください。
+トピック内で発言したいときは、send-messageツールを使用してください。
+
+あなたはこれらの通知を受信したら、descriptionの内容を読み、自分がそのトピックに参加するかどうかを判断してください。
+eventがopenのときは、トピックが開設されたことを意味します。
+トピックに参加したいと判断したら、"必ず"join-topicツールを使用してトピックに参加してください。
+eventがcloseのときは、トピックが閉鎖されたことを意味します。
+トピックに参加している場合は、"必ず"leave-topicツールを使用してトピックから離脱してください。
+
+また、あなたがtopicを開設/閉鎖することもできます。
+トピックを開設したい場合は、"必ず"open-topicツールを使用してください。
+トピックを閉鎖したい場合は、"必ず"close-topicツールを使用してください。
 `,
   model: anthropic("claude-3-5-haiku-latest"),
   memory: memory,
-  tools: { ...tools, sendMessage },
+  tools: {
+    ...tools,
+    sendMessage,
+    joinTopic,
+    leaveTopic,
+    openTopic,
+    closeTopic,
+  },
 });

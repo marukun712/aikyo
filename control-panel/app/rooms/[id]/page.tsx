@@ -1,16 +1,9 @@
-import Scene from "@/components/xr/Scene";
 import { getRoom } from "@/lib/api";
-import { Canvas } from "@react-three/fiber";
-import { createXRStore, XR } from "@react-three/xr";
+import RoomClient from "./RoomClient";
 export const fetchCache = "default-no-store";
 export const dynamic = "force-dynamic";
 
-const store = createXRStore({
-  depthSensing: true,
-  hand: { teleportPointer: true, model: false },
-});
-
-export default async function RoomViewerPage({
+export default async function ScanPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -24,18 +17,7 @@ export default async function RoomViewerPage({
   try {
     const room = await getRoom(id);
 
-    return (
-      <>
-        <button onClick={() => store.enterAR()}>Enter MR</button>
-
-        <Canvas>
-          <XR store={store}>
-            <ambientLight />
-            <Scene room={room} />
-          </XR>
-        </Canvas>
-      </>
-    );
+    return <RoomClient room={room} />;
   } catch (error) {
     return <div>コンパニオンが見つかりませんでした</div>;
   }
