@@ -12,7 +12,7 @@ export const speakTool = createTool({
     target: z
       .string()
       .optional()
-      .describe("特定のコンパニオンの名前またはIDを指定(任意)"),
+      .describe("特定のコンパニオンのIDを指定(任意)"),
   }),
   execute: async ({ context: { message, target } }) => {
     const data: Action = {
