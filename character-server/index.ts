@@ -236,5 +236,6 @@ const route = app.post(
 
 export type routeType = typeof route;
 
-serve({ fetch: app.fetch, port: 3000 });
-console.log("WebSocket server running on http://localhost:3000");
+const port = Number(process.env.PORT) ?? 8000;
+serve({ fetch: app.fetch, port });
+console.log(`Character server running on http://localhost:${port}`);

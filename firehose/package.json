@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@chainsafe/libp2p-gossipsub": "^14.1.1",
+    "dotenv": "^17.2.1",
     "helia": "^5.5.1",
     "libp2p": "^2.9.0",
     "zod": "^4.0.17"

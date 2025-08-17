@@ -15,18 +15,26 @@ export const speakTool = createTool({
       .describe("特定のコンパニオンのIDを指定(任意)"),
   }),
   execute: async ({ context: { message, target } }) => {
-    const data: Action = {
-      from: companion.metadata.id,
-      name: "speak",
-      params: { message, target },
-    };
-    libp2p.services.pubsub.publish(
-      "actions",
-      new TextEncoder().encode(JSON.stringify(data))
-    );
-    return {
-      content: [{ type: "text", text: "行動が正常に実行されました。" }],
-    };
+    try {
+      const data: Action = {
+        from: companion.metadata.id,
+        name: "speak",
+        params: { message, target },
+      };
+      libp2p.services.pubsub.publish(
+        "actions",
+        new TextEncoder().encode(JSON.stringify(data))
+      );
+      return {
+        content: [{ type: "text", text: "行動が正常に実行されました。" }],
+      };
+    } catch (e) {
+      return {
+        content: [
+          { type: "text", text: "行動を実行中にエラーが発生しました。" },
+        ],
+      };
+    }
   },
 });
 
@@ -39,18 +47,26 @@ export const lookTool = createTool({
     z: z.number(),
   }),
   execute: async ({ context: { x, y, z } }) => {
-    const data: Action = {
-      from: companion.metadata.id,
-      name: "look",
-      params: { x, y, z },
-    };
-    libp2p.services.pubsub.publish(
-      "actions",
-      new TextEncoder().encode(JSON.stringify(data))
-    );
-    return {
-      content: [{ type: "text", text: "行動が正常に実行されました。" }],
-    };
+    try {
+      const data: Action = {
+        from: companion.metadata.id,
+        name: "look",
+        params: { x, y, z },
+      };
+      libp2p.services.pubsub.publish(
+        "actions",
+        new TextEncoder().encode(JSON.stringify(data))
+      );
+      return {
+        content: [{ type: "text", text: "行動が正常に実行されました。" }],
+      };
+    } catch (e) {
+      return {
+        content: [
+          { type: "text", text: "行動を実行中にエラーが発生しました。" },
+        ],
+      };
+    }
   },
 });
 
@@ -63,18 +79,26 @@ export const moveTool = createTool({
     z: z.number(),
   }),
   execute: async ({ context: { x, y, z } }) => {
-    const data: Action = {
-      from: companion.metadata.id,
-      name: "move",
-      params: { x, y, z },
-    };
-    libp2p.services.pubsub.publish(
-      "actions",
-      new TextEncoder().encode(JSON.stringify(data))
-    );
-    return {
-      content: [{ type: "text", text: "行動が正常に実行されました。" }],
-    };
+    try {
+      const data: Action = {
+        from: companion.metadata.id,
+        name: "move",
+        params: { x, y, z },
+      };
+      libp2p.services.pubsub.publish(
+        "actions",
+        new TextEncoder().encode(JSON.stringify(data))
+      );
+      return {
+        content: [{ type: "text", text: "行動が正常に実行されました。" }],
+      };
+    } catch (e) {
+      return {
+        content: [
+          { type: "text", text: "行動を実行中にエラーが発生しました。" },
+        ],
+      };
+    }
   },
 });
 
@@ -85,17 +109,25 @@ export const gestureTool = createTool({
     type: z.enum(["wave", "jump", "dance", "nod", "stretch", "clap"]),
   }),
   execute: async ({ context: { type } }) => {
-    const data: Action = {
-      from: companion.metadata.id,
-      name: "gesture",
-      params: { type },
-    };
-    libp2p.services.pubsub.publish(
-      "actions",
-      new TextEncoder().encode(JSON.stringify(data))
-    );
-    return {
-      content: [{ type: "text", text: "行動が正常に実行されました。" }],
-    };
+    try {
+      const data: Action = {
+        from: companion.metadata.id,
+        name: "gesture",
+        params: { type },
+      };
+      libp2p.services.pubsub.publish(
+        "actions",
+        new TextEncoder().encode(JSON.stringify(data))
+      );
+      return {
+        content: [{ type: "text", text: "行動が正常に実行されました。" }],
+      };
+    } catch (e) {
+      return {
+        content: [
+          { type: "text", text: "行動を実行中にエラーが発生しました。" },
+        ],
+      };
+    }
   },
 });

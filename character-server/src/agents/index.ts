@@ -21,11 +21,13 @@ export const agent = new Agent({
   ${JSON.stringify(companion.metadata, null, 2)}
   このメタデータに記載されているキャラクター情報、口調などに忠実に従ってください。
 
+  あなたの役割は、
+  ${companion.role}です。この役割に忠実に行動してください。
+
   あなたには、contextデータがネットワークから渡されます。
 
   このcontextを長期記憶に保存し、必要であればツールを実行してください。
   "絶対に"、ツールを使用する、のようなメタ的な発言をしてはいけません。
-  [LOG]がついている文章は、あなたに情報を与えるためのものであり、"絶対に"ツールを使用してはいけません。
 `,
   model: anthropic("claude-4-sonnet-20250514"),
   memory: memory,

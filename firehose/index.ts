@@ -6,6 +6,8 @@ import { mdns } from "@libp2p/mdns";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
 import WebSocket, { WebSocketServer } from "ws";
+import { config } from "dotenv";
+config();
 
 export const libp2p = await createLibp2p({
   addresses: {
@@ -30,7 +32,9 @@ libp2p.addEventListener("peer:discovery", (evt) => {
 libp2p.services.pubsub.subscribe("actions");
 libp2p.services.pubsub.subscribe("contexts");
 
-const wss = new WebSocketServer({ port: 8080 });
+const port = Number(process.env.PORT) ?? 8080;
+
+const wss = new WebSocketServer({ port });
 const clients = new Set<WebSocket>();
 
 wss.on("connection", (ws) => {
@@ -46,6 +50,7 @@ wss.on("connection", (ws) => {
 libp2p.services.pubsub.addEventListener("message", async (message) => {
   const topic = message.detail.topic;
   const data = JSON.parse(new TextDecoder().decode(message.detail.data));
+  console.log(data);
 
   if (topic === "actions") {
     const payload = JSON.stringify(data);
@@ -57,4 +62,4 @@ libp2p.services.pubsub.addEventListener("message", async (message) => {
   }
 });
 
-console.log("WebSocket server running on ws://localhost:8080");
+console.log(`WebSocket server running on ws://localhost:${port}`);
