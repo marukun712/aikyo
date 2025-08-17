@@ -37,12 +37,10 @@ const companions = new Map<string, string>();
 libp2p.addEventListener("peer:identify", async (evt) => {
   try {
     const { agentVersion, peerId } = evt.detail;
-    if (
-      !agentVersion ||
-      companions.has(peerId.toString()) ||
-      !JSON.parse(agentVersion)
-    )
-      return;
+
+    if (!agentVersion) return;
+    const metadata = MetadataSchema.safeParse(JSON.parse(agentVersion));
+    if (companions.has(peerId.toString()) || !metadata.success) return;
     companions.set(peerId.toString(), agentVersion);
     const res = await agent.generate(
       `[LOG]${agentVersion}がネットワークに参加してきました。`,
@@ -176,6 +174,14 @@ libp2p.services.pubsub.addEventListener("message", async (message) => {
       console.error("Error processing context message:", error);
     }
   }
+});
+
+const MetadataSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  personality: z.string(),
+  story: z.string(),
+  sample: z.string(),
 });
 
 const ActionSchema = z.object({
