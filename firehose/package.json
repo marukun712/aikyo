@@ -1,0 +1,19 @@
+{
+  "name": "test-client",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "scripts": {
+    "dev": "node index.ts"
+  },
+  "dependencies": {
+    "@chainsafe/libp2p-gossipsub": "^14.1.1",
+    "helia": "^5.5.1",
+    "libp2p": "^2.9.0",
+    "zod": "^4.0.17"
+  }
+}

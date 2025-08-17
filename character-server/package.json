@@ -1,0 +1,42 @@
+{
+  "name": "character-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node index.ts",
+    "build": "mastra build",
+    "start": "mastra start"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^1.2.12",
+    "@chainsafe/libp2p-gossipsub": "^14.1.1",
+    "@hono/node-server": "^1.18.2",
+    "@libp2p/identify": "^3.0.38",
+    "@libp2p/mdns": "^11.0.46",
+    "@mastra/core": "^0.13.2",
+    "@mastra/libsql": "^0.13.2",
+    "@mastra/loggers": "^0.10.6",
+    "@mastra/mcp": "^0.10.11",
+    "@mastra/memory": "^0.12.2",
+    "dotenv": "^17.2.1",
+    "helia": "^5.5.1",
+    "hono": "^4.9.2",
+    "libp2p": "^2.9.0",
+    "ollama-ai-provider": "^1.2.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "mastra": "^0.10.21",
+    "typescript": "^5.9.2"
+  }
+}

@@ -1,8 +1,0 @@
-version: "3"
-
-tasks:
-  up:
-    cmds:
-      - bun i
-      - bun run build
-      - bun run start -p 8000

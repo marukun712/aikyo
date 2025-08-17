@@ -1,7 +1,0 @@
-services:
-  companion:
-    build:
-      context: ../companion-server
-    environment:
-      - COMPANION_ID=${COMPANION_ID}
-      - BODY_SERVER_URL=http://host.docker.internal:3001/mcp
