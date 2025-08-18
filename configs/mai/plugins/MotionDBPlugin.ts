@@ -1,7 +1,7 @@
 import { createTool } from "@mastra/core/tools";
 import z from "zod";
-import { libp2p, type Action } from "../index.ts";
-import { companion } from "../config/companion.ts";
+import { libp2p, type Action } from "../../../index.ts";
+import { companion } from "../companion.ts";
 
 class MotionDBFetcher {
   url: string;

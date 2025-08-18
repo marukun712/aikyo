@@ -1,0 +1,8 @@
+{
+  "name": "aicompanionnetwork",
+  "private": true,
+  "workspaces": [
+    "core",
+    "firehose"
+  ]
+}

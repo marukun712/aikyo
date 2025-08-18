@@ -1,12 +1,12 @@
 {
   "name": "test-client",
+  "version": "1.0.0",
   "private": true,
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
+  "description": "To install dependencies:",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
   "scripts": {
     "dev": "node index.ts"
   },
@@ -16,5 +16,11 @@
     "helia": "^5.5.1",
     "libp2p": "^2.9.0",
     "zod": "^4.0.17"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
   }
 }
