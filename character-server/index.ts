@@ -12,6 +12,26 @@ import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
 import { companion } from "./config/companion.ts";
 
+const MessageSchema = z.object({
+  from: z.string(),
+  message: z.string(),
+  target: z.string().optional(),
+});
+export type Message = z.infer<typeof MessageSchema>;
+
+const ActionSchema = z.object({
+  from: z.string(),
+  name: z.string(),
+  params: z.record(z.string(), z.any()),
+});
+export type Action = z.infer<typeof ActionSchema>;
+
+const ContextSchema = z.object({
+  type: z.enum(["image", "text"]),
+  context: z.string(),
+});
+export type Context = z.infer<typeof ContextSchema>;
+
 export const libp2p = await createLibp2p({
   addresses: {
     listen: ["/ip4/0.0.0.0/tcp/0"],
@@ -32,43 +52,7 @@ libp2p.addEventListener("peer:discovery", (evt) => {
   libp2p.dial(evt.detail.multiaddrs);
 });
 
-const companions = new Map<string, string>();
-
-libp2p.addEventListener("peer:identify", async (evt) => {
-  try {
-    const { agentVersion, peerId } = evt.detail;
-
-    if (!agentVersion) return;
-    const metadata = MetadataSchema.safeParse(JSON.parse(agentVersion));
-    if (companions.has(peerId.toString()) || !metadata.success) return;
-    companions.set(peerId.toString(), agentVersion);
-    const res = await agent.generate(
-      `[LOG]${agentVersion}がネットワークに参加してきました。`,
-      { resourceId: "user", threadId: "thread" }
-    );
-    console.log(res.text);
-    console.log(
-      `Identified peer ${peerId.toString()} with metadata:`,
-      agentVersion
-    );
-  } catch (e) {}
-});
-
-libp2p.addEventListener("peer:disconnect", async (evt) => {
-  try {
-    const peerIdStr = evt.detail.toString();
-    const agentVersion = companions.get(peerIdStr);
-    if (!companions.has(peerIdStr)) return;
-    const res = await agent.generate(
-      `[LOG]${agentVersion}がネットワークから離脱しました。`,
-      { resourceId: "user", threadId: "thread" }
-    );
-    console.log(res.text);
-    console.log(`Peer disconnected: ${peerIdStr}, metadata was:`, agentVersion);
-    companions.delete(peerIdStr);
-  } catch (e) {}
-});
-
+libp2p.services.pubsub.subscribe("messages");
 libp2p.services.pubsub.subscribe("actions");
 libp2p.services.pubsub.subscribe("contexts");
 
@@ -119,37 +103,27 @@ async function runAgent(input: string | { image: string; mimeType: string }) {
 libp2p.services.pubsub.addEventListener("message", async (message) => {
   const topic = message.detail.topic;
 
-  if (topic === "actions") {
+  if (topic === "messages") {
     try {
       const data = JSON.parse(new TextDecoder().decode(message.detail.data));
-      const parsed = ActionSchema.safeParse(data);
+      const parsed = MessageSchema.safeParse(data);
 
       if (parsed.success) {
-        const action = parsed.data;
+        const message = parsed.data;
 
-        if (action.from === companion.metadata.id) {
+        if (message.from === companion.metadata.id) {
           return;
         }
 
-        if (action.name === "speak") {
-          const contextMessage = `${action.from}が話しかけています: "${action.params.message}"`;
+        const isTargeted = message.target === companion.metadata.id;
 
-          const isTargeted =
-            action.params.target &&
-            (action.params.target === companion.metadata.name ||
-              action.params.target === companion.metadata.id);
-          const isGeneral = !action.params.target;
-
-          if (isTargeted || isGeneral) {
-            const result = await runAgent(contextMessage);
-            console.log(
-              `Processed message from ${action.from}: ${result.text}`
-            );
-          }
+        if (isTargeted) {
+          const result = await runAgent(JSON.stringify(data, null, 2));
+          console.log(`Processed message from ${message.from}: ${result.text}`);
         }
       }
     } catch (error) {
-      console.error("Error processing action message:", error);
+      console.error("Error processing message:", error);
     }
   } else if (topic === "contexts") {
     try {
@@ -175,27 +149,6 @@ libp2p.services.pubsub.addEventListener("message", async (message) => {
     }
   }
 });
-
-const MetadataSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  personality: z.string(),
-  story: z.string(),
-  sample: z.string(),
-});
-
-const ActionSchema = z.object({
-  from: z.string(),
-  name: z.string(),
-  params: z.record(z.string(), z.any()),
-});
-export type Action = z.infer<typeof ActionSchema>;
-
-const ContextSchema = z.object({
-  type: z.enum(["image", "text"]),
-  context: z.string(),
-});
-export type Context = z.infer<typeof ContextSchema>;
 
 const app = new Hono();
 

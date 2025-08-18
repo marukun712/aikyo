@@ -29,6 +29,7 @@ libp2p.addEventListener("peer:discovery", (evt) => {
   });
 });
 
+libp2p.services.pubsub.subscribe("messages");
 libp2p.services.pubsub.subscribe("actions");
 libp2p.services.pubsub.subscribe("contexts");
 
@@ -48,16 +49,13 @@ wss.on("connection", (ws) => {
 });
 
 libp2p.services.pubsub.addEventListener("message", async (message) => {
-  const topic = message.detail.topic;
   const data = JSON.parse(new TextDecoder().decode(message.detail.data));
   console.log(data);
 
-  if (topic === "actions") {
-    const payload = JSON.stringify(data);
-    for (const client of clients) {
-      if (client.readyState === 1) {
-        client.send(payload);
-      }
+  const payload = JSON.stringify(data);
+  for (const client of clients) {
+    if (client.readyState === 1) {
+      client.send(payload);
     }
   }
 });

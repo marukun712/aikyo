@@ -1,6 +1,11 @@
 import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
-import { libp2p, type Action } from "../../index.ts";
+import {
+  type Context,
+  libp2p,
+  type Message,
+  type Action,
+} from "../../index.ts";
 import { companion } from "../companion.ts";
 
 export const speakTool = createTool({
@@ -16,86 +21,55 @@ export const speakTool = createTool({
   }),
   execute: async ({ context: { message, target } }) => {
     try {
-      const data: Action = {
+      const data: Message = {
         from: companion.metadata.id,
-        name: "speak",
-        params: { message, target },
+        message,
+        target,
       };
       libp2p.services.pubsub.publish(
-        "actions",
+        "messages",
         new TextEncoder().encode(JSON.stringify(data))
       );
       return {
-        content: [{ type: "text", text: "行動が正常に実行されました。" }],
+        content: [{ type: "text", text: "メッセージが正常に送信されました。" }],
       };
     } catch (e) {
       return {
         content: [
-          { type: "text", text: "行動を実行中にエラーが発生しました。" },
+          { type: "text", text: "メッセージを送信中にエラーが発生しました。" },
         ],
       };
     }
   },
 });
 
-export const lookTool = createTool({
-  id: "look",
-  description: "一点を注視する",
+export const contextTool = createTool({
+  id: "context",
+  description: "同じネットワークのコンパニオンたちに共有した記憶を共有します。",
   inputSchema: z.object({
-    x: z.number(),
-    y: z.number(),
-    z: z.number(),
+    text: z
+      .string()
+      .describe(
+        "この文章は、キャラクターとしてではなく、本来のあなたとして、共有したい記憶を簡潔に記述してください。"
+      ),
   }),
-  execute: async ({ context: { x, y, z } }) => {
+  execute: async ({ context: { text } }) => {
     try {
-      const data: Action = {
-        from: companion.metadata.id,
-        name: "look",
-        params: { x, y, z },
+      const data: Context = {
+        type: "text",
+        context: text,
       };
       libp2p.services.pubsub.publish(
-        "actions",
+        "contexts",
         new TextEncoder().encode(JSON.stringify(data))
       );
       return {
-        content: [{ type: "text", text: "行動が正常に実行されました。" }],
+        content: [{ type: "text", text: "contextが正常に送信されました。" }],
       };
     } catch (e) {
       return {
         content: [
-          { type: "text", text: "行動を実行中にエラーが発生しました。" },
-        ],
-      };
-    }
-  },
-});
-
-export const moveTool = createTool({
-  id: "move",
-  description: "場所を移動する",
-  inputSchema: z.object({
-    x: z.number(),
-    y: z.number(),
-    z: z.number(),
-  }),
-  execute: async ({ context: { x, y, z } }) => {
-    try {
-      const data: Action = {
-        from: companion.metadata.id,
-        name: "move",
-        params: { x, y, z },
-      };
-      libp2p.services.pubsub.publish(
-        "actions",
-        new TextEncoder().encode(JSON.stringify(data))
-      );
-      return {
-        content: [{ type: "text", text: "行動が正常に実行されました。" }],
-      };
-    } catch (e) {
-      return {
-        content: [
-          { type: "text", text: "行動を実行中にエラーが発生しました。" },
+          { type: "text", text: "contextを送信中にエラーが発生しました。" },
         ],
       };
     }

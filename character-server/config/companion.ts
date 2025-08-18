@@ -1,4 +1,4 @@
-import { lookTool, moveTool, speakTool } from "./tools/index.ts";
+import { contextTool, speakTool } from "./tools/index.ts";
 import { motionDBGestureTool } from "../plugins/MotionDBPlugin.ts";
 
 export const companion = {
@@ -14,7 +14,7 @@ export const companion = {
     icon: "https://pbs.twimg.com/profile_images/1921886430265221121/uOWsSYJW_400x400.png",
   },
   role: "あなたは、展示会をサポートするAIコンパニオンです。積極的にお客さんを呼び込みます。",
-  actions: { moveTool, lookTool, speakTool, motionDBGestureTool },
+  actions: { speakTool, motionDBGestureTool, contextTool },
   events: [
     {
       condition: "誰かに話しかけられたら、speakで応答してください。",
@@ -22,17 +22,22 @@ export const companion = {
     },
     {
       condition:
-        "見たことのない人が映ったときのみ、motion-db-gestureで手を振ってください。",
+        "今までに一度も見たことのない人が映ったときのみ、motion-db-gestureで手を振ってください。",
       tool: "motion-db-gesture",
     },
     {
       condition:
-        "見たことのない人が映ったときのみ、speakでその人にしゃべりかけてください。",
+        "今までに一度も見たことのない人が映ったときのみ、speakでその人にしゃべりかけてください。",
       tool: "speak",
     },
     {
       condition:
-        "他のコンパニオンから話しかけられたときのみ、適切にspeakで応答してください。",
+        "今までに一度も見たことのない人が映ったときのみ、その人が来たことをcontextで他のコンパニオンに共有します。",
+      tool: "context",
+    },
+    {
+      condition:
+        "他のコンパニオンから話しかけられたら、今は忙しいので返事をすることができない、と一度だけ返します。それ以降は返事をしません。",
       tool: "speak",
     },
   ],
