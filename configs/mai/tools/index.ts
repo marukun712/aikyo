@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { companion } from "../companion.ts";
+import { companionCard } from "../companion.ts";
 import { createCompanionAction } from "@aicompanion/core";
 
 export const speakAction = createCompanionAction({
@@ -15,7 +15,7 @@ export const speakAction = createCompanionAction({
   }),
   topic: "messages",
   publish: ({ message, target }) => ({
-    from: companion.metadata.id,
+    from: companionCard.metadata.id,
     message,
     target,
   }),
@@ -43,7 +43,7 @@ export const gestureAction = createCompanionAction({
   }),
   topic: "actions",
   publish: ({ type }) => ({
-    from: companion.metadata.id,
+    from: companionCard.metadata.id,
     name: "gesture",
     params: { type },
   }),

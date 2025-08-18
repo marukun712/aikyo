@@ -1,6 +1,6 @@
 import { type Action, createCompanionAction } from "@aicompanion/core";
 import { z } from "zod";
-import { companion } from "../companion.ts";
+import { companionCard } from "../companion.ts";
 
 export class MotionDBFetcher {
   url: string;
@@ -29,7 +29,7 @@ export const motionDBGestureAction = createCompanionAction({
   publish: async ({ prompt }) => {
     const url = await fetcher.fetchMove(prompt);
     const data: Action = {
-      from: companion.metadata.id,
+      from: companionCard.metadata.id,
       name: "gesture",
       params: { url },
     };
