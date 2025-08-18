@@ -23,14 +23,15 @@ export const CompanionSchema = z.object({
 export type CompanionCard = z.infer<typeof CompanionSchema>;
 
 export const MessageSchema = z.object({
+  metadata: z.record(z.string(), z.any()).optional(),
   from: z.string(),
   message: z.string(),
   target: z.string().optional(),
 });
-
 export type Message = z.infer<typeof MessageSchema>;
 
 export const ActionSchema = z.object({
+  metadata: z.record(z.string(), z.any()).optional(),
   from: z.string(),
   name: z.string(),
   params: z.record(z.string(), z.any()),

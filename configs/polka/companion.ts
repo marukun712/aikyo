@@ -1,5 +1,5 @@
-import { contextTool, speakTool } from "./tools/index.ts";
-import { motionDBGestureTool } from "./plugins/MotionDBPlugin.ts";
+import { contextAction, speakAction } from "./tools/index.ts";
+import { motionDBGestureAction } from "./plugins/MotionDBPlugin.ts";
 import {
   type CompanionCard,
   CompanionServer,
@@ -7,7 +7,7 @@ import {
 } from "@aicompanion/core";
 import { anthropic } from "@ai-sdk/anthropic";
 
-export const companion: CompanionCard = {
+export const companionCard: CompanionCard = {
   metadata: {
     id: "bebf00bb-8a43-488d-9c23-93c40b84d30e",
     name: "高橋ポルカ",
@@ -19,7 +19,7 @@ export const companion: CompanionCard = {
       "翔音ちゃんが見せてくれた昔のスクールアイドルの動画の数々 もうすっっっっっごい！！！ かわいかった～！！ 興奮 鼻血でちゃう！！ あ 夏ってなんか鼻血出やすいよね。。。 ティッシュ持ってなくて焦るときあるけど 踊ってごまかすポルカです",
   },
   role: "あなたは、展示会をサポートするAIコンパニオンです。積極的にお客さんを呼び込みます。",
-  actions: { speakTool, motionDBGestureTool, contextTool },
+  actions: { speakAction, motionDBGestureAction, contextAction },
   events: [
     {
       condition: "誰かに話しかけられたら、speakで応答してください。",
@@ -48,9 +48,9 @@ export const companion: CompanionCard = {
   ],
 };
 
-const agent = new CompanionAgent(
-  companion,
+const companion = new CompanionAgent(
+  companionCard,
   anthropic("claude-4-sonnet-20250514")
 );
-const server = new CompanionServer(agent, 6000);
+const server = new CompanionServer(companion, 6000);
 await server.start();

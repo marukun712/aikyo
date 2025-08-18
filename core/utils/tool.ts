@@ -1,20 +1,21 @@
 import { createTool } from "@mastra/core/tools";
 import { z, type ZodTypeAny } from "zod";
+import { type Action, type Context, type Message } from "../schema/index.ts";
 
 export function createCompanionAction<T extends ZodTypeAny>({
   id,
   description,
-  topic,
   inputSchema,
-  buildData,
+  topic,
+  publish,
 }: {
   id: string;
   description: string;
-  topic: string;
   inputSchema: T;
-  buildData: (
+  topic: string;
+  publish: (
     input: z.infer<T>
-  ) => Record<string, any> | Promise<Record<string, any>>;
+  ) => Action | Context | Message | Promise<Action | Context | Message>;
 }) {
   return createTool({
     id,
@@ -24,7 +25,7 @@ export function createCompanionAction<T extends ZodTypeAny>({
       try {
         const libp2p = runtimeContext.get("libp2p");
         if (!libp2p) throw new Error("Error : LibP2Pが初期化されていません!");
-        const data = await buildData(context);
+        const data = await publish(context);
         libp2p.services.pubsub.publish(
           topic,
           new TextEncoder().encode(JSON.stringify(data))

@@ -18,15 +18,15 @@ export class MotionDBFetcher {
 
 const fetcher = new MotionDBFetcher("http://localhost:3000");
 
-export const motionDBGestureTool = createCompanionAction({
+export const motionDBGestureAction = createCompanionAction({
   id: "motion-db-gesture",
   description:
     "MotionDBからあなたの表現したい動きにあったモーションを取得して再生します。",
-  topic: "actions",
   inputSchema: z.object({
     prompt: z.string().describe("promptは必ず英語1,2単語で記述してください。"),
   }),
-  buildData: async ({ prompt }) => {
+  topic: "actions",
+  publish: async ({ prompt }) => {
     const url = await fetcher.fetchMove(prompt);
     const data: Action = {
       from: companion.metadata.id,
