@@ -1,9 +1,8 @@
-import { createTool } from "@mastra/core/tools";
-import z from "zod";
-import { libp2p, type Action } from "../../../index.ts";
+import { type Action, createCompanionAction } from "@aicompanion/core";
+import { z } from "zod";
 import { companion } from "../companion.ts";
 
-class MotionDBFetcher {
+export class MotionDBFetcher {
   url: string;
 
   constructor(url: string) {
@@ -19,34 +18,21 @@ class MotionDBFetcher {
 
 const fetcher = new MotionDBFetcher("http://localhost:3000");
 
-export const motionDBGestureTool = createTool({
+export const motionDBGestureTool = createCompanionAction({
   id: "motion-db-gesture",
   description:
     "MotionDBからあなたの表現したい動きにあったモーションを取得して再生します。",
+  topic: "actions",
   inputSchema: z.object({
     prompt: z.string().describe("promptは必ず英語1,2単語で記述してください。"),
   }),
-  execute: async ({ context: { prompt } }) => {
-    try {
-      const url = await fetcher.fetchMove(prompt);
-      const data: Action = {
-        from: companion.metadata.id,
-        name: "gesture",
-        params: { url },
-      };
-      libp2p.services.pubsub.publish(
-        "actions",
-        new TextEncoder().encode(JSON.stringify(data))
-      );
-      return {
-        content: [{ type: "text", text: "行動が正常に実行されました。" }],
-      };
-    } catch (e) {
-      return {
-        content: [
-          { type: "text", text: "行動を実行中にエラーが発生しました。" },
-        ],
-      };
-    }
+  buildData: async ({ prompt }) => {
+    const url = await fetcher.fetchMove(prompt);
+    const data: Action = {
+      from: companion.metadata.id,
+      name: "gesture",
+      params: { url },
+    };
+    return data;
   },
 });

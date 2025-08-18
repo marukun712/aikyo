@@ -1,59 +1,8 @@
-import { createTool, type Tool } from "@mastra/core/tools";
-import { z, type ZodTypeAny } from "zod";
+import { z } from "zod";
 import { companion } from "../companion.ts";
+import { createCompanionAction } from "@aicompanion/core";
 
-async function publishToNetwork<T>(
-  topic: string,
-  data: T,
-  successMessage: string,
-  errorMessage: string
-) {
-  try {
-    libp2p.services.pubsub.publish(
-      topic,
-      new TextEncoder().encode(JSON.stringify(data))
-    );
-    return { content: [{ type: "text", text: successMessage }] };
-  } catch (e) {
-    console.error(e);
-    return { content: [{ type: "text", text: errorMessage }] };
-  }
-}
-
-function createPubsubTool<T extends ZodTypeAny>({
-  id,
-  description,
-  topic,
-  inputSchema,
-  buildData,
-  successMessage,
-  errorMessage,
-}: {
-  id: string;
-  description: string;
-  topic: string;
-  inputSchema: T;
-  buildData: (input: z.infer<T>) => any;
-  successMessage?: string;
-  errorMessage?: string;
-}): Tool<z.infer<T>> {
-  return createTool({
-    id,
-    description,
-    inputSchema,
-    execute: async ({ context }) => {
-      const data = buildData(context.input);
-      return publishToNetwork(
-        topic,
-        data,
-        successMessage ?? `${id} が正常に送信されました。`,
-        errorMessage ?? `${id} の送信中にエラーが発生しました。`
-      );
-    },
-  });
-}
-
-export const speakTool = createPubsubTool({
+export const speakTool = createCompanionAction({
   id: "speak",
   description:
     "話す。特定のコンパニオンに向けて話したい場合はtargetを指定できます。",
@@ -72,7 +21,7 @@ export const speakTool = createPubsubTool({
   }),
 });
 
-export const contextTool = createPubsubTool({
+export const contextTool = createCompanionAction({
   id: "context",
   description: "同じネットワークのコンパニオンたちに共有した記憶を送信します。",
   topic: "contexts",
@@ -86,7 +35,7 @@ export const contextTool = createPubsubTool({
   buildData: ({ text }) => ({ type: "text", context: text }),
 });
 
-export const gestureTool = createPubsubTool({
+export const gestureTool = createCompanionAction({
   id: "gesture",
   description: "体の動きを表現する",
   topic: "actions",

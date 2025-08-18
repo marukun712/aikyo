@@ -1,8 +1,14 @@
 {
   "name": "aicompanionnetwork",
+  "type": "module",
   "private": true,
+  "scripts": {
+    "companion": "node ./configs/$npm_config_config/companion.ts",
+    "firehose": "node ./firehose/index.ts"
+  },
   "workspaces": [
     "core",
-    "firehose"
+    "firehose",
+    "configs"
   ]
 }

@@ -1,6 +1,11 @@
 import { contextTool, speakTool } from "./tools/index.ts";
 import { motionDBGestureTool } from "./plugins/MotionDBPlugin.ts";
-import { CompanionCard } from "@aicompanion/core";
+import {
+  type CompanionCard,
+  CompanionServer,
+  CompanionAgent,
+} from "@aicompanion/core";
+import { anthropic } from "@ai-sdk/anthropic";
 
 export const companion: CompanionCard = {
   metadata: {
@@ -42,3 +47,10 @@ export const companion: CompanionCard = {
     },
   ],
 };
+
+const agent = new CompanionAgent(
+  companion,
+  anthropic("claude-4-sonnet-20250514")
+);
+const server = new CompanionServer(agent, 6000);
+await server.start();

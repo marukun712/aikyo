@@ -1,15 +1,9 @@
 {
-  "name": "test-client",
+  "name": "firehose",
   "version": "1.0.0",
   "private": true,
-  "description": "To install dependencies:",
-  "license": "ISC",
-  "author": "",
-  "type": "commonjs",
+  "type": "module",
   "main": "index.js",
-  "scripts": {
-    "dev": "node index.ts"
-  },
   "dependencies": {
     "@chainsafe/libp2p-gossipsub": "^14.1.1",
     "dotenv": "^17.2.1",

@@ -2,8 +2,10 @@ import { Agent as MastraAgent } from "@mastra/core/agent";
 import { Memory } from "@mastra/memory";
 import { LibSQLStore, LibSQLVector } from "@mastra/libsql";
 import { config } from "dotenv";
-import { CompanionCard } from "../../schema/index.ts";
-import { LanguageModel } from "@mastra/core";
+import { type CompanionCard } from "../../schema/index.ts";
+import { type LanguageModel } from "@mastra/core";
+import { RuntimeContext } from "@mastra/core/runtime-context";
+import { type LibP2PContext } from "../server/index.ts";
 config();
 
 export interface ICompanionAgent {
@@ -14,6 +16,7 @@ export interface ICompanionAgent {
 export class CompanionAgent implements ICompanionAgent {
   companion: CompanionCard;
   agent: MastraAgent;
+  runtimeContext: RuntimeContext;
 
   constructor(companion: CompanionCard, model: LanguageModel) {
     this.companion = companion;
@@ -21,7 +24,7 @@ export class CompanionAgent implements ICompanionAgent {
     //長期記憶記憶DBの設定
     const memory = new Memory({
       storage: new LibSQLStore({
-        url: "file:db/mastra.db",
+        url: `file:db/${this.companion.metadata.id}.db`,
       }),
       vector: new LibSQLVector({
         connectionUrl: `file:db/${this.companion.metadata.id}.db`,
@@ -49,6 +52,8 @@ export class CompanionAgent implements ICompanionAgent {
       memory: memory,
       tools: companion.actions,
     });
+
+    this.runtimeContext = new RuntimeContext<LibP2PContext>();
   }
 
   //長期記憶に行動基準が左右されないよう、常に最新の行動基準をcontextに含む
@@ -92,6 +97,7 @@ export class CompanionAgent implements ICompanionAgent {
 
     return this.agent.generate(messages, {
       context: this.buildBaseContext(),
+      runtimeContext: this.runtimeContext,
       resourceId: "main",
       threadId: "thread",
     });

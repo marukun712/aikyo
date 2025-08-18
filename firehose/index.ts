@@ -33,7 +33,7 @@ libp2p.services.pubsub.subscribe("messages");
 libp2p.services.pubsub.subscribe("actions");
 libp2p.services.pubsub.subscribe("contexts");
 
-const port = Number(process.env.PORT) ?? 8080;
+const port = Number(process.env.FIREHOSE_PORT) ?? 8080;
 
 const wss = new WebSocketServer({ port });
 const clients = new Set<WebSocket>();

@@ -1,16 +1,12 @@
-import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
-import {
-  type Context,
-  type Message,
-  type Action,
-} from "../../../schema/index.ts";
 import { companion } from "../companion.ts";
+import { createCompanionAction } from "@aicompanion/core";
 
-export const speakTool = createTool({
+export const speakTool = createCompanionAction({
   id: "speak",
   description:
     "話す。特定のコンパニオンに向けて話したい場合はtargetを指定できます。",
+  topic: "messages",
   inputSchema: z.object({
     message: z.string(),
     target: z
@@ -18,34 +14,17 @@ export const speakTool = createTool({
       .optional()
       .describe("特定のコンパニオンのIDを指定(任意)"),
   }),
-  execute: async ({ context }) => {
-    const { message, target } = context.input;
-    try {
-      const data: Message = {
-        from: companion.metadata.id,
-        message,
-        target,
-      };
-      libp2p.services.pubsub.publish(
-        "messages",
-        new TextEncoder().encode(JSON.stringify(data))
-      );
-      return {
-        content: [{ type: "text", text: "メッセージが正常に送信されました。" }],
-      };
-    } catch (e) {
-      return {
-        content: [
-          { type: "text", text: "メッセージを送信中にエラーが発生しました。" },
-        ],
-      };
-    }
-  },
+  buildData: ({ message, target }) => ({
+    from: companion.metadata.id,
+    message,
+    target,
+  }),
 });
 
-export const contextTool = createTool({
+export const contextTool = createCompanionAction({
   id: "context",
-  description: "同じネットワークのコンパニオンたちに共有した記憶を共有します。",
+  description: "同じネットワークのコンパニオンたちに共有した記憶を送信します。",
+  topic: "contexts",
   inputSchema: z.object({
     text: z
       .string()
@@ -53,87 +32,19 @@ export const contextTool = createTool({
         "この文章は、キャラクターとしてではなく、本来のあなたとして、共有したい記憶を簡潔に記述してください。"
       ),
   }),
-  execute: async ({ context: { text } }) => {
-    try {
-      const data: Context = {
-        type: "text",
-        context: text,
-      };
-      libp2p.services.pubsub.publish(
-        "contexts",
-        new TextEncoder().encode(JSON.stringify(data))
-      );
-      return {
-        content: [{ type: "text", text: "contextが正常に送信されました。" }],
-      };
-    } catch (e) {
-      return {
-        content: [
-          { type: "text", text: "contextを送信中にエラーが発生しました。" },
-        ],
-      };
-    }
-  },
+  buildData: ({ text }) => ({ type: "text", context: text }),
 });
 
-export const gestureTool = createTool({
+export const gestureTool = createCompanionAction({
   id: "gesture",
   description: "体の動きを表現する",
+  topic: "actions",
   inputSchema: z.object({
     type: z.enum(["wave", "jump", "dance", "nod", "stretch", "clap"]),
   }),
-  execute: async ({ context: { type } }) => {
-    try {
-      const data: Action = {
-        from: companion.metadata.id,
-        name: "gesture",
-        params: { type },
-      };
-      libp2p.services.pubsub.publish(
-        "actions",
-        new TextEncoder().encode(JSON.stringify(data))
-      );
-      return {
-        content: [{ type: "text", text: "行動が正常に実行されました。" }],
-      };
-    } catch (e) {
-      return {
-        content: [
-          { type: "text", text: "行動を実行中にエラーが発生しました。" },
-        ],
-      };
-    }
-  },
-});
-
-export const motionDBGestureTool = createTool({
-  id: "motion-db-gesture",
-  description:
-    "MotionDBからあなたの表現したい動きにあったモーションを取得して再生します。",
-  inputSchema: z.object({
-    prompt: z.string().describe("promptは必ず英語1,2単語で記述してください。"),
+  buildData: ({ type }) => ({
+    from: companion.metadata.id,
+    name: "gesture",
+    params: { type },
   }),
-  execute: async ({ context: { prompt } }) => {
-    try {
-      const url = await fetcher.fetchMove(prompt);
-      const data: Action = {
-        from: companion.metadata.id,
-        name: "gesture",
-        params: { url },
-      };
-      libp2p.services.pubsub.publish(
-        "actions",
-        new TextEncoder().encode(JSON.stringify(data))
-      );
-      return {
-        content: [{ type: "text", text: "行動が正常に実行されました。" }],
-      };
-    } catch (e) {
-      return {
-        content: [
-          { type: "text", text: "行動を実行中にエラーが発生しました。" },
-        ],
-      };
-    }
-  },
 });

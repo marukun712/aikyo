@@ -1,10 +1,6 @@
 // Core library exports for AI Companion Protocol
 
-// Export all schema types and validators
-export * from './schema/index.js';
-
-// Export agent classes and interfaces
-export * from './lib/agents/index.js';
-
-// Export server classes and interfaces
-export * from './lib/server/index.js';
+export * from "./schema/index.ts";
+export * from "./lib/agents/index.ts";
+export * from "./lib/server/index.ts";
+export * from "./utils/tool.ts";

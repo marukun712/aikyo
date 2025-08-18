@@ -8,7 +8,7 @@ import { identify } from "@libp2p/identify";
 import { mdns } from "@libp2p/mdns";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
-import { CompanionCard } from "../../schema/index.ts";
+import { type CompanionCard } from "../../schema/index.ts";
 import { CompanionAgent } from "../agents/index.ts";
 import { MessageSchema, ContextSchema } from "../../schema/index.ts";
 
@@ -16,16 +16,22 @@ export interface ICompanionServer {
   start(): Promise<void>;
 }
 
+export type LibP2PContext = {
+  libp2p: Awaited<ReturnType<typeof createLibp2p>>;
+};
+
 export class CompanionServer implements ICompanionServer {
   companionAgent: CompanionAgent;
   companion: CompanionCard;
-  libp2p: Awaited<ReturnType<typeof createLibp2p>>;
+  libp2p!: Awaited<ReturnType<typeof createLibp2p>>;
   app: Hono;
+  port: number;
 
-  constructor(companionAgent: CompanionAgent) {
+  constructor(companionAgent: CompanionAgent, port: number) {
     this.companionAgent = companionAgent;
     this.companion = companionAgent.companion;
     this.app = new Hono();
+    this.port = port;
   }
 
   private async initLibp2p() {
@@ -42,7 +48,7 @@ export class CompanionServer implements ICompanionServer {
     });
 
     //ピア(Companion)を発見したら接続
-    this.libp2p.addEventListener("peer:discovery", (evt) => {
+    libp2p.addEventListener("peer:discovery", (evt) => {
       this.libp2p.dial(evt.detail.multiaddrs);
     });
 
@@ -55,6 +61,9 @@ export class CompanionServer implements ICompanionServer {
     libp2p.services.pubsub.addEventListener("message", (evt) =>
       this.handlePubSubMessage(evt)
     );
+
+    //tool呼び出しのためRuntimeContextにSet
+    this.companionAgent.runtimeContext.set("libp2p", libp2p);
 
     this.libp2p = libp2p;
   }
@@ -139,8 +148,7 @@ export class CompanionServer implements ICompanionServer {
     await this.initLibp2p();
     this.setupRoutes();
 
-    const port = Number(process.env.PORT) ?? 8000;
-    serve({ fetch: this.app.fetch, port });
-    console.log(`Character server running on http://localhost:${port}`);
+    serve({ fetch: this.app.fetch, port: this.port });
+    console.log(`Character server running on http://localhost:${this.port}`);
   }
 }
