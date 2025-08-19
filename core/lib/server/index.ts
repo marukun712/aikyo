@@ -11,6 +11,8 @@ import { yamux } from "@chainsafe/libp2p-yamux";
 import { type CompanionCard } from "../../schema/index.ts";
 import { CompanionAgent } from "../agents/index.ts";
 import { MessageSchema, ContextSchema } from "../../schema/index.ts";
+import { logger } from "hono/logger";
+import { cors } from "hono/cors";
 
 export interface ICompanionServer {
   start(): Promise<void>;
@@ -119,11 +121,14 @@ export class CompanionServer implements ICompanionServer {
 
   //特定のコンパニオンへcontextをユーザーが与えるためのroute
   private setupRoutes() {
+    this.app.use(logger());
+    this.app.use("*", cors());
+
     this.app.post(
       "/context",
       validator("json", (value, c) => {
         const parsed = ContextSchema.safeParse(value);
-        if (!parsed.success) return c.text("Invalid Body!", 401);
+        if (!parsed.success) return c.text("Invalid Body!", 400);
         return parsed.data;
       }),
       async (c) => {
@@ -131,12 +136,14 @@ export class CompanionServer implements ICompanionServer {
 
         if (body.type === "text") {
           const result = await this.companionAgent.runAgent(body.context);
+          console.log(result.text);
           return c.json({ message: result.text }, 201);
         } else if (body.type === "image") {
           const result = await this.companionAgent.runAgent({
             image: `data:image/jpeg;base64,${body.context}`,
             mimeType: "image/jpeg",
           });
+          console.log(result.text);
           return c.json({ message: result.text }, 201);
         }
       }

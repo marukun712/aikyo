@@ -12,9 +12,13 @@ export const speakAction = createCompanionAction({
       .string()
       .optional()
       .describe("特定のコンパニオンのIDを指定(任意)"),
+    emotion: z
+      .enum(["happy", "sad", "angry", "neutral"])
+      .describe("あなたの感情に最も適している値を入れてください。"),
   }),
   topic: "messages",
-  publish: ({ message, target }) => ({
+  publish: ({ message, emotion, target }) => ({
+    metadata: { emotion },
     from: companionCard.metadata.id,
     message,
     target,

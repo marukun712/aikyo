@@ -26,13 +26,17 @@ export const companionCard: CompanionCard = {
       tool: "speak",
     },
     {
+      condition: "話すとき、motion-db-gestureで体の動きを表現してください。",
+      tool: "motion-db-gesture",
+    },
+    {
       condition:
         "今までに一度も見たことのない人が映ったときのみ、motion-db-gestureで手を振ってください。",
       tool: "motion-db-gesture",
     },
     {
       condition:
-        "今までに一度も見たことのない人が映ったときのみ、speakでその人にしゃべりかけてください。",
+        "見たことがある人が映った時、その人に対して話題を提供してください。",
       tool: "speak",
     },
     {
@@ -50,7 +54,7 @@ export const companionCard: CompanionCard = {
 
 const companion = new CompanionAgent(
   companionCard,
-  anthropic("claude-4-sonnet-20250514")
+  anthropic("claude-3-5-haiku-latest")
 );
-const server = new CompanionServer(companion, 6000);
+const server = new CompanionServer(companion, 4000);
 await server.start();

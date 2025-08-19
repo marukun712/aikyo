@@ -6,6 +6,7 @@ import { mdns } from "@libp2p/mdns";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
 import WebSocket, { WebSocketServer } from "ws";
+import { MessageSchema } from "@aicompanion/core";
 import { config } from "dotenv";
 config();
 
@@ -41,6 +42,16 @@ const clients = new Set<WebSocket>();
 wss.on("connection", (ws) => {
   clients.add(ws);
   console.log("WebSocket client connected");
+
+  ws.on("message", (evt) => {
+    const data = JSON.parse(evt.toString());
+    const parsed = MessageSchema.safeParse(data);
+    if (!parsed.success) return;
+    libp2p.services.pubsub.publish(
+      "messages",
+      new TextEncoder().encode(evt.toString())
+    );
+  });
 
   ws.on("close", () => {
     clients.delete(ws);
