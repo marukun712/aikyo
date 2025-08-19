@@ -1,4 +1,4 @@
-import { type Action, createCompanionAction } from "@aicompanion/core";
+import { type Action, createCompanionAction } from "@aikyo/core";
 import { z } from "zod";
 import { companionCard } from "../companion.ts";
 

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { companionCard } from "../companion.ts";
-import { createCompanionAction } from "@aicompanion/core";
+import { createCompanionAction } from "@aikyo/core";
 
 export const speakAction = createCompanionAction({
   id: "speak",

@@ -1,4 +1,6 @@
-# AI Companion Network
+# aikyo
+
+aikyoは、相互につながるAIコンパニオンを作成するためのフレームワークです。
 
 ## Usage
 

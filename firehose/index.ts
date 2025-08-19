@@ -6,7 +6,7 @@ import { mdns } from "@libp2p/mdns";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
 import WebSocket, { WebSocketServer } from "ws";
-import { MessageSchema } from "@aicompanion/core";
+import { MessageSchema } from "@aikyo/core";
 import { config } from "dotenv";
 config();
 

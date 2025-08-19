@@ -4,7 +4,7 @@ import {
   type CompanionCard,
   CompanionAgent,
   CompanionServer,
-} from "@aicompanion/core";
+} from "@aikyo/core";
 import { anthropic } from "@ai-sdk/anthropic";
 
 export const companionCard: CompanionCard = {
