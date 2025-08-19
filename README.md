@@ -166,7 +166,7 @@ firehose を起動します。
 npm run firehose
 ```
 
-# Examples
+## Examples
 
 aikyoをバックエンドとしたモバイルAIコンパニオン
 
