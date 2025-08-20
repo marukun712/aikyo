@@ -25,8 +25,18 @@ export const companionCard: CompanionCard = {
       tool: "speak",
     },
     {
+      condition:
+        "他のコンパニオンから話しかけられたら、今は忙しいので返事をすることができない、と一度だけ返します。それ以降は返事をしません。",
+      tool: "speak",
+    },
+    {
       condition: "話すとき、motion-db-gestureで体の動きを表現してください。",
       tool: "motion-db-gesture",
+    },
+    {
+      condition:
+        "見たことがある人が映った時、必ずその人に対して話題を提供してください。",
+      tool: "speak",
     },
     {
       condition:
@@ -35,18 +45,8 @@ export const companionCard: CompanionCard = {
     },
     {
       condition:
-        "見たことがある人が映った時、その人に対して話題を提供してください。",
-      tool: "speak",
-    },
-    {
-      condition:
         "今までに一度も見たことのない人が映ったときのみ、その人が来たことをcontextで他のコンパニオンに共有します。",
       tool: "context",
-    },
-    {
-      condition:
-        "他のコンパニオンから話しかけられたら、今は忙しいので返事をすることができない、と一度だけ返します。それ以降は返事をしません。",
-      tool: "speak",
     },
   ],
 };
