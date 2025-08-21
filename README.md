@@ -14,12 +14,14 @@ aikyoは、バーチャルな体を持ったAIコンパニオンを作成しや�
 
 ```json
 {
-  "from": "companion-id",
+  "from": "id",
   "message": "こんにちは！",
   "target": "target-companion-id",
   "metadata": {}
 }
 ```
+
+コンパニオンのidはcompanion_xxxx、ユーザーのidはuser_xxxxである必要があります。
 
 ### **action** - 物理的動作
 
@@ -27,7 +29,7 @@ aikyoは、バーチャルな体を持ったAIコンパニオンを作成しや�
 
 ```json
 {
-  "from": "companion-id",
+  "from": "id",
   "name": "action-name",
   "params": {
     Custom action params....
@@ -225,7 +227,7 @@ Node.js 24
 
 ## Usage
 
-依存関係を解決します。
+パッケージをインストールします。
 
 ```
 npm i
@@ -241,6 +243,29 @@ firehose を起動します。
 
 ```
 npm run firehose
+```
+
+firehoseに対してmessage、contextなどをsendすることで、P2Pネットワークにメッセージを流すことができます。
+
+```json
+{
+  "from": "user_xxxx",
+  "message": "こんにちは！",
+  "target": "target-companion-id",
+  "metadata": {}
+}
+```
+
+以下のリクエストをコンパニオンサーバーに投げることで、特定のコンパニオンにcontextを与えることができます。
+
+```http
+POST /context
+Content-Type: application/json
+
+{
+  "type": "image" | "text",
+  "context": "string"
+}
 ```
 
 ## 技術的仕様
