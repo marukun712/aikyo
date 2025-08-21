@@ -47,6 +47,7 @@ wss.on("connection", (ws) => {
     const data = JSON.parse(evt.toString());
     const parsed = MessageSchema.safeParse(data);
     if (!parsed.success) return;
+    console.log(parsed);
     libp2p.services.pubsub.publish(
       "messages",
       new TextEncoder().encode(evt.toString())

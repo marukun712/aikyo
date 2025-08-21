@@ -6,6 +6,7 @@
   "main": "index.js",
   "dependencies": {
     "@ai-sdk/anthropic": "1.2.12",
-    "ollama-ai-provider": "^1.2.0"
+    "ollama-ai-provider": "^1.2.0",
+    "zod": "^3.25.76"
   }
 }

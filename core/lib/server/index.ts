@@ -92,7 +92,7 @@ export class CompanionServer implements ICompanionServer {
           const result = await this.companionAgent.runAgent(
             JSON.stringify(data, null, 2)
           );
-          console.log(`Processed message from ${msg.from}: ${result.text}`);
+          console.log(`Processed message from ${msg.from}:${result.text}`);
         }
         //共有された記憶
       } else if (topic === "contexts") {

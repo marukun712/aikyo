@@ -1,11 +1,12 @@
-import { Agent as MastraAgent } from "@mastra/core/agent";
+import { Agent } from "@mastra/core/agent";
 import { Memory } from "@mastra/memory";
 import { LibSQLStore, LibSQLVector } from "@mastra/libsql";
 import { config } from "dotenv";
 import { type CompanionCard } from "../../schema/index.ts";
-import { type LanguageModel } from "@mastra/core";
+import { Run, type LanguageModel } from "@mastra/core";
 import { RuntimeContext } from "@mastra/core/runtime-context";
 import { type LibP2PContext } from "../server/index.ts";
+import { createEventWorkflow } from "../workflow/index.ts";
 config();
 
 export interface ICompanionAgent {
@@ -15,8 +16,9 @@ export interface ICompanionAgent {
 
 export class CompanionAgent implements ICompanionAgent {
   companion: CompanionCard;
-  agent: MastraAgent;
+  agent: Agent;
   runtimeContext: RuntimeContext;
+  run: Run;
 
   constructor(companion: CompanionCard, model: LanguageModel) {
     this.companion = companion;
@@ -33,7 +35,7 @@ export class CompanionAgent implements ICompanionAgent {
     });
 
     //Agentを作成
-    this.agent = new MastraAgent({
+    this.agent = new Agent({
       name: companion.metadata.name,
       instructions: `
       あなたのメタデータ
@@ -43,9 +45,18 @@ export class CompanionAgent implements ICompanionAgent {
       あなたの役割は、
       ${companion.role}です。この役割に忠実に行動してください。
 
-      あなたには、contextデータがネットワークから渡されます。
+      あなたはには、2種類のデータが渡されます。
+      このようなデータは、同じ部屋にいる他のコンパニオンやユーザーから伝えられるメッセージです。
+      {
+        "metadata": {},
+        "from": "companion_xxxx",
+        "message": "こんにちは！",
+      }
+      companion_xxxxというfromがついているのがコンパニオン、user_xxxxというfromがついているのがユーザーです。
 
-      このcontextを長期記憶に保存し、必要であればツールを実行してください。
+      その他のテキストデータや画像データは、contextと呼ばれる、コンパニオン間での共通認識です。
+      このcontextを長期記憶に保存してください。
+      
       "絶対に"、ツールを使用する、のようなメタ的な発言をしてはいけません。
       `,
       model,
@@ -54,52 +65,17 @@ export class CompanionAgent implements ICompanionAgent {
     });
 
     this.runtimeContext = new RuntimeContext<LibP2PContext>();
-  }
-
-  //長期記憶に行動基準が左右されないよう、常に最新の行動基準をcontextに含む
-  private buildBaseContext() {
-    return [
-      {
-        role: "user" as const,
-        content: [
-          {
-            type: "text" as const,
-            text: `
-          ${JSON.stringify(this.companion.events, null, 2)}
-          あなたは、この条件に従って与えられたツールを使用する必要があります。
-          "絶対に" この条件にないタイミングでツールを使ってはいけません。`,
-          },
-        ],
-      },
-    ];
+    const workflow = createEventWorkflow(
+      this.agent,
+      this.runtimeContext,
+      this.companion
+    );
+    this.run = workflow.createRun();
   }
 
   //画像またはテキスト入力に対応
   async runAgent(input: string | { image: string; mimeType: string }) {
-    let messages;
-
-    if (typeof input === "string") {
-      messages = input;
-    } else {
-      messages = [
-        {
-          role: "user" as const,
-          content: [
-            {
-              type: "image" as const,
-              image: input.image,
-              mimeType: input.mimeType,
-            },
-          ],
-        },
-      ];
-    }
-
-    return this.agent.generate(messages, {
-      context: this.buildBaseContext(),
-      runtimeContext: this.runtimeContext,
-      resourceId: "main",
-      threadId: "thread",
-    });
+    const res = await this.run.start({ inputData: input });
+    return { text: res.status === "success" ? res.result.output : res.status };
   }
 }

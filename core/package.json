@@ -14,12 +14,14 @@
     "@mastra/loggers": "^0.10.6",
     "@mastra/mcp": "^0.10.11",
     "@mastra/memory": "^0.12.2",
+    "cel-js": "^0.8.2",
     "dotenv": "^17.2.1",
     "helia": "^5.5.1",
     "hono": "^4.9.2",
     "libp2p": "^2.9.0",
     "ollama-ai-provider": "^1.2.0",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "zod-from-json-schema": "^0.0.5"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
