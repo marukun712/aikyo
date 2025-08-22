@@ -18,6 +18,7 @@ export const CompanionSchema = z.object({
   metadata: MetadataSchema,
   role: z.string(),
   actions: z.record(z.instanceof(Tool)),
+  knowledge: z.record(z.instanceof(Tool)),
   events: z.object({
     params: z.record(z.string(), z.any()),
     conditions: z.array(
@@ -26,7 +27,7 @@ export const CompanionSchema = z.object({
         execute: z.array(
           z.object({
             instruction: z.string(),
-            tool: z.string(),
+            tool: z.instanceof(Tool),
           })
         ),
       })

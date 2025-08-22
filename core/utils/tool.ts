@@ -42,3 +42,34 @@ export function createCompanionAction<T extends ZodTypeAny>({
     },
   });
 }
+
+export function createCompanionKnowledge<T extends ZodTypeAny>({
+  id,
+  description,
+  inputSchema,
+  knowledge,
+}: {
+  id: string;
+  description: string;
+  inputSchema: T;
+  knowledge: (input: z.infer<T>) => string | Promise<string>;
+}) {
+  return createTool({
+    id,
+    description,
+    inputSchema,
+    execute: async ({ context }) => {
+      try {
+        const data = await knowledge(context);
+        return {
+          content: [{ type: "text", text: data }],
+        };
+      } catch (e) {
+        console.error(e);
+        return {
+          content: [{ type: "text", text: "知識の取得に失敗しました。" + e }],
+        };
+      }
+    },
+  });
+}

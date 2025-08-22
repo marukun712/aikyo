@@ -49,10 +49,10 @@ aikyoは、バーチャルな体を持ったAIコンパニオンを作成しや�
 }
 ```
 
-### Companion card
+### Companion Card
 
-aikyoでは、AIコンパニオンはCompanion cardという設計書で設計することができます。
-Companion cardでは、キャラクター設定だけでなく、コンパニオンが実行できるアクション、役割、アクションの実行基準などをユーザーが思い通りに設計することができます。
+aikyoでは、AIコンパニオンはCompanion Cardという設計書で設計することができます。
+Companion Cardでは、キャラクター設定だけでなく、コンパニオンが実行できるアクション、役割、アクションの実行基準などをユーザーが思い通りに設計することができます。
 
 ```typescript
 export const companionCard: CompanionCard = {
@@ -68,6 +68,7 @@ export const companionCard: CompanionCard = {
   },
   role: "あなたは、展示会をサポートするAIコンパニオンです。積極的にお客さんを呼び込みます。",
   actions: { speakAction, motionDBGestureAction, contextAction },
+  knowledge: { EnvironmentDBKnowledge },
   events: {
     params: {
       title: "あなたが判断すべきパラメータ",
@@ -109,7 +110,7 @@ export const companionCard: CompanionCard = {
         execute: [
           {
             instruction: "応答する。",
-            tool: "speak",
+            tool: speakAction,
           },
         ],
       },
@@ -118,7 +119,7 @@ export const companionCard: CompanionCard = {
         execute: [
           {
             instruction: "見たことのある人が交流してきたので、話題を提供する",
-            tool: "speak",
+            tool: speakAction,
           },
         ],
       },
@@ -127,12 +128,12 @@ export const companionCard: CompanionCard = {
         execute: [
           {
             instruction: "見たことのない人が交流してきたので、手を振る",
-            tool: "motion-db-gesture",
+            tool: motionDBGestureAction,
           },
-          { instruction: "見たことのない人に、挨拶をする", tool: "speak" },
+          { instruction: "見たことのない人に、挨拶をする", tool: speakAction },
           {
             instruction: "他のコンパニオンに、初めて見る人の情報を共有する",
-            tool: "context",
+            tool: contextAction,
           },
         ],
       },
@@ -143,7 +144,7 @@ export const companionCard: CompanionCard = {
           {
             instruction:
               "話しかけてきたコンパニオンと話したことがなかったので、今は忙しいので話すことができないと返答する。",
-            tool: "speak",
+            tool: speakAction,
           },
         ],
       },
@@ -152,7 +153,7 @@ export const companionCard: CompanionCard = {
         execute: [
           {
             instruction: "ジェスチャーで体の動きを表現する。",
-            tool: "motion-db-gesture",
+            tool: motionDBGestureAction,
           },
         ],
       },
@@ -161,7 +162,7 @@ export const companionCard: CompanionCard = {
         execute: [
           {
             instruction: "コンパニオンに情報を共有する。",
-            tool: "context",
+            tool: contextAction,
           },
         ],
       },
@@ -178,6 +179,7 @@ LLMに判断させるパラメータを記述し、そのパラメータを使�
 
 コンパニオンのアクションは`createCompanionAction`メソッドで作成し、LLMのToolとして定義されます。
 LLMが入力するパラメータから、Networkに送信するメッセージデータを生成できます。
+Actionツールは、Companion Cardのactionsに登録してください。
 
 ```typescript
 export const gestureAction = createCompanionAction({
@@ -220,6 +222,28 @@ export const motionDBGestureAction = createCompanionAction({
 
 これらのactionデータはFirehoseというサーバーを通してWebSocketを通してクライアントに送信されます。
 クライアントは、送られてきたパラメータをもとにコンパニオンの体を操作することで、動作を実現します。
+
+### Knowledgeの定義
+
+コンパニオンに動的に取得させたい知識は`EnvironmentDBKnowledge`メソッドで作成し、LLMのToolとして定義されます。
+LLMが入力するパラメータから、外部のAPIなどを使用して、LLMに知識を与えます。
+Knowledgeツールは、LLMに知識を与えるだけで、Networkにデータを送信しません。
+Companion Cardのknowledgeに登録することで、適切にシステムプロンプトに埋め込まれます。
+
+```typescript
+export const EnvironmentDBKnowledge = createCompanionKnowledge({
+  id: "environment-db",
+  description: "あなたの部屋の家具情報などを取得します。",
+  inputSchema: z.object({
+    label: z.enum(semanticLabels),
+  }),
+  knowledge: async ({ label }) => {
+    const json = await fetcher.fetch(label);
+    const data = JSON.stringify(json, null, 2);
+    return data;
+  },
+});
+```
 
 ## Requirements
 

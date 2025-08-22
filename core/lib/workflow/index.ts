@@ -76,8 +76,8 @@ export function createEventWorkflow(
         if (evaluate(condition.expression, input)) {
           condition.execute.forEach((tool) => {
             // すでに tool の実行条件が決まっていれば代入しない
-            if (!tools.has(tool.tool)) {
-              tools.set(tool.tool, tool.instruction);
+            if (!tools.has(tool.tool.id)) {
+              tools.set(tool.tool.id, tool.instruction);
             }
           });
         }

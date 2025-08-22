@@ -6,6 +6,7 @@ import {
   CompanionAgent,
 } from "@aikyo/core";
 import { anthropic } from "@ai-sdk/anthropic";
+import { EnvironmentDBKnowledge } from "./plugins/EnvironmentDBPlugin.ts";
 
 export const companionCard: CompanionCard = {
   metadata: {
@@ -20,6 +21,7 @@ export const companionCard: CompanionCard = {
   },
   role: "あなたは、展示会をサポートするAIコンパニオンです。積極的にお客さんを呼び込みます。",
   actions: { speakAction, motionDBGestureAction, contextAction },
+  knowledge: { EnvironmentDBKnowledge },
   events: {
     params: {
       title: "あなたが判断すべきパラメータ",
@@ -61,7 +63,7 @@ export const companionCard: CompanionCard = {
         execute: [
           {
             instruction: "応答する。",
-            tool: "speak",
+            tool: speakAction,
           },
         ],
       },
@@ -70,7 +72,7 @@ export const companionCard: CompanionCard = {
         execute: [
           {
             instruction: "見たことのある人が交流してきたので、話題を提供する",
-            tool: "speak",
+            tool: speakAction,
           },
         ],
       },
@@ -79,12 +81,12 @@ export const companionCard: CompanionCard = {
         execute: [
           {
             instruction: "見たことのない人が交流してきたので、手を振る",
-            tool: "motion-db-gesture",
+            tool: motionDBGestureAction,
           },
-          { instruction: "見たことのない人に、挨拶をする", tool: "speak" },
+          { instruction: "見たことのない人に、挨拶をする", tool: speakAction },
           {
             instruction: "他のコンパニオンに、初めて見る人の情報を共有する",
-            tool: "context",
+            tool: contextAction,
           },
         ],
       },
@@ -95,7 +97,7 @@ export const companionCard: CompanionCard = {
           {
             instruction:
               "話しかけてきたコンパニオンと話したことがなかったので、今は忙しいので話すことができないと返答する。",
-            tool: "speak",
+            tool: speakAction,
           },
         ],
       },
@@ -104,7 +106,7 @@ export const companionCard: CompanionCard = {
         execute: [
           {
             instruction: "ジェスチャーで体の動きを表現する。",
-            tool: "motion-db-gesture",
+            tool: motionDBGestureAction,
           },
         ],
       },
@@ -113,7 +115,7 @@ export const companionCard: CompanionCard = {
         execute: [
           {
             instruction: "コンパニオンに情報を共有する。",
-            tool: "context",
+            tool: contextAction,
           },
         ],
       },

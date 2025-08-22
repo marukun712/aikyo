@@ -6,13 +6,13 @@ export class MotionDBFetcher {
   url: string;
 
   constructor(url: string) {
-    this.url = url;
+    this.url = new URL(url).href;
   }
 
-  async fetchMove(prompt: string) {
-    const res = await fetch(`${this.url}/search?query=${prompt}`);
+  async fetch(prompt: string) {
+    const res = await fetch(`${this.url}search?query=${prompt}`);
     const json = await res.json();
-    return `${this.url}/motions/${json.id}.fbx`;
+    return json.url;
   }
 }
 
@@ -27,7 +27,7 @@ export const motionDBGestureAction = createCompanionAction({
   }),
   topic: "actions",
   publish: async ({ prompt }) => {
-    const url = await fetcher.fetchMove(prompt);
+    const url = await fetcher.fetch(prompt);
     const data: Action = {
       from: companionCard.metadata.id,
       name: "gesture",
