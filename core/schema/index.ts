@@ -14,6 +14,16 @@ export const EventSchema = z.object({
   tool: z.array(z.string()),
 });
 
+export const EventCondition = z.object({
+  expression: z.string(),
+  execute: z.array(
+    z.object({
+      instruction: z.string(),
+      tool: z.instanceof(Tool),
+    })
+  ),
+});
+
 export const CompanionSchema = z.object({
   metadata: MetadataSchema,
   role: z.string(),
@@ -21,17 +31,7 @@ export const CompanionSchema = z.object({
   knowledge: z.record(z.instanceof(Tool)),
   events: z.object({
     params: z.record(z.string(), z.any()),
-    conditions: z.array(
-      z.object({
-        expression: z.string(),
-        execute: z.array(
-          z.object({
-            instruction: z.string(),
-            tool: z.instanceof(Tool),
-          })
-        ),
-      })
-    ),
+    conditions: z.array(EventCondition),
   }),
 });
 export type CompanionCard = z.infer<typeof CompanionSchema>;

@@ -39,7 +39,7 @@ export class EnvironmentDBFetcher {
 
 const fetcher = new EnvironmentDBFetcher("http://localhost:9000");
 
-export const EnvironmentDBKnowledge = createCompanionKnowledge({
+export const environmentDBKnowledge = createCompanionKnowledge({
   id: "environment-db",
   description: "あなたの部屋の家具情報などを取得します。",
   inputSchema: z.object({

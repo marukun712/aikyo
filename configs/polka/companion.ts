@@ -6,7 +6,7 @@ import {
   CompanionAgent,
 } from "@aikyo/core";
 import { anthropic } from "@ai-sdk/anthropic";
-import { EnvironmentDBKnowledge } from "./plugins/EnvironmentDBPlugin.ts";
+import { environmentDBKnowledge } from "./plugins/EnvironmentDBPlugin.ts";
 
 export const companionCard: CompanionCard = {
   metadata: {
@@ -21,7 +21,7 @@ export const companionCard: CompanionCard = {
   },
   role: "あなたは、展示会をサポートするAIコンパニオンです。積極的にお客さんを呼び込みます。",
   actions: { speakAction, motionDBGestureAction, contextAction },
-  knowledge: { EnvironmentDBKnowledge },
+  knowledge: { environmentDBKnowledge },
   events: {
     params: {
       title: "あなたが判断すべきパラメータ",

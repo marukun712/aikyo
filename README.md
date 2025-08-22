@@ -68,7 +68,7 @@ export const companionCard: CompanionCard = {
   },
   role: "あなたは、展示会をサポートするAIコンパニオンです。積極的にお客さんを呼び込みます。",
   actions: { speakAction, motionDBGestureAction, contextAction },
-  knowledge: { EnvironmentDBKnowledge },
+  knowledge: { environmentDBKnowledge },
   events: {
     params: {
       title: "あなたが判断すべきパラメータ",

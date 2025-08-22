@@ -2,21 +2,30 @@ import { createTool } from "@mastra/core/tools";
 import { z, type ZodTypeAny } from "zod";
 import { type Action, type Context, type Message } from "../schema/index.ts";
 
+type Output = Action | Context | Message;
+
+interface CompanionActionConfig<T extends z.ZodSchema> {
+  id: string;
+  description: string;
+  inputSchema: T;
+  topic: "messages" | "actions" | "contexts";
+  publish: (input: z.infer<T>) => Promise<Output> | Output;
+}
+
+interface CompanionKnowledgeConfig<T extends z.ZodSchema> {
+  id: string;
+  description: string;
+  inputSchema: T;
+  knowledge: (input: z.infer<T>) => Promise<string> | string;
+}
+
 export function createCompanionAction<T extends ZodTypeAny>({
   id,
   description,
   inputSchema,
   topic,
   publish,
-}: {
-  id: string;
-  description: string;
-  inputSchema: T;
-  topic: string;
-  publish: (
-    input: z.infer<T>
-  ) => Action | Context | Message | Promise<Action | Context | Message>;
-}) {
+}: CompanionActionConfig<T>) {
   return createTool({
     id,
     description,
@@ -48,12 +57,7 @@ export function createCompanionKnowledge<T extends ZodTypeAny>({
   description,
   inputSchema,
   knowledge,
-}: {
-  id: string;
-  description: string;
-  inputSchema: T;
-  knowledge: (input: z.infer<T>) => string | Promise<string>;
-}) {
+}: CompanionKnowledgeConfig<T>) {
   return createTool({
     id,
     description,
