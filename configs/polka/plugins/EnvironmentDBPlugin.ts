@@ -31,8 +31,10 @@ export class EnvironmentDBFetcher {
   }
 
   async fetch(label: SemanticLabel) {
+    console.log(label);
     const res = await fetch(`${this.url}get?label=${label}`);
     const json = await res.json();
+    console.log(json);
     return json;
   }
 }

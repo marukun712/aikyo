@@ -88,11 +88,12 @@ export class CompanionServer implements ICompanionServer {
         //自分がメッセージのターゲットになっているか
         const isTargeted = msg.target === this.companion.metadata.id;
         if (isTargeted) {
+          console.log(data);
           //ターゲットなら処理
           const result = await this.companionAgent.runAgent(
             JSON.stringify(data, null, 2)
           );
-          console.log(`Processed message from ${msg.from}:${result.text}`);
+          console.log(result);
         }
         //共有された記憶
       } else if (topic === "contexts") {

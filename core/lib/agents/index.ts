@@ -84,6 +84,8 @@ export class CompanionAgent implements ICompanionAgent {
   //画像またはテキスト入力に対応
   async runAgent(input: string | { image: string; mimeType: string }) {
     const res = await this.run.start({ inputData: input });
-    return { text: res.status === "success" ? res.result.output : res.status };
+    return {
+      text: res.status === "success" ? res.result : res.status,
+    };
   }
 }

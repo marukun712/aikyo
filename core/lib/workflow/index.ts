@@ -22,34 +22,41 @@ export function createEventWorkflow(
       z.string(),
       z.object({ image: z.string(), mimeType: z.string() }),
     ]),
-    outputSchema: outputSchema,
+    outputSchema: z.object({
+      output: outputSchema,
+      messages: z.array(z.any()),
+    }),
     execute: async ({ inputData }) => {
       const input = inputData;
       let messages: CoreMessage[];
+      let userInteraction: CoreMessage;
       if (typeof input === "string") {
+        userInteraction = { role: "user", content: input };
         messages = [
           {
             role: "system",
             content: `あなたに与えられた入力の状況から、${JSON.stringify(companionCard.events.params, null, 2)}に、あなたの今までの記憶をもとに判断を行い、適切なパラメータを代入して返却してください。`,
           },
-          { role: "user", content: "input" },
+          userInteraction,
         ];
       } else {
+        userInteraction = {
+          role: "user" as const,
+          content: [
+            {
+              type: "image" as const,
+              image: input.image,
+              mimeType: input.mimeType,
+            },
+          ],
+        };
+
         messages = [
           {
             role: "system",
             content: `あなたに与えられた入力の状況から、${JSON.stringify(companionCard.events.params, null, 2)}に、あなたの今までの記憶をもとに判断を行い、適切なパラメータを代入して返却してください。`,
           },
-          {
-            role: "user" as const,
-            content: [
-              {
-                type: "image" as const,
-                image: input.image,
-                mimeType: input.mimeType,
-              },
-            ],
-          },
+          userInteraction,
         ];
       }
       const res = await agent.generate(messages, {
@@ -57,23 +64,27 @@ export function createEventWorkflow(
         threadId: "thread",
         output: outputSchema,
       });
-      return res.object;
+      return { output: res.object, messages: [userInteraction] };
     },
   });
 
   const runStep = createStep({
     id: "run",
     description: "状況パラメータから実行するツールを特定する",
-    inputSchema: outputSchema,
+    inputSchema: z.object({
+      output: outputSchema,
+      messages: z.array(z.any()),
+    }),
     outputSchema: z.string(),
     execute: async ({ inputData }) => {
-      const input = inputData;
+      const { output, messages } = inputData;
       console.log(inputData);
       const tools = new Map<string, string>();
       // 上に書かれた条件を優先
       companionCard.events.conditions.forEach((condition) => {
         // expression を評価する
-        if (evaluate(condition.expression, input)) {
+        if (evaluate(condition.expression, output)) {
+          console.log(condition.expression, "is true");
           condition.execute.forEach((tool) => {
             // すでに tool の実行条件が決まっていれば代入しない
             if (!tools.has(tool.tool.id)) {
@@ -90,14 +101,15 @@ export function createEventWorkflow(
         .map(([toolName, instruction]) => `${toolName}: ${instruction}`)
         .join("\n");
       console.log(toolInstructions);
-      const res = await agent.generate(
-        `以下の指示に従い、ツールを実行してください。\n${toolInstructions}`,
-        {
-          runtimeContext,
-          resourceId: "main",
-          threadId: "thread",
-        }
-      );
+      messages.push({
+        role: "system",
+        content: `以下の指示に従い、直前のユーザーからの入力に対してツールを実行して対応してください。\n${toolInstructions}また、必要なら適切なKnowledgeを参照してください。`,
+      });
+      const res = await agent.generate(messages, {
+        runtimeContext,
+        resourceId: "main",
+        threadId: "thread",
+      });
       console.log(res.text);
       return res.text;
     },

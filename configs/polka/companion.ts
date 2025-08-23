@@ -51,7 +51,8 @@ export const companionCard: CompanionCard = {
           type: "boolean",
         },
         need_reply: {
-          description: "返事が必要かどうか",
+          description:
+            "相手のメッセージに対する返答(true)か、自分から話しかけている(false)か",
           type: "boolean",
         },
       },
@@ -102,7 +103,7 @@ export const companionCard: CompanionCard = {
         ],
       },
       {
-        expression: 'interaction_type === "user" && need_gesture === true',
+        expression: "need_gesture === true",
         execute: [
           {
             instruction: "ジェスチャーで体の動きを表現する。",
@@ -115,6 +116,15 @@ export const companionCard: CompanionCard = {
         execute: [
           {
             instruction: "コンパニオンに情報を共有する。",
+            tool: contextAction,
+          },
+        ],
+      },
+      {
+        expression: "need_reply === false",
+        execute: [
+          {
+            instruction: "独り言を言う。",
             tool: contextAction,
           },
         ],
