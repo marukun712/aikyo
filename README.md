@@ -68,7 +68,7 @@ export const companionCard: CompanionCard = {
   },
   role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。",
   actions: { speakAction, motionDBGestureAction, contextAction },
-  knowledge: { environmentDBKnowledge },
+  knowledge: { environmentDBKnowledge, companionNetworkKnowledge },
   events: {
     params: {
       title: "あなたが判断すべきパラメータ",
@@ -80,8 +80,8 @@ export const companionCard: CompanionCard = {
             "相手のメッセージに対する返答(true)か、自分から話しかけている(false)か",
           type: "boolean",
         },
-        already_seen: {
-          description: "交流してきたコンパニオン/ユーザーを、見たことがあるか",
+        already_replied: {
+          description: "交流してきたコンパニオン/ユーザーと話したことがあるか",
           type: "boolean",
         },
         need_gesture: {
@@ -93,7 +93,12 @@ export const companionCard: CompanionCard = {
           type: "boolean",
         },
       },
-      required: ["need_reply", "already_seen", "need_gesture", "need_context"],
+      required: [
+        "need_reply",
+        "already_replied",
+        "need_gesture",
+        "need_context",
+      ],
     },
     conditions: [
       {
@@ -106,7 +111,7 @@ export const companionCard: CompanionCard = {
         ],
       },
       {
-        expression: "already_seen === true",
+        expression: "already_replied === true",
         execute: [
           {
             instruction: "見たことのある人が交流してきたので、話題を提供する",
@@ -115,7 +120,7 @@ export const companionCard: CompanionCard = {
         ],
       },
       {
-        expression: "already_seen === false",
+        expression: "already_replied === false",
         execute: [
           {
             instruction: "見たことのない人が交流してきたので、手を振る",

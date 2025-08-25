@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createCompanionAction } from "@aikyo/core";
+import { createCompanionAction, createCompanionKnowledge } from "@aikyo/core";
 
 export const speakAction = createCompanionAction({
   id: "speak",
@@ -52,4 +52,16 @@ export const gestureAction = createCompanionAction({
     name: "gesture",
     params: { type },
   }),
+});
+
+export const companionNetworkKnowledge = createCompanionKnowledge({
+  id: "companions-network",
+  description:
+    "同じネットワークに所属しているコンパニオンのリストを取得します。",
+  inputSchema: z.object({}),
+  knowledge: async ({}, id, companions) => {
+    return Array.from(companions.entries())
+      .map((metadata) => JSON.stringify(metadata, null, 2))
+      .join("\n");
+  },
 });

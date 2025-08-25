@@ -5,7 +5,6 @@ import { config } from "dotenv";
 import { type CompanionCard } from "../../schema/index.ts";
 import { Run, type LanguageModel } from "@mastra/core";
 import { RuntimeContext } from "@mastra/core/runtime-context";
-import { type LibP2PContext } from "../server/index.ts";
 import { createEventWorkflow } from "../workflow/index.ts";
 config();
 
@@ -71,7 +70,7 @@ export class CompanionAgent implements ICompanionAgent {
       memory: memory,
       tools: { ...companion.actions, ...companion.knowledge },
     });
-    this.runtimeContext = new RuntimeContext<LibP2PContext>();
+    this.runtimeContext = new RuntimeContext();
     const workflow = createEventWorkflow(
       this.agent,
       this.runtimeContext,

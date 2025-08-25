@@ -18,16 +18,13 @@ export interface ICompanionServer {
   start(): Promise<void>;
 }
 
-export type LibP2PContext = {
-  libp2p: Awaited<ReturnType<typeof createLibp2p>>;
-};
-
 export class CompanionServer implements ICompanionServer {
   companionAgent: CompanionAgent;
   companion: CompanionCard;
   libp2p!: Awaited<ReturnType<typeof createLibp2p>>;
   app: Hono;
   port: number;
+  companionList = new Map<string, string>();
 
   constructor(companionAgent: CompanionAgent, port: number) {
     this.companionAgent = companionAgent;
@@ -45,7 +42,9 @@ export class CompanionServer implements ICompanionServer {
       streamMuxers: [yamux()],
       services: {
         pubsub: gossipsub({ allowPublishToZeroTopicPeers: true }),
-        identify: identify(),
+        identify: identify({
+          agentVersion: JSON.stringify(this.companion.metadata, null, 2),
+        }),
       },
     });
 
@@ -64,8 +63,39 @@ export class CompanionServer implements ICompanionServer {
       this.handlePubSubMessage(evt)
     );
 
+    libp2p.addEventListener("peer:identify", async (evt) => {
+      try {
+        const { agentVersion, peerId } = evt.detail;
+        if (
+          !agentVersion ||
+          this.companionList.has(peerId.toString()) ||
+          !JSON.parse(agentVersion)
+        )
+          return;
+        this.companionList.set(peerId.toString(), agentVersion);
+        console.log(
+          `Identified peer ${peerId.toString()} with metadata:`,
+          agentVersion
+        );
+      } catch (e) {}
+    });
+
+    libp2p.addEventListener("peer:disconnect", async (evt) => {
+      try {
+        const peerIdStr = evt.detail.toString();
+        const agentVersion = this.companionList.get(peerIdStr);
+        if (!this.companionList.has(peerIdStr)) return;
+        console.log(
+          `Peer disconnected: ${peerIdStr}, metadata was:`,
+          agentVersion
+        );
+        this.companionList.delete(peerIdStr);
+      } catch (e) {}
+    });
+
     //tool呼び出しのためRuntimeContextにSet
     this.companionAgent.runtimeContext.set("libp2p", libp2p);
+    this.companionAgent.runtimeContext.set("companions", this.companionList);
 
     this.libp2p = libp2p;
   }
@@ -75,16 +105,13 @@ export class CompanionServer implements ICompanionServer {
 
     try {
       const data = JSON.parse(new TextDecoder().decode(message.detail.data));
-
       //Companion間でのメッセージやり取り
       if (topic === "messages") {
         const parsed = MessageSchema.safeParse(data);
         if (!parsed.success) return;
-
         //自分のメッセージが届いてしまった場合は破棄
         const msg = parsed.data;
         if (msg.from === this.companion.metadata.id) return;
-
         //自分がメッセージのターゲットになっているか
         const isTargeted = msg.target === this.companion.metadata.id;
         if (isTargeted) {
@@ -99,9 +126,7 @@ export class CompanionServer implements ICompanionServer {
       } else if (topic === "contexts") {
         const parsed = ContextSchema.safeParse(data);
         if (!parsed.success) return;
-
         const body = parsed.data;
-
         //textならそのまま
         if (body.type === "text") {
           const result = await this.companionAgent.runAgent(body.context);
