@@ -80,11 +80,6 @@ export const companionCard: CompanionCard = {
             "相手のメッセージに対する返答(true)か、自分から話しかけている(false)か",
           type: "boolean",
         },
-        already_replied: {
-          description:
-            "交流してきたコンパニオン/ユーザーと会話をしたことがあるか",
-          type: "boolean",
-        },
         already_seen: {
           description: "交流してきたコンパニオン/ユーザーを、見たことがあるか",
           type: "boolean",
@@ -98,13 +93,7 @@ export const companionCard: CompanionCard = {
           type: "boolean",
         },
       },
-      required: [
-        "need_reply",
-        "already_replied",
-        "already_seen",
-        "need_gesture",
-        "need_context",
-      ],
+      required: ["need_reply", "already_seen", "need_gesture", "need_context"],
     },
     conditions: [
       {
