@@ -57,7 +57,7 @@ Companion Cardでは、キャラクター設定だけでなく、コンパニオ
 ```typescript
 export const companionCard: CompanionCard = {
   metadata: {
-    id: "companion_bebf00bb-8a43-488d-9c23-93c40b84d30e",
+    id: "companion_polka",
     name: "高橋ポルカ",
     personality:
       "高橋ポルカは元気で明るくて難しいことを考えるのが苦手な性格です。",
@@ -66,7 +66,7 @@ export const companionCard: CompanionCard = {
     sample:
       "翔音ちゃんが見せてくれた昔のスクールアイドルの動画の数々 もうすっっっっっごい！！！ かわいかった～！！ 興奮 鼻血でちゃう！！ あ 夏ってなんか鼻血出やすいよね。。。 ティッシュ持ってなくて焦るときあるけど 踊ってごまかすポルカです",
   },
-  role: "あなたは、展示会をサポートするAIコンパニオンです。積極的にお客さんを呼び込みます。",
+  role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。",
   actions: { speakAction, motionDBGestureAction, contextAction },
   knowledge: { environmentDBKnowledge },
   events: {
@@ -75,14 +75,14 @@ export const companionCard: CompanionCard = {
       description: "descriptionに従い、それぞれ適切に値を代入してください。",
       type: "object",
       properties: {
-        interaction_type: {
-          description: "交流してきた人がコンパニオンか、ユーザーか",
-          enum: ["user", "companion"],
-          type: "string",
+        need_reply: {
+          description:
+            "相手のメッセージに対する返答(true)か、自分から話しかけている(false)か",
+          type: "boolean",
         },
         already_replied: {
           description:
-            "交流してきたコンパニオン/ユーザーに、返事をしたことがあるか",
+            "交流してきたコンパニオン/ユーザーと会話をしたことがあるか",
           type: "boolean",
         },
         already_seen: {
@@ -97,16 +97,18 @@ export const companionCard: CompanionCard = {
           description: "他のコンパニオンに共有すべき情報があるか",
           type: "boolean",
         },
-        need_reply: {
-          description: "返事が必要かどうか",
-          type: "boolean",
-        },
       },
-      required: ["interaction_type", "response_count", "already_seen"],
+      required: [
+        "need_reply",
+        "already_replied",
+        "already_seen",
+        "need_gesture",
+        "need_context",
+      ],
     },
     conditions: [
       {
-        expression: 'interaction_type === "user" && need_reply === true',
+        expression: "need_reply === true",
         execute: [
           {
             instruction: "応答する。",
@@ -115,7 +117,7 @@ export const companionCard: CompanionCard = {
         ],
       },
       {
-        expression: 'interaction_type === "user" && already_seen === true',
+        expression: "already_seen === true",
         execute: [
           {
             instruction: "見たことのある人が交流してきたので、話題を提供する",
@@ -124,7 +126,7 @@ export const companionCard: CompanionCard = {
         ],
       },
       {
-        expression: 'interaction_type === "user" && already_seen === false',
+        expression: "already_seen === false",
         execute: [
           {
             instruction: "見たことのない人が交流してきたので、手を振る",
@@ -138,18 +140,7 @@ export const companionCard: CompanionCard = {
         ],
       },
       {
-        expression:
-          'interaction_type === "companion" && already_replied === false',
-        execute: [
-          {
-            instruction:
-              "話しかけてきたコンパニオンと話したことがなかったので、今は忙しいので話すことができないと返答する。",
-            tool: speakAction,
-          },
-        ],
-      },
-      {
-        expression: 'interaction_type === "user" && need_gesture === true',
+        expression: "need_gesture === true",
         execute: [
           {
             instruction: "ジェスチャーで体の動きを表現する。",
@@ -162,6 +153,15 @@ export const companionCard: CompanionCard = {
         execute: [
           {
             instruction: "コンパニオンに情報を共有する。",
+            tool: contextAction,
+          },
+        ],
+      },
+      {
+        expression: "need_reply === false",
+        execute: [
+          {
+            instruction: "独り言を言う。",
             tool: contextAction,
           },
         ],
@@ -189,8 +189,8 @@ export const gestureAction = createCompanionAction({
     type: z.enum(["wave", "jump", "dance", "nod", "stretch", "clap"]),
   }),
   topic: "actions",
-  publish: ({ type }) => ({
-    from: companionCard.metadata.id,
+  publish: ({ type }, id) => ({
+    from: id,
     name: "gesture",
     params: { type },
   }),
@@ -208,10 +208,10 @@ export const motionDBGestureAction = createCompanionAction({
     prompt: z.string().describe("promptは必ず英語1,2単語で記述してください。"),
   }),
   topic: "actions",
-  publish: async ({ prompt }) => {
-    const url = await fetcher.fetchMove(prompt);
+  publish: async ({ prompt }, id) => {
+    const url = await fetcher.fetch(prompt);
     const data: Action = {
-      from: companionCard.metadata.id,
+      from: id,
       name: "gesture",
       params: { url },
     };
@@ -225,13 +225,14 @@ export const motionDBGestureAction = createCompanionAction({
 
 ### Knowledgeの定義
 
-コンパニオンに動的に取得させたい知識は`EnvironmentDBKnowledge`メソッドで作成し、LLMのToolとして定義されます。
+コンパニオンに動的に取得させたい知識は`createCompanionKnowledge`メソッドで作成し、LLMのToolとして定義されます。
 LLMが入力するパラメータから、外部のAPIなどを使用して、LLMに知識を与えます。
+
 Knowledgeツールは、LLMに知識を与えるだけで、Networkにデータを送信しません。
 Companion Cardのknowledgeに登録することで、適切にシステムプロンプトに埋め込まれます。
 
 ```typescript
-export const EnvironmentDBKnowledge = createCompanionKnowledge({
+export const environmentDBKnowledge = createCompanionKnowledge({
   id: "environment-db",
   description: "あなたの部屋の家具情報などを取得します。",
   inputSchema: z.object({
