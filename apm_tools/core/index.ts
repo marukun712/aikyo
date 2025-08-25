@@ -10,7 +10,9 @@ export const speakAction = createCompanionAction({
     target: z
       .string()
       .optional()
-      .describe("特定のコンパニオンのIDを指定(任意)"),
+      .describe(
+        "特定のコンパニオンのIDを指定(任意)。独り言の場合は何も入れない。"
+      ),
     emotion: z
       .enum(["happy", "sad", "angry", "neutral"])
       .describe("あなたの感情に最も適している値を入れてください。"),
