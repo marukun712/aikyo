@@ -1,6 +1,5 @@
 import { type Action, createCompanionAction } from "@aikyo/core";
 import { z } from "zod";
-import { companionCard } from "../companion.ts";
 
 export class MotionDBFetcher {
   url: string;
@@ -26,10 +25,10 @@ export const motionDBGestureAction = createCompanionAction({
     prompt: z.string().describe("promptは必ず英語1,2単語で記述してください。"),
   }),
   topic: "actions",
-  publish: async ({ prompt }) => {
+  publish: async ({ prompt }, id) => {
     const url = await fetcher.fetch(prompt);
     const data: Action = {
-      from: companionCard.metadata.id,
+      from: id,
       name: "gesture",
       params: { url },
     };

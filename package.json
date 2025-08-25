@@ -9,6 +9,7 @@
   "workspaces": [
     "core",
     "firehose",
-    "configs"
+    "configs",
+    "apm_tools"
   ]
 }

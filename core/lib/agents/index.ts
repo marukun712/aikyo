@@ -71,13 +71,13 @@ export class CompanionAgent implements ICompanionAgent {
       memory: memory,
       tools: { ...companion.actions, ...companion.knowledge },
     });
-
     this.runtimeContext = new RuntimeContext<LibP2PContext>();
     const workflow = createEventWorkflow(
       this.agent,
       this.runtimeContext,
       this.companion
     );
+    this.runtimeContext.set("id", companion.metadata.id);
     this.run = workflow.createRun();
   }
 

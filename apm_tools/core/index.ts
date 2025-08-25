@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { companionCard } from "../companion.ts";
 import { createCompanionAction } from "@aikyo/core";
 
 export const speakAction = createCompanionAction({
@@ -17,9 +16,9 @@ export const speakAction = createCompanionAction({
       .describe("あなたの感情に最も適している値を入れてください。"),
   }),
   topic: "messages",
-  publish: ({ message, emotion, target }) => ({
+  publish: ({ message, emotion, target }, id) => ({
     metadata: { emotion },
-    from: companionCard.metadata.id,
+    from: id,
     message,
     target,
   }),
@@ -46,8 +45,8 @@ export const gestureAction = createCompanionAction({
     type: z.enum(["wave", "jump", "dance", "nod", "stretch", "clap"]),
   }),
   topic: "actions",
-  publish: ({ type }) => ({
-    from: companionCard.metadata.id,
+  publish: ({ type }, id) => ({
+    from: id,
     name: "gesture",
     params: { type },
   }),

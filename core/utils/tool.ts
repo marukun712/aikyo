@@ -9,14 +9,14 @@ interface CompanionActionConfig<T extends z.ZodSchema> {
   description: string;
   inputSchema: T;
   topic: "messages" | "actions" | "contexts";
-  publish: (input: z.infer<T>) => Promise<Output> | Output;
+  publish: (input: z.infer<T>, id: string) => Promise<Output> | Output;
 }
 
 interface CompanionKnowledgeConfig<T extends z.ZodSchema> {
   id: string;
   description: string;
   inputSchema: T;
-  knowledge: (input: z.infer<T>) => Promise<string> | string;
+  knowledge: (input: z.infer<T>, id: string) => Promise<string> | string;
 }
 
 export function createCompanionAction<T extends ZodTypeAny>({
@@ -33,8 +33,10 @@ export function createCompanionAction<T extends ZodTypeAny>({
     execute: async ({ context, runtimeContext }) => {
       try {
         const libp2p = runtimeContext.get("libp2p");
-        if (!libp2p) throw new Error("Error : LibP2Pが初期化されていません!");
-        const data = await publish(context);
+        if (!libp2p) throw new Error("Error:libp2pが初期化されていません!");
+        const id = runtimeContext.get("id");
+        if (!id) throw new Error("Error:コンパニオンのidが不正です!");
+        const data = await publish(context, id);
         libp2p.services.pubsub.publish(
           topic,
           new TextEncoder().encode(JSON.stringify(data))
@@ -62,9 +64,11 @@ export function createCompanionKnowledge<T extends ZodTypeAny>({
     id,
     description,
     inputSchema,
-    execute: async ({ context }) => {
+    execute: async ({ context, runtimeContext }) => {
       try {
-        const data = await knowledge(context);
+        const id = runtimeContext.get("id");
+        if (!id) throw new Error("Error:コンパニオンのidが不正です!");
+        const data = await knowledge(context, id);
         return {
           content: [{ type: "text", text: data }],
         };

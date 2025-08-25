@@ -32,13 +32,6 @@ export function createEventWorkflow(
       let userInteraction: CoreMessage;
       if (typeof input === "string") {
         userInteraction = { role: "user", content: input };
-        messages = [
-          {
-            role: "system",
-            content: `あなたに与えられた入力の状況から、${JSON.stringify(companionCard.events.params, null, 2)}に、あなたの今までの記憶をもとに判断を行い、適切なパラメータを代入して返却してください。`,
-          },
-          userInteraction,
-        ];
       } else {
         userInteraction = {
           role: "user" as const,
@@ -50,15 +43,14 @@ export function createEventWorkflow(
             },
           ],
         };
-
-        messages = [
-          {
-            role: "system",
-            content: `あなたに与えられた入力の状況から、${JSON.stringify(companionCard.events.params, null, 2)}に、あなたの今までの記憶をもとに判断を行い、適切なパラメータを代入して返却してください。`,
-          },
-          userInteraction,
-        ];
       }
+      messages = [
+        {
+          role: "system",
+          content: `あなたに与えられた入力の状況から、${JSON.stringify(companionCard.events.params, null, 2)}に、あなたの今までの記憶をもとに判断を行い、適切なパラメータを代入して返却してください。`,
+        },
+        userInteraction,
+      ];
       const res = await agent.generate(messages, {
         resourceId: "main",
         threadId: "thread",
