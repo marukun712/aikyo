@@ -6,7 +6,7 @@ aikyoは、相互につながるAIコンパニオンを作成するためのフ�
 
 aikyoは、バーチャルな体を持ったAIコンパニオンを作成しやすくするためのフレームワークです。
 
-コンパニオン同士はP2Pでつながり、3種類のメッセージをやりとりします：
+コンパニオン同士はP2Pでつながり、3種類のメッセージをやりとりします。
 
 ### **message** - コミュニケーション
 
@@ -309,7 +309,7 @@ Companion A ←--→ Companion B
 Companion C ←--→ Companion D
 ```
 
-各コンパニオンは自律的にP2Pネットワークに参加し、以下の流れで通信します：
+各コンパニオンは自律的にP2Pネットワークに参加し、以下の流れで通信します。
 
 1. **ピア発見**: mDNSでローカルネットワーク内の他コンパニオンを発見
 2. **接続確立**: 接続を確立
@@ -359,7 +359,7 @@ libp2p.services.pubsub.addEventListener("message", (evt) => {
 
 #### Firehose統合
 
-FirehoseサーバーはP2PネットワークとWebSocketクライアント間のブリッジとして機能：
+FirehoseサーバーはP2PネットワークとWebSocketクライアント間のブリッジとして機能します。
 
 ```
 WebSocket Client ←--→ Firehose Server ←--→ P2P Network
