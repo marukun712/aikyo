@@ -10,6 +10,10 @@ config();
 
 export interface ICompanionAgent {
   companion: CompanionCard;
+  agent: Agent;
+  runtimeContext: RuntimeContext;
+  run: Run;
+
   runAgent(input: string | { image: string; mimeType: string }): Promise<any>;
 }
 

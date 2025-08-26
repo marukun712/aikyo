@@ -44,14 +44,18 @@ wss.on("connection", (ws) => {
   console.log("WebSocket client connected");
 
   ws.on("message", (evt) => {
-    const data = JSON.parse(evt.toString());
-    const parsed = MessageSchema.safeParse(data);
-    if (!parsed.success) return;
-    console.log(parsed);
-    libp2p.services.pubsub.publish(
-      "messages",
-      new TextEncoder().encode(evt.toString())
-    );
+    try {
+      const data = JSON.parse(evt.toString());
+      const parsed = MessageSchema.safeParse(data);
+      if (!parsed.success) return;
+      console.log(parsed);
+      libp2p.services.pubsub.publish(
+        "messages",
+        new TextEncoder().encode(evt.toString())
+      );
+    } catch (e) {
+      console.log(e);
+    }
   });
 
   ws.on("close", () => {
@@ -61,14 +65,18 @@ wss.on("connection", (ws) => {
 });
 
 libp2p.services.pubsub.addEventListener("message", async (message) => {
-  const data = JSON.parse(new TextDecoder().decode(message.detail.data));
-  console.log(data);
+  try {
+    const data = JSON.parse(new TextDecoder().decode(message.detail.data));
+    console.log(data);
 
-  const payload = JSON.stringify(data);
-  for (const client of clients) {
-    if (client.readyState === 1) {
-      client.send(payload);
+    const payload = JSON.stringify(data);
+    for (const client of clients) {
+      if (client.readyState === 1) {
+        client.send(payload);
+      }
     }
+  } catch (e) {
+    console.log(e);
   }
 });
 

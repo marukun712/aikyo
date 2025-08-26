@@ -33,13 +33,9 @@ export const companionCard: CompanionCard = {
       description: "descriptionに従い、それぞれ適切に値を代入してください。",
       type: "object",
       properties: {
-        need_reply: {
-          description:
-            "相手のメッセージに対する返答(true)か、自分から話しかけている(false)か",
-          type: "boolean",
-        },
         already_replied: {
-          description: "交流してきたコンパニオン/ユーザーと話したことがあるか",
+          description:
+            "交流してきたコンパニオン/ユーザーと既に話したことがあるか",
           type: "boolean",
         },
         need_gesture: {
@@ -51,28 +47,14 @@ export const companionCard: CompanionCard = {
           type: "boolean",
         },
       },
-      required: [
-        "need_reply",
-        "already_replied",
-        "need_gesture",
-        "need_context",
-      ],
+      required: ["already_replied", "need_gesture", "need_context"],
     },
     conditions: [
-      {
-        expression: "need_reply === true",
-        execute: [
-          {
-            instruction: "応答する。",
-            tool: speakAction,
-          },
-        ],
-      },
       {
         expression: "already_replied === true",
         execute: [
           {
-            instruction: "見たことのある人が交流してきたので、話題を提供する",
+            instruction: "応答する。",
             tool: speakAction,
           },
         ],
@@ -85,10 +67,6 @@ export const companionCard: CompanionCard = {
             tool: motionDBGestureAction,
           },
           { instruction: "見たことのない人に、挨拶をする", tool: speakAction },
-          {
-            instruction: "他のコンパニオンに、初めて見る人の情報を共有する",
-            tool: contextAction,
-          },
         ],
       },
       {
@@ -109,22 +87,13 @@ export const companionCard: CompanionCard = {
           },
         ],
       },
-      {
-        expression: "need_reply === false",
-        execute: [
-          {
-            instruction: "独り言を言う。",
-            tool: contextAction,
-          },
-        ],
-      },
     ],
   },
 };
 
 const companion = new CompanionAgent(
   companionCard,
-  anthropic("claude-4-sonnet-20250514")
+  anthropic("claude-sonnet-4-20250514")
 );
 const server = new CompanionServer(companion, 4000);
 await server.start();

@@ -8,20 +8,43 @@ import { identify } from "@libp2p/identify";
 import { mdns } from "@libp2p/mdns";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
-import { type CompanionCard } from "../../schema/index.ts";
+import { MetadataSchema, type CompanionCard } from "../../schema/index.ts";
 import { CompanionAgent } from "../agents/index.ts";
 import { MessageSchema, ContextSchema } from "../../schema/index.ts";
 import { logger } from "hono/logger";
 import { cors } from "hono/cors";
 
 export interface ICompanionServer {
+  companionAgent: CompanionAgent;
+  companion: CompanionCard;
+  libp2p: Awaited<ReturnType<typeof initLibp2p>>;
+  app: Hono;
+  port: number;
+  companionList: Map<string, string>;
+
   start(): Promise<void>;
 }
+
+export const initLibp2p = async (metadata) => {
+  return await createLibp2p({
+    addresses: { listen: ["/ip4/0.0.0.0/tcp/0"] },
+    transports: [tcp()],
+    peerDiscovery: [mdns()], //mdnsでピア探索(ローカル限定)
+    connectionEncrypters: [noise()],
+    streamMuxers: [yamux()],
+    services: {
+      pubsub: gossipsub({ allowPublishToZeroTopicPeers: true }),
+      identify: identify({
+        agentVersion: JSON.stringify(metadata, null, 2),
+      }),
+    },
+  });
+};
 
 export class CompanionServer implements ICompanionServer {
   companionAgent: CompanionAgent;
   companion: CompanionCard;
-  libp2p!: Awaited<ReturnType<typeof createLibp2p>>;
+  libp2p: Awaited<ReturnType<typeof initLibp2p>>;
   app: Hono;
   port: number;
   companionList = new Map<string, string>();
@@ -34,19 +57,7 @@ export class CompanionServer implements ICompanionServer {
   }
 
   private async initLibp2p() {
-    const libp2p = await createLibp2p({
-      addresses: { listen: ["/ip4/0.0.0.0/tcp/0"] },
-      transports: [tcp()],
-      peerDiscovery: [mdns()], //mdnsでピア探索(ローカル限定)
-      connectionEncrypters: [noise()],
-      streamMuxers: [yamux()],
-      services: {
-        pubsub: gossipsub({ allowPublishToZeroTopicPeers: true }),
-        identify: identify({
-          agentVersion: JSON.stringify(this.companion.metadata, null, 2),
-        }),
-      },
-    });
+    const libp2p = await initLibp2p(this.companion.metadata);
 
     //ピア(Companion)を発見したら接続
     libp2p.addEventListener("peer:discovery", (evt) => {
@@ -66,13 +77,24 @@ export class CompanionServer implements ICompanionServer {
     libp2p.addEventListener("peer:identify", async (evt) => {
       try {
         const { agentVersion, peerId } = evt.detail;
+        const parsed = MetadataSchema.safeParse(agentVersion);
         if (
           !agentVersion ||
           this.companionList.has(peerId.toString()) ||
-          !JSON.parse(agentVersion)
+          !JSON.parse(agentVersion) ||
+          !parsed.success
         )
           return;
         this.companionList.set(peerId.toString(), agentVersion);
+        this.libp2p.services.pubsub.publish(
+          "contexts",
+          new TextEncoder().encode(
+            JSON.stringify({
+              type: "text",
+              content: `${parsed.data.name}がネットワークに参加しました。`,
+            })
+          )
+        );
         console.log(
           `Identified peer ${peerId.toString()} with metadata:`,
           agentVersion
@@ -85,6 +107,16 @@ export class CompanionServer implements ICompanionServer {
         const peerIdStr = evt.detail.toString();
         const agentVersion = this.companionList.get(peerIdStr);
         if (!this.companionList.has(peerIdStr)) return;
+        const parsed = MetadataSchema.parse(agentVersion);
+        this.libp2p.services.pubsub.publish(
+          "contexts",
+          new TextEncoder().encode(
+            JSON.stringify({
+              type: "text",
+              content: `${parsed.name}がネットワークから離脱しました。`,
+            })
+          )
+        );
         console.log(
           `Peer disconnected: ${peerIdStr}, metadata was:`,
           agentVersion
@@ -159,7 +191,6 @@ export class CompanionServer implements ICompanionServer {
       }),
       async (c) => {
         const body = c.req.valid("json");
-
         if (body.type === "text") {
           const result = await this.companionAgent.runAgent(body.context);
           console.log(result.text);

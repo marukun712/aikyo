@@ -17,7 +17,8 @@ export function createEventWorkflow(
 
   const evaluateStep = createStep({
     id: "evaluate",
-    description: "与えられた情報から、状況パラメータの値を設定する",
+    description:
+      "与えられた情報から、状況パラメータの値を設定する。この評価は、キャラクターとしてではなく、あなたとして行ってください。",
     inputSchema: z.union([
       z.string(),
       z.object({ image: z.string(), mimeType: z.string() }),
@@ -39,7 +40,6 @@ export function createEventWorkflow(
             {
               type: "image" as const,
               image: input.image,
-              mimeType: input.mimeType,
             },
           ],
         };
@@ -47,7 +47,7 @@ export function createEventWorkflow(
       messages = [
         {
           role: "system",
-          content: `あなたに与えられた入力の状況から、${JSON.stringify(companionCard.events.params, null, 2)}に、あなたの今までの記憶をもとに判断を行い、適切なパラメータを代入して返却してください。`,
+          content: `あなたに与えられた入力の状況から、${JSON.stringify(companionCard.events.params, null, 2)}に、あなたの今までの記憶をもとに判断を行い、適切なパラメータを代入して返却してください。この評価は、キャラクターとしてではなく、あなたとして行ってください。`,
         },
         userInteraction,
       ];
