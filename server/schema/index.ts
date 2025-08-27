@@ -21,7 +21,7 @@ export const EventCondition = z.object({
     z.object({
       instruction: z.string(),
       tool: z.instanceof(Tool),
-    }),
+    })
   ),
 });
 
@@ -40,8 +40,8 @@ export type CompanionCard = z.infer<typeof CompanionSchema>;
 export const MessageSchema = z.object({
   metadata: z.record(z.string(), z.any()).optional(),
   from: z.string(),
+  to: z.string().optional(),
   message: z.string(),
-  target: z.string().optional(),
 });
 export type Message = z.infer<typeof MessageSchema>;
 

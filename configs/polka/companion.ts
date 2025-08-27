@@ -9,7 +9,7 @@ import {
   type CompanionCard,
   CompanionServer,
   CompanionAgent,
-} from "@aikyo/core";
+} from "@aikyo/server";
 import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
 
@@ -93,7 +93,7 @@ export const companionCard: CompanionCard = {
 
 const companion = new CompanionAgent(
   companionCard,
-  anthropic("claude-sonnet-4-20250514"),
+  anthropic("claude-sonnet-4-20250514")
 );
 const server = new CompanionServer(companion, 4000);
 await server.start();

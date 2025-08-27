@@ -1,8 +1,9 @@
 {
-  "name": "@aikyo/core",
+  "name": "@aikyo/server",
   "version": "1.0.0",
   "type": "module",
   "main": "index.ts",
+  "license": "MIT",
   "dependencies": {
     "@ai-sdk/anthropic": "1.2.12",
     "@chainsafe/libp2p-gossipsub": "^14.1.1",
@@ -10,7 +11,6 @@
     "@libp2p/identify": "^3.0.38",
     "@libp2p/mdns": "^11.0.46",
     "@mastra/core": "ai-v5",
-    "@mastra/fastembed": "^0.0.0-ai-v5-20250813235735",
     "@mastra/libsql": "ai-v5",
     "@mastra/loggers": "ai-v5",
     "@mastra/mcp": "ai-v5",

@@ -1,9 +1,7 @@
 {
   "name": "configs",
   "version": "1.0.0",
-  "description": "",
   "type": "module",
-  "main": "index.js",
   "dependencies": {
     "@ai-sdk/anthropic": "2.0.6",
     "@ai-sdk/google": "2.0.8",

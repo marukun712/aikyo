@@ -10,7 +10,9 @@
     "core",
     "firehose",
     "configs",
-    "apm_tools"
+    "apm_tools",
+    "routing",
+    "packages/utils"
   ],
   "overrides": {
     "ms": "3.0.0-canary.1"
