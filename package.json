@@ -3,7 +3,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "companion": "npx tsx ./configs/$npm_config_config/companion.ts",
+    "companion": "npx tsx ./companion-launcher.ts",
     "firehose": "npx tsx ./firehose/index.ts"
   },
   "workspaces": [
