@@ -12,9 +12,20 @@ description: aikyoを使ってAIコンパニオンを作成する最初のステ
 プロジェクトをクローンして依存関係をインストールします：
 
 ```bash
-git clone https://github.com/marukun712/aikyo
-cd aikyo
-npm install
+$ git clone https://github.com/marukun712/aikyo
+$ cd aikyo/
+$ npm install
+```
+
+APM(Aikyo Package Manager)を使用してblankテンプレートをクローンします：
+
+```bash
+$ brew install akazdayo/tap/apm
+$ cd configs/
+$ apm init --template basic
+$ ls
+> aikyo-basic-template
+> ...
 ```
 
 ## 基本的な使い方
@@ -68,7 +79,7 @@ curl -X POST http://localhost:3000/context \
 
 ## 設定例の確認
 
-`configs/polka/` ディレクトリには、高橋ポルカというキャラクターのサンプル設定が含まれています：
+`configs/basic_template/` ディレクトリには、ベーシックキャラクターの初期設定が含まれています：
 
 - `companion.ts` - コンパニオンカードの定義
 - `plugins/` - 外部連携プラグイン
