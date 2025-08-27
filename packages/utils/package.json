@@ -1,6 +1,8 @@
 {
   "name": "@aikyo/utils",
   "type": "module",
+  "version": "1.0.0",
+  "license": "MIT",
   "dependencies": {
     "@chainsafe/libp2p-gossipsub": "^14.1.1",
     "@libp2p/identify": "^3.0.38",
@@ -10,7 +12,5 @@
   },
   "peerDependencies": {
     "typescript": "^5"
-  },
-  "version": "1.0.0",
-  "license": "MIT"
+  }
 }
