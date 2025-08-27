@@ -42,15 +42,18 @@ Firehoseサーバーは、P2PネットワークとWebSocketクライアント間
 FirehoseサーバーにWebsocketでメッセージを送信することでP2Pネットワークにメッセージを送信することができます。
 
 ```typescript
+const firehoseUrl = "localhost:8080";
 const ws = new WebSocket(firehoseUrl);
 
-ws.send(
-  JSON.stringify(
-    { from: "user", message: "こんにちは！", target: "companion_xxxx" },
-    null,
-    2
-  )
-);
+ws.addEventListener("open", (event) => {
+  ws.send(
+    JSON.stringify(
+      { from: "user", message: "こんにちは！", target: "companion_polka" },
+      null,
+      2
+    )
+  );
+});
 ```
 
 ### 4. コンテキストの共有
