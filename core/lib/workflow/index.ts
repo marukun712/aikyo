@@ -8,10 +8,11 @@ import { RuntimeContext } from "@mastra/core/runtime-context";
 import { CompanionAgent } from "../agents/index.ts";
 
 type AgentType = InstanceType<typeof CompanionAgent>["agent"];
+
 export function createEventWorkflow(
   agent: AgentType,
   runtimeContext: RuntimeContext,
-  companionCard: CompanionCard
+  companionCard: CompanionCard,
 ) {
   const outputSchema = convertJsonSchemaToZod(companionCard.events.params);
 

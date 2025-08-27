@@ -10,6 +10,7 @@
     "@libp2p/identify": "^3.0.38",
     "@libp2p/mdns": "^11.0.46",
     "@mastra/core": "ai-v5",
+    "@mastra/fastembed": "^0.0.0-ai-v5-20250813235735",
     "@mastra/libsql": "ai-v5",
     "@mastra/loggers": "ai-v5",
     "@mastra/mcp": "ai-v5",

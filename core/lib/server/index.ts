@@ -8,11 +8,16 @@ import { identify } from "@libp2p/identify";
 import { mdns } from "@libp2p/mdns";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
-import { MetadataSchema, type CompanionCard } from "../../schema/index.ts";
+import {
+  MetadataSchema,
+  type CompanionCard,
+  type Metadata,
+} from "../../schema/index.ts";
 import { CompanionAgent } from "../agents/index.ts";
 import { MessageSchema, ContextSchema } from "../../schema/index.ts";
 import { logger } from "hono/logger";
 import { cors } from "hono/cors";
+import { State } from "../agents/state.ts";
 
 export interface ICompanionServer {
   companionAgent: CompanionAgent;
@@ -25,7 +30,7 @@ export interface ICompanionServer {
   start(): Promise<void>;
 }
 
-export const initLibp2p = async (metadata) => {
+export const initLibp2p = async (metadata: Metadata) => {
   return await createLibp2p({
     addresses: { listen: ["/ip4/0.0.0.0/tcp/0"] },
     transports: [tcp()],
@@ -48,12 +53,14 @@ export class CompanionServer implements ICompanionServer {
   app: Hono;
   port: number;
   companionList = new Map<string, string>();
+  state: State;
 
   constructor(companionAgent: CompanionAgent, port: number) {
     this.companionAgent = companionAgent;
     this.companion = companionAgent.companion;
     this.app = new Hono();
     this.port = port;
+    this.state = new State();
   }
 
   private async initLibp2p() {
@@ -71,33 +78,29 @@ export class CompanionServer implements ICompanionServer {
 
     //イベントハンドラの設定
     libp2p.services.pubsub.addEventListener("message", (evt) =>
-      this.handlePubSubMessage(evt)
+      this.handlePubSubMessage(evt),
     );
 
     libp2p.addEventListener("peer:identify", async (evt) => {
       try {
         const { agentVersion, peerId } = evt.detail;
-        const parsed = MetadataSchema.safeParse(agentVersion);
-        if (
-          !agentVersion ||
-          this.companionList.has(peerId.toString()) ||
-          !JSON.parse(agentVersion) ||
-          !parsed.success
-        )
+        if (!agentVersion) return;
+        const parsed = MetadataSchema.safeParse(JSON.parse(agentVersion));
+        if (this.companionList.has(peerId.toString()) || !parsed.success)
           return;
         this.companionList.set(peerId.toString(), agentVersion);
-        this.libp2p.services.pubsub.publish(
+        libp2p.services.pubsub.publish(
           "contexts",
           new TextEncoder().encode(
             JSON.stringify({
               type: "text",
               content: `${parsed.data.name}がネットワークに参加しました。`,
-            })
-          )
+            }),
+          ),
         );
         console.log(
           `Identified peer ${peerId.toString()} with metadata:`,
-          agentVersion
+          agentVersion,
         );
       } catch (e) {}
     });
@@ -108,18 +111,18 @@ export class CompanionServer implements ICompanionServer {
         const agentVersion = this.companionList.get(peerIdStr);
         if (!this.companionList.has(peerIdStr)) return;
         const parsed = MetadataSchema.parse(agentVersion);
-        this.libp2p.services.pubsub.publish(
+        libp2p.services.pubsub.publish(
           "contexts",
           new TextEncoder().encode(
             JSON.stringify({
               type: "text",
               content: `${parsed.name}がネットワークから離脱しました。`,
-            })
-          )
+            }),
+          ),
         );
         console.log(
           `Peer disconnected: ${peerIdStr}, metadata was:`,
-          agentVersion
+          agentVersion,
         );
         this.companionList.delete(peerIdStr);
       } catch (e) {}
@@ -150,7 +153,7 @@ export class CompanionServer implements ICompanionServer {
           console.log(data);
           //ターゲットなら処理
           const result = await this.companionAgent.runAgent(
-            JSON.stringify(data, null, 2)
+            JSON.stringify(data, null, 2),
           );
           console.log(result);
         }
@@ -203,7 +206,7 @@ export class CompanionServer implements ICompanionServer {
           console.log(result.text);
           return c.json({ message: result.text }, 201);
         }
-      }
+      },
     );
   }
 

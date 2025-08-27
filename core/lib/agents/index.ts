@@ -6,6 +6,7 @@ import { type CompanionCard } from "../../schema/index.ts";
 import { Run, type LanguageModel } from "@mastra/core";
 import { RuntimeContext } from "@mastra/core/runtime-context";
 import { createEventWorkflow } from "../workflow/index.ts";
+import { fastembed } from "@mastra/fastembed";
 config();
 
 export interface ICompanionAgent {
@@ -34,7 +35,14 @@ export class CompanionAgent implements ICompanionAgent {
       vector: new LibSQLVector({
         connectionUrl: `file:db/${this.companion.metadata.id}.db`,
       }),
-      options: { workingMemory: { enabled: true } },
+      embedder: fastembed,
+      options: {
+        workingMemory: { enabled: true },
+        semanticRecall: {
+          topK: 3,
+          messageRange: 3,
+        },
+      },
     });
 
     //Agentを作成
@@ -67,8 +75,9 @@ export class CompanionAgent implements ICompanionAgent {
 
       その他のテキストデータや画像データは、contextと呼ばれる、コンパニオン間での共通認識です。
       このcontextを長期記憶に保存してください。
-      
+
       "絶対に"、ツールを使用する、のようなメタ的な発言をしてはいけません。
+      必ずワーキングメモリを更新してください。
       `,
       model,
       memory: memory,
@@ -78,7 +87,7 @@ export class CompanionAgent implements ICompanionAgent {
     const workflow = createEventWorkflow(
       this.agent,
       this.runtimeContext,
-      this.companion
+      this.companion,
     );
     this.runtimeContext.set("id", companion.metadata.id);
     this.run = workflow.createRun();

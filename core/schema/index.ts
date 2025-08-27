@@ -8,6 +8,7 @@ export const MetadataSchema = z.object({
   story: z.string(),
   sample: z.string(),
 });
+export type Metadata = z.infer<typeof MetadataSchema>;
 
 export const EventSchema = z.object({
   condition: z.string(),
@@ -20,7 +21,7 @@ export const EventCondition = z.object({
     z.object({
       instruction: z.string(),
       tool: z.instanceof(Tool),
-    })
+    }),
   ),
 });
 
