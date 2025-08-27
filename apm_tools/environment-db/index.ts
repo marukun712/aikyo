@@ -1,4 +1,4 @@
-import { createCompanionKnowledge } from "@aikyo/core";
+import { createCompanionKnowledge } from "@aikyo/utils";
 import z from "zod";
 
 const semanticLabels = [

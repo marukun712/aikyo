@@ -1,4 +1,4 @@
-import { type Action, createCompanionAction } from "@aikyo/core";
+import { createCompanionAction } from "@aikyo/utils";
 import { z } from "zod";
 
 export class MotionDBFetcher {
@@ -27,7 +27,7 @@ export const motionDBGestureAction = createCompanionAction({
   topic: "actions",
   publish: async ({ prompt }, id) => {
     const url = await fetcher.fetch(prompt);
-    const data: Action = {
+    const data = {
       from: id,
       name: "gesture",
       params: { url },

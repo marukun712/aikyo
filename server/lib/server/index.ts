@@ -145,7 +145,7 @@ export class CompanionServer implements ICompanionServer {
         const msg = parsed.data;
         if (msg.from === this.companion.metadata.id) return;
         //自分がメッセージのターゲットになっているか
-        const isTargeted = msg.target === this.companion.metadata.id;
+        const isTargeted = msg.to === this.companion.metadata.id;
         if (isTargeted) {
           console.log(data);
           //ターゲットなら処理

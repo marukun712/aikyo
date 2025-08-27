@@ -6,7 +6,6 @@ import { type CompanionCard } from "../../schema/index.ts";
 import { Run, type LanguageModel } from "@mastra/core";
 import { RuntimeContext } from "@mastra/core/runtime-context";
 import { createEventWorkflow } from "../workflow/index.ts";
-import { fastembed } from "@mastra/fastembed";
 config();
 
 export interface ICompanionAgent {
@@ -35,13 +34,8 @@ export class CompanionAgent implements ICompanionAgent {
       vector: new LibSQLVector({
         connectionUrl: `file:db/${this.companion.metadata.id}.db`,
       }),
-      embedder: fastembed,
       options: {
         workingMemory: { enabled: true },
-        semanticRecall: {
-          topK: 3,
-          messageRange: 3,
-        },
       },
     });
 
@@ -87,7 +81,7 @@ export class CompanionAgent implements ICompanionAgent {
     const workflow = createEventWorkflow(
       this.agent,
       this.runtimeContext,
-      this.companion,
+      this.companion
     );
     this.runtimeContext.set("id", companion.metadata.id);
     this.run = workflow.createRun();

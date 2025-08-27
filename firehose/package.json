@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "main": "index.js",
   "dependencies": {
     "@chainsafe/libp2p-gossipsub": "^14.1.1",
     "dotenv": "^17.2.1",
