@@ -6,6 +6,7 @@ import { Message, type CompanionCard } from "../../schema/index.ts";
 import { CoreMessage, Run, type LanguageModel } from "@mastra/core";
 import { RuntimeContext } from "@mastra/core/runtime-context";
 import { createEventWorkflow } from "../workflow/index.ts";
+import { talkTool } from "../tool/index.ts";
 import z from "zod";
 config();
 
@@ -62,7 +63,7 @@ export class CompanionAgent implements ICompanionAgent {
       `,
       model,
       memory: memory,
-      tools: { ...companion.actions, ...companion.knowledge },
+      tools: { ...companion.actions, ...companion.knowledge, talkTool },
     });
     this.runtimeContext = new RuntimeContext();
     const workflow = createEventWorkflow(
@@ -79,9 +80,7 @@ export class CompanionAgent implements ICompanionAgent {
     input: string | { image: string; mimeType: string },
   ) {
     const res = await this.run.start({ inputData: input });
-    return {
-      result: res.status === "success" ? res.result : res.status,
-    };
+    return res.status === "success" ? res.result : res.status;
   }
 
   async addContext(input: string | { image: string; mimeType: string }) {
@@ -104,6 +103,7 @@ export class CompanionAgent implements ICompanionAgent {
       };
     }
     this.agent.generate([interaction], {
+      runtimeContext: this.runtimeContext,
       resourceId: "main",
       threadId: "thread",
       instructions,
@@ -116,9 +116,28 @@ export class CompanionAgent implements ICompanionAgent {
     if (typeof instructions !== "string" || instructions === "failed") {
       throw new Error("イベント実行に失敗しました。");
     }
-    const res = await this.agent.generate(JSON.stringify(input, null, 2), {
-      instructions: `
-      与えられたメッセージに対して、キャラクターとして返信するメッセージを作成してください。
+
+    await this.agent.generate(
+      [
+        {
+          role: "system",
+          content: `
+          指示に従い、会話の文脈にあったツールを実行してください。
+          `,
+        },
+      ],
+      {
+        runtimeContext: this.runtimeContext,
+        resourceId: "main",
+        threadId: "thread",
+        instructions,
+      },
+    );
+
+    const systemMessage: CoreMessage = {
+      role: "system",
+      content: `
+      今までの文脈から、最終的にキャラクターとしてユーザーに返信するメッセージを作成してください。
       必ず、このスキーマで返信してください。
       {
         "metadata": {
@@ -126,8 +145,10 @@ export class CompanionAgent implements ICompanionAgent {
         },
         "message": "メッセージ本文",
       }
-      ${instructions}
       `,
+    };
+
+    const res = await this.agent.generate([systemMessage], {
       output: z.object({
         metadata: z.object({
           emotion: z
@@ -141,6 +162,7 @@ export class CompanionAgent implements ICompanionAgent {
       resourceId: "main",
       threadId: "thread",
     });
+
     const output = res.object;
     const data: Message = {
       from: this.companion.metadata.id,

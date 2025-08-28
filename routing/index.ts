@@ -26,6 +26,12 @@ const libp2p = await createLibp2p({
   },
 });
 
+libp2p.addEventListener("peer:discovery", (evt) => {
+  libp2p.dial(evt.detail.multiaddrs).catch((err) => {
+    console.error("Dial error:", err);
+  });
+});
+
 libp2p.addEventListener("peer:identify", async (evt) => {
   try {
     const { agentVersion, peerId } = evt.detail;
@@ -59,7 +65,34 @@ app.post(
   }),
   async (c) => {
     const body = c.req.valid("json");
+    libp2p.services.pubsub.publish(
+      "messages",
+      new TextEncoder().encode(JSON.stringify(body, null, 2)),
+    );
+    const target = Array.from(companionList.entries()).find(
+      ([k, v]) => v.id === body.to,
+    );
+    if (!target) return c.json({ error: "Companion not found!" }, 404);
+    const rawUrl = target[1].url;
+    const url = new URL(rawUrl);
+    const res = await fetch(`${url.href}generate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) return c.json({ error: "Failed to send message!" }, 500);
+    const json = await res.json();
+    const parsed = MessageSchema.safeParse(json);
+    if (!parsed.success) return c.json({ error: "Invalid response!" }, 500);
+    libp2p.services.pubsub.publish(
+      "messages",
+      new TextEncoder().encode(JSON.stringify(parsed.data, null, 2)),
+    );
+    return c.json(parsed.data, 200);
   },
 );
 
 serve({ fetch: app.fetch, port });
+console.log(`Router running on http://localhost:${port}`);

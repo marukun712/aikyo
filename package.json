@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "companion": "npx tsx ./configs/$npm_config_config/companion.ts",
+    "router": "npx tsx ./routing/index.ts",
     "firehose": "npx tsx ./firehose/index.ts"
   },
   "workspaces": [

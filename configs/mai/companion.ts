@@ -10,6 +10,7 @@ import {
   CompanionAgent,
 } from "@aikyo/server";
 import { anthropic } from "@ai-sdk/anthropic";
+import { google } from "@ai-sdk/google";
 
 export const companionCard: CompanionCard = {
   metadata: {
@@ -36,7 +37,7 @@ export const companionCard: CompanionCard = {
           type: "boolean",
         },
         need_context: {
-          description: "他のコンパニオンに共有すべき情報があるか",
+          description: "視覚情報として何かを認識したかどうか。",
           type: "boolean",
         },
       },
@@ -56,7 +57,7 @@ export const companionCard: CompanionCard = {
         expression: "need_context === true",
         execute: [
           {
-            instruction: "コンパニオンに情報を共有する。",
+            instruction: "コンパニオンに認識したものを共有する。",
             tool: contextAction,
           },
         ],
@@ -67,7 +68,7 @@ export const companionCard: CompanionCard = {
 
 const companion = new CompanionAgent(
   companionCard,
-  anthropic("claude-sonnet-4-20250514"),
+  anthropic("claude-3-5-haiku-latest"),
 );
 const server = new CompanionServer(companion, 4002);
 await server.start();

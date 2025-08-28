@@ -42,7 +42,7 @@ export const MessageSchema = z.object({
   metadata: z.record(z.string(), z.any()).optional(),
   from: z.string(),
   to: z.string(),
-  message: z.string().max(50),
+  message: z.string(),
 });
 export type Message = z.infer<typeof MessageSchema>;
 
