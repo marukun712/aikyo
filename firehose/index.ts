@@ -51,7 +51,7 @@ wss.on("connection", (ws) => {
       console.log(parsed);
       libp2p.services.pubsub.publish(
         "messages",
-        new TextEncoder().encode(evt.toString())
+        new TextEncoder().encode(evt.toString()),
       );
     } catch (e) {
       console.log(e);

@@ -2,10 +2,11 @@ import { Agent } from "@mastra/core/agent";
 import { Memory } from "@mastra/memory";
 import { LibSQLStore, LibSQLVector } from "@mastra/libsql";
 import { config } from "dotenv";
-import { type CompanionCard } from "../../schema/index.ts";
-import { Run, type LanguageModel } from "@mastra/core";
+import { Message, type CompanionCard } from "../../schema/index.ts";
+import { CoreMessage, Run, type LanguageModel } from "@mastra/core";
 import { RuntimeContext } from "@mastra/core/runtime-context";
 import { createEventWorkflow } from "../workflow/index.ts";
+import z from "zod";
 config();
 
 export interface ICompanionAgent {
@@ -13,8 +14,6 @@ export interface ICompanionAgent {
   agent: Agent;
   runtimeContext: RuntimeContext;
   run: Run;
-
-  runAgent(input: string | { image: string; mimeType: string }): Promise<any>;
 }
 
 export class CompanionAgent implements ICompanionAgent {
@@ -50,15 +49,6 @@ export class CompanionAgent implements ICompanionAgent {
       あなたの役割は、
       ${companion.role}です。この役割に忠実に行動してください。
 
-      あなたはには、2種類のデータが渡されます。
-      このようなデータは、同じ部屋にいる他のコンパニオンやユーザーから伝えられるメッセージです。
-      {
-        "metadata": {},
-        "from": "companion_xxxx",
-        "message": "こんにちは！",
-      }
-      companion_xxxxというfromがついているのがコンパニオン、user_xxxxというfromがついているのがユーザーです。
-
       あなたには、知識を得るための以下のツールが与えられています。
       これらのツールは、あなたが知識を得たいと感じたタイミングで実行してください。
       ${Object.values(companion.knowledge)
@@ -66,9 +56,6 @@ export class CompanionAgent implements ICompanionAgent {
           return `${value}:${value.description}`;
         })
         .join("\n")}
-
-      その他のテキストデータや画像データは、contextと呼ばれる、コンパニオン間での共通認識です。
-      このcontextを長期記憶に保存してください。
 
       "絶対に"、ツールを使用する、のようなメタ的な発言をしてはいけません。
       必ずワーキングメモリを更新してください。
@@ -81,17 +68,88 @@ export class CompanionAgent implements ICompanionAgent {
     const workflow = createEventWorkflow(
       this.agent,
       this.runtimeContext,
-      this.companion
+      this.companion,
     );
     this.runtimeContext.set("id", companion.metadata.id);
     this.run = workflow.createRun();
   }
 
   //画像またはテキスト入力に対応
-  async runAgent(input: string | { image: string; mimeType: string }) {
+  async generateToolInstruction(
+    input: string | { image: string; mimeType: string },
+  ) {
     const res = await this.run.start({ inputData: input });
     return {
-      text: res.status === "success" ? res.result : res.status,
+      result: res.status === "success" ? res.result : res.status,
     };
+  }
+
+  async addContext(input: string | { image: string; mimeType: string }) {
+    const instructions = await this.generateToolInstruction(input);
+    if (typeof instructions !== "string" || instructions === "failed") {
+      throw new Error("イベント実行に失敗しました。");
+    }
+    let interaction: CoreMessage;
+    if (typeof input === "string") {
+      interaction = { role: "user", content: input };
+    } else {
+      interaction = {
+        role: "user" as const,
+        content: [
+          {
+            type: "image" as const,
+            image: input.image,
+          },
+        ],
+      };
+    }
+    this.agent.generate([interaction], {
+      resourceId: "main",
+      threadId: "thread",
+      instructions,
+    });
+  }
+
+  //メッセージ生成
+  async generateMessage(input: Message) {
+    const instructions = await this.generateToolInstruction(input.message);
+    if (typeof instructions !== "string" || instructions === "failed") {
+      throw new Error("イベント実行に失敗しました。");
+    }
+    const res = await this.agent.generate(JSON.stringify(input, null, 2), {
+      instructions: `
+      与えられたメッセージに対して、キャラクターとして返信するメッセージを作成してください。
+      必ず、このスキーマで返信してください。
+      {
+        "metadata": {
+          emotion: "neutral" | "happy" | "sad" | "angry",
+        },
+        "message": "メッセージ本文",
+      }
+      ${instructions}
+      `,
+      output: z.object({
+        metadata: z.object({
+          emotion: z
+            .enum(["neutral", "happy", "sad", "angry"])
+            .describe(
+              "キャラクターとしての感情として、最も適切なものを入れてください。",
+            ),
+        }),
+        message: z.string(),
+      }),
+      resourceId: "main",
+      threadId: "thread",
+    });
+    const output = res.object;
+    const data: Message = {
+      from: this.companion.metadata.id,
+      to: input.from,
+      message: output.message,
+      metadata: {
+        emotion: output.metadata.emotion,
+      },
+    };
+    return data;
   }
 }

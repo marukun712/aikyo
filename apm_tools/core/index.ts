@@ -8,7 +8,7 @@ export const contextAction = createCompanionAction({
     text: z
       .string()
       .describe(
-        "この文章は、キャラクターとしてではなく、本来のあなたとして、共有したい記憶を簡潔に記述してください。"
+        "この文章は、キャラクターとしてではなく、本来のあなたとして、共有したい記憶を簡潔に記述してください。",
       ),
   }),
   topic: "contexts",

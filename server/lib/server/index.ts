@@ -48,7 +48,7 @@ export const initLibp2p = async (metadata: Metadata) => {
 export class CompanionServer implements ICompanionServer {
   companionAgent: CompanionAgent;
   companion: CompanionCard;
-  libp2p: Awaited<ReturnType<typeof initLibp2p>>;
+  libp2p!: Awaited<ReturnType<typeof initLibp2p>>;
   app: Hono;
   port: number;
   companionList = new Map<string, string>();
@@ -69,13 +69,12 @@ export class CompanionServer implements ICompanionServer {
     });
 
     //各topicのサブスクライブ
-    libp2p.services.pubsub.subscribe("messages");
     libp2p.services.pubsub.subscribe("actions");
     libp2p.services.pubsub.subscribe("contexts");
 
     //イベントハンドラの設定
     libp2p.services.pubsub.addEventListener("message", (evt) =>
-      this.handlePubSubMessage(evt)
+      this.handlePubSubMessage(evt),
     );
 
     libp2p.addEventListener("peer:identify", async (evt) => {
@@ -86,18 +85,9 @@ export class CompanionServer implements ICompanionServer {
         if (this.companionList.has(peerId.toString()) || !parsed.success)
           return;
         this.companionList.set(peerId.toString(), agentVersion);
-        libp2p.services.pubsub.publish(
-          "contexts",
-          new TextEncoder().encode(
-            JSON.stringify({
-              type: "text",
-              content: `${parsed.data.name}がネットワークに参加しました。`,
-            })
-          )
-        );
         console.log(
           `Identified peer ${peerId.toString()} with metadata:`,
-          agentVersion
+          agentVersion,
         );
       } catch (e) {}
     });
@@ -107,19 +97,9 @@ export class CompanionServer implements ICompanionServer {
         const peerIdStr = evt.detail.toString();
         const agentVersion = this.companionList.get(peerIdStr);
         if (!this.companionList.has(peerIdStr)) return;
-        const parsed = MetadataSchema.parse(agentVersion);
-        libp2p.services.pubsub.publish(
-          "contexts",
-          new TextEncoder().encode(
-            JSON.stringify({
-              type: "text",
-              content: `${parsed.name}がネットワークから離脱しました。`,
-            })
-          )
-        );
         console.log(
           `Peer disconnected: ${peerIdStr}, metadata was:`,
-          agentVersion
+          agentVersion,
         );
         this.companionList.delete(peerIdStr);
       } catch (e) {}
@@ -137,39 +117,19 @@ export class CompanionServer implements ICompanionServer {
 
     try {
       const data = JSON.parse(new TextDecoder().decode(message.detail.data));
-      //Companion間でのメッセージやり取り
-      if (topic === "messages") {
-        const parsed = MessageSchema.safeParse(data);
-        if (!parsed.success) return;
-        //自分のメッセージが届いてしまった場合は破棄
-        const msg = parsed.data;
-        if (msg.from === this.companion.metadata.id) return;
-        //自分がメッセージのターゲットになっているか
-        const isTargeted = msg.to === this.companion.metadata.id;
-        if (isTargeted) {
-          console.log(data);
-          //ターゲットなら処理
-          const result = await this.companionAgent.runAgent(
-            JSON.stringify(data, null, 2)
-          );
-          console.log(result);
-        }
-        //共有された記憶
-      } else if (topic === "contexts") {
+      if (topic === "contexts") {
         const parsed = ContextSchema.safeParse(data);
         if (!parsed.success) return;
         const body = parsed.data;
         //textならそのまま
         if (body.type === "text") {
-          const result = await this.companionAgent.runAgent(body.context);
-          console.log(result.text);
+          const result = await this.companionAgent.addContext(body.context);
           //画像なら画像として処理
         } else if (body.type === "image") {
-          const result = await this.companionAgent.runAgent({
+          const result = await this.companionAgent.addContext({
             image: `data:image/jpeg;base64,${body.context}`,
             mimeType: "image/jpeg",
           });
-          console.log(result.text);
         }
       }
     } catch (err) {
@@ -177,10 +137,23 @@ export class CompanionServer implements ICompanionServer {
     }
   }
 
-  //特定のコンパニオンへcontextをユーザーが与えるためのroute
   private setupRoutes() {
     this.app.use(logger());
     this.app.use("*", cors());
+
+    this.app.post(
+      "/generate",
+      validator("json", (value, c) => {
+        const parsed = MessageSchema.safeParse(value);
+        if (!parsed.success) return c.text("Invalid Body!", 400);
+        return parsed.data;
+      }),
+      async (c) => {
+        const body = c.req.valid("json");
+        const message = await this.companionAgent.generateMessage(body);
+        return c.json(message, 200);
+      },
+    );
 
     this.app.post(
       "/context",
@@ -192,18 +165,16 @@ export class CompanionServer implements ICompanionServer {
       async (c) => {
         const body = c.req.valid("json");
         if (body.type === "text") {
-          const result = await this.companionAgent.runAgent(body.context);
-          console.log(result.text);
-          return c.json({ message: result.text }, 201);
+          await this.companionAgent.addContext(body.context);
+          return c.json({ message: "Added context successfully" }, 201);
         } else if (body.type === "image") {
-          const result = await this.companionAgent.runAgent({
+          await this.companionAgent.addContext({
             image: `data:image/jpeg;base64,${body.context}`,
             mimeType: "image/jpeg",
           });
-          console.log(result.text);
-          return c.json({ message: result.text }, 201);
+          return c.json({ message: "Added context successfully" }, 201);
         }
-      }
+      },
     );
   }
 

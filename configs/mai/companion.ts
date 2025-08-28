@@ -1,6 +1,5 @@
 import {
   contextAction,
-  speakAction,
   companionNetworkKnowledge,
 } from "apm_tools/core/index.ts";
 import { motionDBGestureAction } from "apm_tools/motion-db/index.ts";
@@ -9,13 +8,13 @@ import {
   type CompanionCard,
   CompanionServer,
   CompanionAgent,
-} from "@aikyo/core";
+} from "@aikyo/server";
 import { anthropic } from "@ai-sdk/anthropic";
-import { google } from "@ai-sdk/google";
 
 export const companionCard: CompanionCard = {
   metadata: {
     id: "companion_mai",
+    url: "http://localhost:4002",
     name: "麻布麻衣",
     personality: "麻布麻衣は合理的で人見知りな性格です。",
     story:
@@ -24,7 +23,7 @@ export const companionCard: CompanionCard = {
       "いいわ 先週あったプログラミングのサマーキャンプで 自己紹介の練習は済んでる あとはただポルカの後ろで心を無にして踊ればいい きっとみんなあの子に目が行って私は目立たないはず… 帰ってきたら絶対新しいマウス買う",
   },
   role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。",
-  actions: { speakAction, motionDBGestureAction, contextAction },
+  actions: { motionDBGestureAction, contextAction },
   knowledge: { environmentDBKnowledge, companionNetworkKnowledge },
   events: {
     params: {
@@ -32,11 +31,6 @@ export const companionCard: CompanionCard = {
       description: "descriptionに従い、それぞれ適切に値を代入してください。",
       type: "object",
       properties: {
-        already_replied: {
-          description:
-            "交流してきたコンパニオン/ユーザーと既に話したことがあるか",
-          type: "boolean",
-        },
         need_gesture: {
           description: "ジェスチャーで表現したいものがあるかどうか",
           type: "boolean",
@@ -46,28 +40,9 @@ export const companionCard: CompanionCard = {
           type: "boolean",
         },
       },
-      required: ["already_replied", "need_gesture", "need_context"],
+      required: ["need_gesture", "need_context"],
     },
     conditions: [
-      {
-        expression: "already_replied === true",
-        execute: [
-          {
-            instruction: "応答する。",
-            tool: speakAction,
-          },
-        ],
-      },
-      {
-        expression: "already_replied === false",
-        execute: [
-          {
-            instruction: "見たことのない人が交流してきたので、手を振る",
-            tool: motionDBGestureAction,
-          },
-          { instruction: "見たことのない人に、挨拶をする", tool: speakAction },
-        ],
-      },
       {
         expression: "need_gesture === true",
         execute: [
@@ -94,5 +69,5 @@ const companion = new CompanionAgent(
   companionCard,
   anthropic("claude-sonnet-4-20250514"),
 );
-const server = new CompanionServer(companion, 4001);
+const server = new CompanionServer(companion, 4002);
 await server.start();

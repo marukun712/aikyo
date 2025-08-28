@@ -7,7 +7,7 @@
     "firehose": "npx tsx ./firehose/index.ts"
   },
   "workspaces": [
-    "core",
+    "server",
     "firehose",
     "configs",
     "apm_tools",
@@ -16,5 +16,8 @@
   ],
   "overrides": {
     "ms": "3.0.0-canary.1"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2"
   }
 }
