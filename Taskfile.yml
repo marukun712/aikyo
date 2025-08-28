@@ -16,13 +16,7 @@ tasks:
 
   up:
     deps:
-      - task: router
       - task: firehose
-
-  router:
-    cmds:
-      - npm run router > /dev/null 2>&1
-    silent: true
 
   firehose:
     cmds:

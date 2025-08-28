@@ -11,6 +11,11 @@ import {
 } from "../../server";
 import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+
+const openrouter = createOpenRouter({
+  apiKey: process.env.OPENROUTER_API_KEY,
+});
 
 export const companionCard: CompanionCard = {
   metadata: {
@@ -23,7 +28,7 @@ export const companionCard: CompanionCard = {
     sample:
       "明日の入学式に着ていく着物を選定中 どっちがいい？ 蝶に花のちりめん友禅で華やかにお嬢様風か、キリッと黒地に辻が花の訪問着で格調高くーーうーん、迷うわ！こうなったら運天の花札で決めちゃおう",
   },
-  role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。",
+  role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。キャラクター設定に忠実にロールプレイしてください。",
   actions: { motionDBGestureAction, contextAction },
   knowledge: { environmentDBKnowledge, companionNetworkKnowledge },
   events: {
@@ -37,7 +42,7 @@ export const companionCard: CompanionCard = {
           type: "boolean",
         },
         need_context: {
-          description: "視覚情報として何かを認識したかどうか。",
+          description: "周囲に伝えるべき話題があるかどうか。",
           type: "boolean",
         },
       },
@@ -57,7 +62,8 @@ export const companionCard: CompanionCard = {
         expression: "need_context === true",
         execute: [
           {
-            instruction: "コンパニオンに認識したものを共有する。",
+            instruction:
+              "周囲のコンパニオンに今から自分がどんな話題を提供するか、またはどんな話題を話しているかを周知する。",
             tool: contextAction,
           },
         ],
@@ -68,7 +74,7 @@ export const companionCard: CompanionCard = {
 
 const companion = new CompanionAgent(
   companionCard,
-  anthropic("claude-3-5-haiku-latest"),
+  openrouter("google/gemini-2.5-flash", { reasoning: { effort: "high" } })
 );
 const server = new CompanionServer(companion, 4003);
 await server.start();

@@ -43,21 +43,6 @@ wss.on("connection", (ws) => {
   clients.add(ws);
   console.log("WebSocket client connected");
 
-  ws.on("message", (evt) => {
-    try {
-      const data = JSON.parse(evt.toString());
-      const parsed = MessageSchema.safeParse(data);
-      if (!parsed.success) return;
-      console.log(parsed);
-      libp2p.services.pubsub.publish(
-        "messages",
-        new TextEncoder().encode(evt.toString()),
-      );
-    } catch (e) {
-      console.log(e);
-    }
-  });
-
   ws.on("close", () => {
     clients.delete(ws);
     console.log("WebSocket client disconnected");

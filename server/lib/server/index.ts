@@ -24,7 +24,7 @@ export interface ICompanionServer {
   libp2p: Awaited<ReturnType<typeof initLibp2p>>;
   app: Hono;
   port: number;
-  companionList: Map<string, string>;
+  companionList: Map<string, Metadata>;
 
   start(): Promise<void>;
 }
@@ -51,7 +51,7 @@ export class CompanionServer implements ICompanionServer {
   libp2p!: Awaited<ReturnType<typeof initLibp2p>>;
   app: Hono;
   port: number;
-  companionList = new Map<string, string>();
+  companionList = new Map<string, Metadata>();
 
   constructor(companionAgent: CompanionAgent, port: number) {
     this.companionAgent = companionAgent;
@@ -74,7 +74,7 @@ export class CompanionServer implements ICompanionServer {
 
     //イベントハンドラの設定
     libp2p.services.pubsub.addEventListener("message", (evt) =>
-      this.handlePubSubMessage(evt),
+      this.handlePubSubMessage(evt)
     );
 
     libp2p.addEventListener("peer:identify", async (evt) => {
@@ -84,10 +84,10 @@ export class CompanionServer implements ICompanionServer {
         const parsed = MetadataSchema.safeParse(JSON.parse(agentVersion));
         if (this.companionList.has(peerId.toString()) || !parsed.success)
           return;
-        this.companionList.set(peerId.toString(), agentVersion);
+        this.companionList.set(peerId.toString(), parsed.data);
         console.log(
           `Identified peer ${peerId.toString()} with metadata:`,
-          agentVersion,
+          agentVersion
         );
       } catch (e) {}
     });
@@ -99,7 +99,7 @@ export class CompanionServer implements ICompanionServer {
         if (!this.companionList.has(peerIdStr)) return;
         console.log(
           `Peer disconnected: ${peerIdStr}, metadata was:`,
-          agentVersion,
+          agentVersion
         );
         this.companionList.delete(peerIdStr);
       } catch (e) {}
@@ -121,16 +121,7 @@ export class CompanionServer implements ICompanionServer {
         const parsed = ContextSchema.safeParse(data);
         if (!parsed.success) return;
         const body = parsed.data;
-        //textならそのまま
-        if (body.type === "text") {
-          const result = await this.companionAgent.addContext(body.context);
-          //画像なら画像として処理
-        } else if (body.type === "image") {
-          const result = await this.companionAgent.addContext({
-            image: `data:image/jpeg;base64,${body.context}`,
-            mimeType: "image/jpeg",
-          });
-        }
+        await this.companionAgent.addContext(body.context);
       }
     } catch (err) {
       console.error("Error processing pubsub message:", err);
@@ -144,7 +135,7 @@ export class CompanionServer implements ICompanionServer {
     this.app.post(
       "/generate",
       validator("json", (value, c) => {
-        const parsed = MessageSchema.safeParse(value);
+        const parsed = MessageSchema.omit({ to: true }).safeParse(value);
         if (!parsed.success) return c.text("Invalid Body!", 400);
         return parsed.data;
       }),
@@ -152,7 +143,7 @@ export class CompanionServer implements ICompanionServer {
         const body = c.req.valid("json");
         const message = await this.companionAgent.generateMessage(body);
         return c.json(message, 200);
-      },
+      }
     );
 
     this.app.post(
@@ -164,17 +155,9 @@ export class CompanionServer implements ICompanionServer {
       }),
       async (c) => {
         const body = c.req.valid("json");
-        if (body.type === "text") {
-          await this.companionAgent.addContext(body.context);
-          return c.json({ message: "Added context successfully" }, 201);
-        } else if (body.type === "image") {
-          await this.companionAgent.addContext({
-            image: `data:image/jpeg;base64,${body.context}`,
-            mimeType: "image/jpeg",
-          });
-          return c.json({ message: "Added context successfully" }, 201);
-        }
-      },
+        await this.companionAgent.addContext(body.context);
+        return c.json({ message: "Added context successfully" }, 201);
+      }
     );
   }
 

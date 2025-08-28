@@ -12,7 +12,7 @@ type AgentType = InstanceType<typeof CompanionAgent>["agent"];
 export function createEventWorkflow(
   agent: AgentType,
   runtimeContext: RuntimeContext,
-  companionCard: CompanionCard,
+  companionCard: CompanionCard
 ) {
   const outputSchema = convertJsonSchemaToZod(companionCard.events.params);
   const evaluateStep = createStep({
