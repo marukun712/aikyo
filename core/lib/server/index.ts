@@ -8,6 +8,7 @@ import { identify } from "@libp2p/identify";
 import { mdns } from "@libp2p/mdns";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
+import { createServer } from "node:http";
 import {
   MetadataSchema,
   type CompanionCard,
@@ -19,12 +20,44 @@ import { logger } from "hono/logger";
 import { cors } from "hono/cors";
 import { State } from "../agents/state.ts";
 
+/**
+ * Check if a port is available for use
+ */
+async function isPortAvailable(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const server = createServer();
+    
+    server.listen(port, () => {
+      server.close();
+      resolve(true);
+    });
+    
+    server.on('error', () => {
+      resolve(false);
+    });
+  });
+}
+
+/**
+ * Find an available port starting from the preferred port
+ */
+async function findAvailablePort(preferredPort: number, maxAttempts: number = 10): Promise<number> {
+  for (let i = 0; i < maxAttempts; i++) {
+    const port = preferredPort + i;
+    if (await isPortAvailable(port)) {
+      return port;
+    }
+  }
+  throw new Error(`No available port found starting from ${preferredPort} (tried ${maxAttempts} ports)`);
+}
+
 export interface ICompanionServer {
   companionAgent: CompanionAgent;
   companion: CompanionCard;
   libp2p: Awaited<ReturnType<typeof initLibp2p>>;
   app: Hono;
   port: number;
+  actualPort?: number;
   companionList: Map<string, string>;
 
   start(): Promise<void>;
@@ -52,6 +85,7 @@ export class CompanionServer implements ICompanionServer {
   libp2p: Awaited<ReturnType<typeof initLibp2p>>;
   app: Hono;
   port: number;
+  actualPort?: number; // The actual port being used after resolution
   companionList = new Map<string, string>();
   state: State;
 
@@ -61,6 +95,13 @@ export class CompanionServer implements ICompanionServer {
     this.app = new Hono();
     this.port = port;
     this.state = new State();
+  }
+
+  /**
+   * Get the actual port being used by the server
+   */
+  getActualPort(): number | undefined {
+    return this.actualPort;
   }
 
   private async initLibp2p() {
@@ -215,7 +256,19 @@ export class CompanionServer implements ICompanionServer {
     await this.initLibp2p();
     this.setupRoutes();
 
-    serve({ fetch: this.app.fetch, port: this.port });
-    console.log(`Character server running on http://localhost:${this.port}`);
+    try {
+      // Try to find an available port starting from the preferred port
+      this.actualPort = await findAvailablePort(this.port);
+      
+      if (this.actualPort !== this.port) {
+        console.log(`Preferred port ${this.port} is not available, using port ${this.actualPort} instead`);
+      }
+
+      serve({ fetch: this.app.fetch, port: this.actualPort });
+      console.log(`Character server running on http://localhost:${this.actualPort}`);
+    } catch (error) {
+      console.error(`Failed to start server: ${error}`);
+      throw error;
+    }
   }
 }

@@ -94,5 +94,6 @@ const companion = new CompanionAgent(
   companionCard,
   anthropic("claude-sonnet-4-20250514"),
 );
-const server = new CompanionServer(companion, 4001);
+const port = Number(process.env.MAI_PORT) || 4001;
+const server = new CompanionServer(companion, port);
 await server.start();
