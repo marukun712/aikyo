@@ -15,8 +15,15 @@ config();
 export interface ICompanionAgent {
   companion: CompanionCard;
   agent: Agent;
+  memory: Memory;
   runtimeContext: RuntimeContext;
   run: Run;
+
+  generateToolInstruction(
+    input: string | { image: string; mimeType: string }
+  ): Promise<string>;
+  addContext(input: string): Promise<void>;
+  generateMessage(input: Omit<Message, "to">): Promise<Message>;
 }
 
 export class CompanionAgent implements ICompanionAgent {
@@ -125,7 +132,7 @@ export class CompanionAgent implements ICompanionAgent {
     const systemMessage: CoreMessage = {
       role: "system",
       content: `
-      今までの文脈から、最終的にキャラクターとしてユーザーに返信するメッセージを作成してください。
+      今までの文脈から、最終的にキャラクターとしてレスポンスするメッセージを作成してください。
       必ず、このスキーマで返信してください。
       {
         "metadata": {
@@ -162,9 +169,8 @@ export class CompanionAgent implements ICompanionAgent {
     };
 
     try {
-      const libp2p = this.runtimeContext.get("libp2p");
-      const node = libp2p as Libp2p<Services>;
-      node.services.pubsub.publish(
+      const libp2p: Libp2p<Services> = this.runtimeContext.get("libp2p");
+      libp2p.services.pubsub.publish(
         "messages",
         new TextEncoder().encode(JSON.stringify(data, null, 2))
       );

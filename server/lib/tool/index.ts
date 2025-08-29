@@ -21,7 +21,7 @@ export const talkTool = createTool({
         content: [{ type: "text", text: "Error:コンパニオンのidが不正です。" }],
       };
     }
-    const libp2p = runtimeContext.get("libp2p");
+    const libp2p: Libp2p<Services> = runtimeContext.get("libp2p");
     if (!libp2p || !isLibp2p(libp2p)) {
       return {
         content: [
@@ -46,8 +46,7 @@ export const talkTool = createTool({
       message: context.message,
       metadata: { emotion: context.emotion },
     };
-    const node = libp2p as Libp2p<Services>;
-    node.services.pubsub.publish(
+    libp2p.services.pubsub.publish(
       "messages",
       new TextEncoder().encode(JSON.stringify(body, null, 2))
     );
