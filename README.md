@@ -153,6 +153,43 @@ firehose を起動します。
 npm run firehose
 ```
 
+## Configuration
+
+### Port Configuration
+
+aikyoは動的ポート割り当てをサポートしており、ポート競合を自動的に解決します。
+
+#### デフォルトポート
+
+- Polka: 4000
+- Mai: 4001  
+- Hanabi: 4002
+- Firehose: 8080
+
+#### 環境変数でのポート設定
+
+`.env`ファイルまたは環境変数でポートを設定できます：
+
+```bash
+POLKA_PORT=5000
+MAI_PORT=5001
+HANABI_PORT=5002
+FIREHOSE_PORT=8080
+```
+
+#### 動的ポート割り当て
+
+指定されたポートが使用中の場合、システムは自動的に次の利用可能なポートを検索します：
+
+```bash
+npm run companion --config=polka
+# もしポート4000が使用中の場合：
+# "Preferred port 4000 is not available, using port 4001 instead"
+# "Character server running on http://localhost:4001"
+```
+
+複数のコンパニオンを同時に起動する場合、ポート競合が自動的に解決されます。
+
 firehoseに対してmessage、contextなどをsendすることで、P2Pネットワークにメッセージを流すことができます。
 
 ```json
