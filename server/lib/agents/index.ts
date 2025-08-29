@@ -66,8 +66,6 @@ export class CompanionAgent implements ICompanionAgent {
 
       "絶対に"、ツールを使用する、のようなメタ的な発言をしてはいけません。
       必ずワーキングメモリを更新してください。
-
-      必ず、${companion.metadata.sample}この口調で会話してください。
       `,
       model,
       memory: this.memory,
