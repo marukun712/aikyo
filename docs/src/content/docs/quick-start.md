@@ -48,8 +48,8 @@ ws.send(
   JSON.stringify(
     { from: "user", message: "こんにちは！", target: "companion_xxxx" },
     null,
-    2
-  )
+    2,
+  ),
 );
 ```
 

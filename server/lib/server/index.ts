@@ -74,7 +74,7 @@ export class CompanionServer implements ICompanionServer {
 
     //イベントハンドラの設定
     libp2p.services.pubsub.addEventListener("message", (evt) =>
-      this.handlePubSubMessage(evt)
+      this.handlePubSubMessage(evt),
     );
 
     libp2p.addEventListener("peer:identify", async (evt) => {
@@ -87,7 +87,7 @@ export class CompanionServer implements ICompanionServer {
         this.companionList.set(peerId.toString(), parsed.data);
         console.log(
           `Identified peer ${peerId.toString()} with metadata:`,
-          agentVersion
+          agentVersion,
         );
       } catch (e) {}
     });
@@ -99,7 +99,7 @@ export class CompanionServer implements ICompanionServer {
         if (!this.companionList.has(peerIdStr)) return;
         console.log(
           `Peer disconnected: ${peerIdStr}, metadata was:`,
-          agentVersion
+          agentVersion,
         );
         this.companionList.delete(peerIdStr);
       } catch (e) {}
@@ -143,7 +143,7 @@ export class CompanionServer implements ICompanionServer {
         const body = c.req.valid("json");
         const message = await this.companionAgent.generateMessage(body);
         return c.json(message, 200);
-      }
+      },
     );
 
     this.app.post(
@@ -157,7 +157,7 @@ export class CompanionServer implements ICompanionServer {
         const body = c.req.valid("json");
         await this.companionAgent.addContext(body.context);
         return c.json({ message: "Added context successfully" }, 201);
-      }
+      },
     );
   }
 

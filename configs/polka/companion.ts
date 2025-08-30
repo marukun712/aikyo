@@ -75,7 +75,7 @@ export const companionCard: CompanionCard = {
 
 const companion = new CompanionAgent(
   companionCard,
-  openrouter("google/gemini-2.0-flash-001")
+  openrouter("google/gemini-2.0-flash-001"),
 );
 const server = new CompanionServer(companion, 4001);
 await server.start();
