@@ -4,24 +4,24 @@ aikyoは、相互につながるAIコンパニオンを作成するためのフ�
 
 ## Concept
 
-aikyoは、バーチャルな体を持ったAIコンパニオンを作成しやすくするためのフレームワークです。
+aikyoは、リアルタイムでコミュニケーションできるAIコンパニオンを作成するためのフレームワークです。
 
-コンパニオン同士はP2Pでつながり、3種類のメッセージをやりとりします。
+各コンパニオンは独立したサーバーとして動作し、HTTP APIとlibp2pのP2Pネットワークを通じて3種類のデータをやりとりします。
 
 ### **message** - コミュニケーション
 
-コンパニオン間、または人間とのメッセージ交換
+コンパニオン間の会話メッセージ（双方向）
 
 ```json
 {
-  "from": "id",
+  "from": "companion_xxxx",
+  "to": "companion_xxxx",
   "message": "こんにちは！",
-  "target": "target-companion-id",
-  "metadata": {}
+  "metadata": {
+    "emotion": "happy"
+  }
 }
 ```
-
-コンパニオンのidはcompanion_xxxx、ユーザーのidはuser_xxxxである必要があります。
 
 ### **action** - 物理的動作
 
@@ -29,11 +29,9 @@ aikyoは、バーチャルな体を持ったAIコンパニオンを作成しや�
 
 ```json
 {
-  "from": "id",
-  "name": "action-name",
-  "params": {
-    Custom action params....
-  },
+  "from": "companion_xxxx",
+  "name": "action_name",
+  "params": {},
   "metadata": {}
 }
 ```
@@ -44,7 +42,6 @@ aikyoは、バーチャルな体を持ったAIコンパニオンを作成しや�
 
 ```json
 {
-  "type": "text",
   "context": "部屋の明かりが暗くなった"
 }
 ```
@@ -55,8 +52,65 @@ aikyoでは、AIコンパニオンはCompanion Cardという設計書で設計�
 Companion Cardでは、キャラクター設定だけでなく、コンパニオンが実行できるアクション、役割、アクションの実行基準などをユーザーが思い通りに設計することができます。
 
 LLMに判断させるパラメータを記述し、そのパラメータを使ってツールの実行基準をCELの式として記述することができます。ツールの実行基準は、上に書かれているものが優先されます。
-
 この形式をとることで、ユーザーはCELの式とパラメータを書くだけで、特定の目的に特化したコンパニオンも、汎用的な会話コンパニオンもJSONを編集するだけで手軽に作成することができるようになります。
+
+```typescript
+export const companionCard: CompanionCard = {
+  metadata: {
+    id: "companion_polka",
+    url: "http://localhost:4001",
+    name: "高橋ポルカ",
+    personality:
+      "高橋ポルカは元気で明るくて難しいことを考えるのが苦手な性格です。",
+    story:
+      "L高浅草サテライトの1年生。明るく元気な性格で、嬉しくなると足が勝手に踊りだす。小さい頃から数学が大の苦手で、高校受験に失敗。ネット高校であるL高に入学し、スクールアイドルを見つけた。",
+    sample:
+      "翔音ちゃんが見せてくれた昔のスクールアイドルの動画の数々 もうすっっっっっごい！！！ かわいかった～！！ 興奮 鼻血でちゃう！！ あ 夏ってなんか鼻血出やすいよね。。。 ティッシュ持ってなくて焦るときあるけど 踊ってごまかすポルカです",
+  },
+  role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。キャラクター設定に忠実にロールプレイしてください。",
+  actions: { motionDBGestureAction, contextAction },
+  knowledge: { environmentDBKnowledge, companionNetworkKnowledge },
+  events: {
+    params: {
+      title: "あなたが判断すべきパラメータ",
+      description: "descriptionに従い、それぞれ適切に値を代入してください。",
+      type: "object",
+      properties: {
+        need_gesture: {
+          description: "ジェスチャーで表現したいものがあるかどうか",
+          type: "boolean",
+        },
+        need_context: {
+          description: "周囲に伝えるべき話題があるかどうか。",
+          type: "boolean",
+        },
+      },
+      required: ["need_gesture", "need_context"],
+    },
+    conditions: [
+      {
+        expression: "need_gesture === true",
+        execute: [
+          {
+            instruction: "ジェスチャーで体の動きを表現する。",
+            tool: motionDBGestureAction,
+          },
+        ],
+      },
+      {
+        expression: "need_context === true",
+        execute: [
+          {
+            instruction:
+              "周囲のコンパニオンに今から自分がどんな話題を提供するか、またはどんな話題を話しているかを周知する。",
+            tool: contextAction,
+          },
+        ],
+      },
+    ],
+  },
+};
+```
 
 ### Actionの定義
 
@@ -131,82 +185,60 @@ export const environmentDBKnowledge = createCompanionKnowledge({
 
 ## Requirements
 
-Node.js 24
+Node.js 22
 
 ## Usage
 
 パッケージをインストールします。
 
-```
+```bash
 npm i
 ```
 
-configs/にあるフォルダを指定して起動します。
+バックエンドサーバーを実行します。
 
-```
-npm run companion --config=polka
-```
-
-firehose を起動します。
-
-```
-npm run firehose
+```bash
+task run
 ```
 
-firehoseに対してmessage、contextなどをsendすることで、P2Pネットワークにメッセージを流すことができます。
+コンパニオン名を指定して起動します。
 
-```json
-{
-  "from": "user_xxxx",
-  "message": "こんにちは！",
-  "target": "target-companion-id",
-  "metadata": {}
-}
+```bash
+task companion -- polka
 ```
 
-以下のリクエストをコンパニオンサーバーに投げることで、特定のコンパニオンにcontextを与えることができます。
+### API使用方法
+
+**メッセージ送信**
 
 ```http
-POST /context
+POST http://localhost:4001/generate
 Content-Type: application/json
 
 {
-  "type": "image" | "text",
-  "context": "string"
+  "from": "user",
+  "message": "こんにちは！"
+}
+```
+
+**コンテキスト追加**
+
+```http
+POST http://localhost:4001/context
+Content-Type: application/json
+
+{
+  "context": "部屋の明かりが暗くなった"
 }
 ```
 
 ## 技術的仕様
 
-### P2P通信アーキテクチャ
-
-aikyoはGossipSubを使用してコンパニオン間の分散通信を実現します。
-
-#### ネットワーク構成
-
-```
-Companion A ←--→ Companion B
-    ↓              ↓
-    P2P Network (libp2p)
-    ↓              ↓
-Companion C ←--→ Companion D
-```
-
-各コンパニオンは自律的にP2Pネットワークに参加し、以下の流れで通信します。
-
-1. **ピア発見**: mDNSでローカルネットワーク内の他コンパニオンを発見
-2. **接続確立**: 接続を確立
-3. **Pub/Sub参加**: GossipSubで以下トピックに自動参加
-   - `messages`: コンパニオン間メッセージ
-   - `actions`: 物理的動作データ
-   - `contexts`: 共有状況情報
-
-#### P2P通信の詳細実装
+### P2P通信詳細
 
 **ピア発見・接続**
 
 ```typescript
-// core/lib/server/index.ts:39-55
 const libp2p = await createLibp2p({
   addresses: { listen: ["/ip4/0.0.0.0/tcp/0"] },
   transports: [tcp()],
@@ -215,63 +247,36 @@ const libp2p = await createLibp2p({
   streamMuxers: [yamux()],
   services: {
     pubsub: gossipsub({ allowPublishToZeroTopicPeers: true }),
-    identify: identify(),
+    identify: identify({ agentVersion: JSON.stringify(metadata, null, 2) }),
   },
 });
-
-// 新しいピアを発見したら自動接続
-libp2p.addEventListener("peer:discovery", (evt) => {
-  libp2p.dial(evt.detail.multiaddrs);
-});
 ```
 
-**メッセージ配信**
+### メッセージのやりとり
+
+各コンパニオンは、talkToolを用いて、ピア接続時に取得した各コンパニオンのメタデータからurlを解決し、そのurlの/generateに対して、リクエストを送信して、相互に会話します。
+会話にGossipsubでなくHTTP APIを採用することで、LLMにツールのレスポンス待ちという概念を与えることができ、自然な会話のキャッチボールを実現しています。
 
 ```typescript
-// Pub/Subトピックに自動参加
-libp2p.services.pubsub.subscribe("messages");
-libp2p.services.pubsub.subscribe("actions");
-libp2p.services.pubsub.subscribe("contexts");
-
-// メッセージ受信処理
-libp2p.services.pubsub.addEventListener("message", (evt) => {
-  const data = JSON.parse(new TextDecoder().decode(evt.detail.data));
-  // トピック別に処理を分岐
-});
+export const talkTool = createTool({
+  id: "talk",
+  inputSchema: z.object({
+    to: z
+      .string()
+      .describe('必ず、送信先コンパニオンの"id"を指定してください。'),
+    message: z.string(),
+    emotion: z.enum(["neutral", "happy", "sad", "angry"]),
+  }),
+  description: `他のコンパニオンに話しかけます。`,
+  execute: async ({ context, runtimeContext }) => {
+.....
 ```
 
-#### Firehose統合
+### Firehose
 
-FirehoseサーバーはP2PネットワークとWebSocketクライアント間のブリッジとして機能します。
+FirehoseサーバーがP2PネットワークとWebSocketクライアント間のブリッジとして機能します。
 
 ```
-WebSocket Client ←--→ Firehose Server ←--→ P2P Network
-                      (WebSocket)          (libp2p)
+WebSocket Client ←─→ Firehose Server ←─→ P2P Network
+                     (ws://localhost:8080)   (libp2p)
 ```
-
-**Firehoseの役割**
-
-1. WebSocketクライアントからのメッセージをP2Pネットワークに中継
-2. P2Pネットワークのメッセージを全WebSocketクライアントに配信
-3. クライアントがP2P技術を直接実装する必要性を排除
-
-```typescript
-// firehose/index.ts:62-72
-libp2p.services.pubsub.addEventListener("message", async (message) => {
-  const data = JSON.parse(new TextDecoder().decode(message.detail.data));
-
-  // 全WebSocketクライアントに配信
-  const payload = JSON.stringify(data);
-  for (const client of clients) {
-    if (client.readyState === 1) {
-      client.send(payload);
-    }
-  }
-});
-```
-
-## Examples
-
-aikyoをバックエンドとしたモバイルAIコンパニオン
-
-https://github.com/MRTalk-dev/Mobile-Companion

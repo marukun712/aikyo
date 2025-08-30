@@ -20,7 +20,7 @@ interface CompanionActionConfig<T extends z.ZodSchema> {
   publish: (
     input: z.infer<T>,
     id: string,
-    companions: Map<string, string>,
+    companions: Map<string, string>
   ) => Promise<Output> | Output;
 }
 
@@ -31,7 +31,7 @@ interface CompanionKnowledgeConfig<T extends z.ZodSchema> {
   knowledge: (
     input: z.infer<T>,
     id: string,
-    companions: Map<string, string>,
+    companions: Map<string, string>
   ) => Promise<string> | string;
 }
 
@@ -48,7 +48,7 @@ export function createCompanionAction<T extends ZodTypeAny>({
     inputSchema,
     execute: async ({ context, runtimeContext }) => {
       try {
-        const libp2p = runtimeContext.get("libp2p");
+        const libp2p: Libp2p<Services> = runtimeContext.get("libp2p");
         if (!libp2p || !isLibp2p(libp2p)) {
           throw new Error("Error:libp2pが初期化されていません!");
         }
@@ -64,10 +64,9 @@ export function createCompanionAction<T extends ZodTypeAny>({
         }
 
         const data = await publish(context, id, companions);
-        const node = libp2p as Libp2p<Services>;
-        node.services.pubsub.publish(
+        libp2p.services.pubsub.publish(
           topic,
-          new TextEncoder().encode(JSON.stringify(data)),
+          new TextEncoder().encode(JSON.stringify(data))
         );
         return {
           content: [{ type: "text", text: "ツールが正常に実行されました。" }],
