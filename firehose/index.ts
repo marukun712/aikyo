@@ -6,7 +6,6 @@ import { mdns } from "@libp2p/mdns";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
 import WebSocket, { WebSocketServer } from "ws";
-import { MessageSchema } from "@aikyo/server";
 import { config } from "dotenv";
 config();
 
@@ -34,7 +33,7 @@ libp2p.services.pubsub.subscribe("messages");
 libp2p.services.pubsub.subscribe("actions");
 libp2p.services.pubsub.subscribe("contexts");
 
-const port = Number(process.env.FIREHOSE_PORT) ?? 8080;
+const port = Number(process.env.FIREHOSE_PORT || 8080);
 
 const wss = new WebSocketServer({ port });
 const clients = new Set<WebSocket>();

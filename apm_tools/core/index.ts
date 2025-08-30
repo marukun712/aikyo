@@ -34,7 +34,7 @@ export const companionNetworkKnowledge = createCompanionKnowledge({
   description:
     "同じネットワークに所属しているコンパニオンのリストを取得します。",
   inputSchema: z.object({}),
-  knowledge: async ({}, id, companions) => {
+  knowledge: async (_params, id, companions) => {
     return Array.from(companions.entries())
       .map((metadata) => JSON.stringify(metadata, null, 2))
       .join("\n");

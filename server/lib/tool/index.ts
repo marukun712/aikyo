@@ -52,7 +52,7 @@ export const talkTool = createTool({
       new TextEncoder().encode(JSON.stringify(body, null, 2)),
     );
     const target = Array.from(companions.entries()).find(
-      ([k, v]) => v.id === body.to,
+      ([_k, v]) => v.id === body.to,
     );
     if (!target)
       return {

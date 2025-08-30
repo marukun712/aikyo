@@ -89,7 +89,9 @@ export class CompanionServer implements ICompanionServer {
           `Identified peer ${peerId.toString()} with metadata:`,
           agentVersion,
         );
-      } catch (e) {}
+      } catch (e) {
+        console.error(e);
+      }
     });
 
     libp2p.addEventListener("peer:disconnect", async (evt) => {
@@ -102,7 +104,9 @@ export class CompanionServer implements ICompanionServer {
           agentVersion,
         );
         this.companionList.delete(peerIdStr);
-      } catch (e) {}
+      } catch (e) {
+        console.error(e);
+      }
     });
 
     //tool呼び出しのためRuntimeContextにSet
