@@ -11,4 +11,4 @@ jobs:
       - uses: Gen5HQ/mattermost-github-watcher@0.1.2
         with:
           mattermost_webhook_url: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
-          gh_token: ${{ secrets.GITHUB_TOKEN }}
+          gh_token: ${{ secrets.GH_TOKEN }}
