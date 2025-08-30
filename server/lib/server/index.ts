@@ -90,8 +90,7 @@ export class CompanionServer implements ICompanionServer {
           `Identified peer ${peerId.toString()} with metadata:`,
           agentVersion,
         );
-      } catch (e) {
-        console.error(e);
+        console.error('Error during peer identification:', e);
       }
     });
 
