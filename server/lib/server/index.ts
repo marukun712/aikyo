@@ -77,6 +77,7 @@ export class CompanionServer implements ICompanionServer {
       this.handlePubSubMessage(evt),
     );
 
+    // ピアの識別イベントを処理
     libp2p.addEventListener("peer:identify", async (evt) => {
       try {
         const { agentVersion, peerId } = evt.detail;
@@ -94,6 +95,7 @@ export class CompanionServer implements ICompanionServer {
       }
     });
 
+    // ピアの切断イベントを処理
     libp2p.addEventListener("peer:disconnect", async (evt) => {
       try {
         const peerIdStr = evt.detail.toString();
@@ -117,6 +119,7 @@ export class CompanionServer implements ICompanionServer {
   }
 
   private async handlePubSubMessage(message: any) {
+    // 話題を取得
     const topic = message.detail.topic;
 
     try {
