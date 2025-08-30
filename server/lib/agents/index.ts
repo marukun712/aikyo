@@ -27,9 +27,10 @@ export class CompanionAgent implements ICompanionAgent {
   run: Run;
 
   constructor(companion: CompanionCard, model: LanguageModel) {
+    // コンパニオンを初期化
     this.companion = companion;
 
-    //長期記憶記憶DBの設定
+    // 長期記憶記憶DBの設定
     this.memory = new Memory({
       storage: new LibSQLStore({
         url: `file:db/${this.companion.metadata.id}.db`,
@@ -42,7 +43,7 @@ export class CompanionAgent implements ICompanionAgent {
       },
     });
 
-    //Agentを作成
+    // Agentを初期化
     this.agent = new Agent({
       name: companion.metadata.name,
       instructions: `
@@ -71,25 +72,32 @@ export class CompanionAgent implements ICompanionAgent {
       memory: this.memory,
       tools: { ...companion.actions, ...companion.knowledge, talkTool },
     });
+
+    // RuntimeContextを初期化
     this.runtimeContext = new RuntimeContext();
+    this.runtimeContext.set("id", companion.metadata.id);
+
+    // Workflowを初期化
     const workflow = createEventWorkflow(
       this.agent,
       this.runtimeContext,
-      this.companion
+      this.companion,
     );
-    this.runtimeContext.set("id", companion.metadata.id);
     this.run = workflow.createRun();
+
+    // スレッドを作成
     this.memory.createThread({ resourceId: "main", threadId: "thread" });
   }
 
-  //画像またはテキスト入力に対応
+  // 画像またはテキスト入力に対応
   async generateToolInstruction(
-    input: string | { image: string; mimeType: string }
+    input: string | { image: string; mimeType: string },
   ) {
     const res = await this.run.start({ inputData: input });
     return res.status === "success" ? res.result : res.status;
   }
 
+  // ワーキングメモリにコンテキストを追加
   async addContext(input: string) {
     this.memory.updateWorkingMemory({
       resourceId: "main",
@@ -98,13 +106,15 @@ export class CompanionAgent implements ICompanionAgent {
     });
   }
 
-  //メッセージ生成
+  // メッセージ生成
   async generateMessage(input: Omit<Message, "to">) {
+    // CEL式を評価し、Instructionを取得
     const instructions = await this.generateToolInstruction(input.message);
     if (typeof instructions !== "string" || instructions === "failed") {
       throw new Error("イベント実行に失敗しました。");
     }
 
+    // ツールのみを実行
     await this.agent.generate(
       [
         {
@@ -119,9 +129,10 @@ export class CompanionAgent implements ICompanionAgent {
         resourceId: "main",
         threadId: "thread",
         instructions,
-      }
+      },
     );
 
+    // システムプロンプトを初期化
     const systemMessage: CoreMessage = {
       role: "system",
       content: `
@@ -136,13 +147,14 @@ export class CompanionAgent implements ICompanionAgent {
       `,
     };
 
+    // 感情と、応答をJSON形式で生成
     const res = await this.agent.generate([systemMessage], {
       output: z.object({
         metadata: z.object({
           emotion: z
             .enum(["neutral", "happy", "sad", "angry"])
             .describe(
-              "キャラクターとしての感情として、最も適切なものを入れてください。"
+              "キャラクターとしての感情として、最も適切なものを入れてください。",
             ),
         }),
         message: z.string(),
@@ -151,24 +163,31 @@ export class CompanionAgent implements ICompanionAgent {
       threadId: "thread",
     });
 
+    // レスポンスオブジェクトを取得
     const output = res.object;
+
+    // 最終的に出力するデータ形式に変換
     const data: Message = {
-      from: this.companion.metadata.id,
-      to: input.from,
-      message: output.message,
+      from: this.companion.metadata.id, // 送信元ID (Peer IDではない)
+      to: input.from, // 送信先ID (Peer IDではない)
+      message: output.message, // メッセージ本文
       metadata: {
-        emotion: output.metadata.emotion,
+        emotion: output.metadata.emotion, // 感情
       },
     };
 
     try {
-      const libp2p = this.runtimeContext.get("libp2p");
-      const node = libp2p as Libp2p<Services>;
-      node.services.pubsub.publish(
+      // ランタイムコンテキストから、Libp2pインスタンスを取得
+      const libp2p: Libp2p<Services> = this.runtimeContext.get("libp2p");
+
+      // libp2pでdataをpublish
+      libp2p.services.pubsub.publish(
         "messages",
-        new TextEncoder().encode(JSON.stringify(data, null, 2))
+        new TextEncoder().encode(JSON.stringify(data, null, 2)),
       );
-    } catch (e) {}
+    } catch (e) {
+      console.error(e);
+    }
     return data;
   }
 }
