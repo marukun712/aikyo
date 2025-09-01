@@ -15,27 +15,23 @@ export function createEventWorkflow(
   companionCard: CompanionCard,
 ) {
   const outputSchema = convertJsonSchemaToZod(companionCard.events.params);
-
   const evaluateStep = createStep({
     id: "evaluate",
-    description:
-      "与えられた情報から、状況パラメータの値を設定する。この評価は、キャラクターとしてではなく、あなたとして行ってください。",
+    description: "与えられた情報から、状況パラメータの値を設定する。",
     inputSchema: z.union([
       z.string(),
       z.object({ image: z.string(), mimeType: z.string() }),
     ]),
     outputSchema: z.object({
       output: outputSchema,
-      messages: z.array(z.any()),
     }),
     execute: async ({ inputData }) => {
       const input = inputData;
-      let messages: CoreMessage[];
-      let userInteraction: CoreMessage;
+      let interaction: CoreMessage;
       if (typeof input === "string") {
-        userInteraction = { role: "user", content: input };
+        interaction = { role: "user", content: input };
       } else {
-        userInteraction = {
+        interaction = {
           role: "user" as const,
           content: [
             {
@@ -45,19 +41,18 @@ export function createEventWorkflow(
           ],
         };
       }
-      messages = [
-        {
-          role: "system",
-          content: `あなたに与えられた入力の状況から、${JSON.stringify(companionCard.events.params, null, 2)}に、あなたの今までの記憶をもとに判断を行い、適切なパラメータを代入して返却してください。この評価は、キャラクターとしてではなく、あなたとして行ってください。`,
-        },
-        userInteraction,
-      ];
-      const res = await agent.generate(messages, {
+      const res = await agent.generate([interaction], {
+        instructions: `
+        与えられた入力から、あなたの長期記憶とワーキングメモリを元に、
+        ${JSON.stringify(companionCard.events.params, null, 2)}
+        に適切なパラメータを代入して返却してください。
+        `,
+        runtimeContext,
         resourceId: "main",
         threadId: "thread",
         output: outputSchema,
       });
-      return { output: res.object, messages: [userInteraction] };
+      return { output: res.object };
     },
   });
 
@@ -66,11 +61,10 @@ export function createEventWorkflow(
     description: "状況パラメータから実行するツールを特定する",
     inputSchema: z.object({
       output: outputSchema,
-      messages: z.array(z.any()),
     }),
     outputSchema: z.string(),
     execute: async ({ inputData }) => {
-      const { output, messages } = inputData;
+      const { output } = inputData;
       console.log(inputData);
       const tools = new Map<string, string>();
       // 上に書かれた条件を優先
@@ -93,23 +87,13 @@ export function createEventWorkflow(
       const toolInstructions = Array.from(tools.entries())
         .map(([toolName, instruction]) => `${toolName}: ${instruction}`)
         .join("\n");
-      console.log(toolInstructions);
-      messages.push({
-        role: "system",
-        content: `以下の指示に従い、直前のユーザーからの入力に対してツールを実行して対応してください。\n${toolInstructions}また、必要なら適切なKnowledgeを参照してください。`,
-      });
-      const res = await agent.generate(messages, {
-        runtimeContext,
-        resourceId: "main",
-        threadId: "thread",
-      });
-      console.log(res.text);
-      return res.text;
+      const result = `以下の指示に従い、適切なツールを実行してください。\n${toolInstructions}また、必要なら適切なKnowledgeを参照してください。`;
+      return result;
     },
   });
 
   return createWorkflow({
-    id: "agent-workflow",
+    id: "event-workflow",
     inputSchema: z.union([
       z.string(),
       z.object({ image: z.string(), mimeType: z.string() }),

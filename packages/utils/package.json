@@ -6,8 +6,8 @@
   "dependencies": {
     "@chainsafe/libp2p-gossipsub": "^14.1.1",
     "@libp2p/identify": "^3.0.38",
-    "@mastra/core": "ai-v5",
     "libp2p": "2.9.0",
+    "@mastra/core": "ai-v5",
     "zod": "^3.25.76"
   },
   "peerDependencies": {

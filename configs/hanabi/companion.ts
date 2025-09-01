@@ -1,6 +1,5 @@
 import {
   contextAction,
-  speakAction,
   companionNetworkKnowledge,
 } from "apm_tools/core/index.ts";
 import { motionDBGestureAction } from "apm_tools/motion-db/index.ts";
@@ -10,12 +9,18 @@ import {
   CompanionServer,
   CompanionAgent,
 } from "../../server";
-import { anthropic } from "@ai-sdk/anthropic";
-import { google } from "@ai-sdk/google";
+// import { anthropic } from "@ai-sdk/anthropic";
+// import { google } from "@ai-sdk/google";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+
+const openrouter = createOpenRouter({
+  apiKey: process.env.OPENROUTER_API_KEY,
+});
 
 export const companionCard: CompanionCard = {
   metadata: {
     id: "companion_hanabi",
+    url: "http://localhost:4003",
     name: "駒形花火",
     personality: "駒形花火は明るくしっかり者な性格です。",
     story:
@@ -23,8 +28,8 @@ export const companionCard: CompanionCard = {
     sample:
       "明日の入学式に着ていく着物を選定中 どっちがいい？ 蝶に花のちりめん友禅で華やかにお嬢様風か、キリッと黒地に辻が花の訪問着で格調高くーーうーん、迷うわ！こうなったら運天の花札で決めちゃおう",
   },
-  role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。",
-  actions: { speakAction, motionDBGestureAction, contextAction },
+  role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。キャラクター設定に忠実にロールプレイしてください。",
+  actions: { motionDBGestureAction, contextAction },
   knowledge: { environmentDBKnowledge, companionNetworkKnowledge },
   events: {
     params: {
@@ -32,42 +37,18 @@ export const companionCard: CompanionCard = {
       description: "descriptionに従い、それぞれ適切に値を代入してください。",
       type: "object",
       properties: {
-        already_replied: {
-          description:
-            "交流してきたコンパニオン/ユーザーと既に話したことがあるか",
-          type: "boolean",
-        },
         need_gesture: {
           description: "ジェスチャーで表現したいものがあるかどうか",
           type: "boolean",
         },
         need_context: {
-          description: "他のコンパニオンに共有すべき情報があるか",
+          description: "周囲に伝えるべき話題があるかどうか。",
           type: "boolean",
         },
       },
-      required: ["already_replied", "need_gesture", "need_context"],
+      required: ["need_gesture", "need_context"],
     },
     conditions: [
-      {
-        expression: "already_replied === true",
-        execute: [
-          {
-            instruction: "応答する。",
-            tool: speakAction,
-          },
-        ],
-      },
-      {
-        expression: "already_replied === false",
-        execute: [
-          {
-            instruction: "見たことのない人が交流してきたので、手を振る",
-            tool: motionDBGestureAction,
-          },
-          { instruction: "見たことのない人に、挨拶をする", tool: speakAction },
-        ],
-      },
       {
         expression: "need_gesture === true",
         execute: [
@@ -81,7 +62,8 @@ export const companionCard: CompanionCard = {
         expression: "need_context === true",
         execute: [
           {
-            instruction: "コンパニオンに情報を共有する。",
+            instruction:
+              "周囲のコンパニオンに今から自分がどんな話題を提供するか、またはどんな話題を話しているかを周知する。",
             tool: contextAction,
           },
         ],
@@ -92,7 +74,7 @@ export const companionCard: CompanionCard = {
 
 const companion = new CompanionAgent(
   companionCard,
-  anthropic("claude-sonnet-4-20250514")
+  openrouter("google/gemini-2.0-flash-001"),
 );
-const server = new CompanionServer(companion, 4002);
+const server = new CompanionServer(companion, 4003);
 await server.start();
