@@ -1,14 +1,22 @@
 import { createTool } from "@mastra/core/tools";
 import { z, type ZodTypeAny } from "zod";
-import { type Action, type Context, type Message } from "../schema/index.ts";
+import { type Action, type Context } from "./schema/index.ts";
+import { isLibp2p, type Libp2p } from "libp2p";
+import { gossipsub } from "@chainsafe/libp2p-gossipsub";
+import { identify } from "@libp2p/identify";
 
-type Output = Action | Context | Message;
+export type Services = {
+  pubsub: ReturnType<ReturnType<typeof gossipsub>>;
+  identify: ReturnType<ReturnType<typeof identify>>;
+};
+
+type Output = Action | Context;
 
 interface CompanionActionConfig<T extends z.ZodSchema> {
   id: string;
   description: string;
   inputSchema: T;
-  topic: "messages" | "actions" | "contexts";
+  topic: "actions" | "contexts";
   publish: (
     input: z.infer<T>,
     id: string,
@@ -40,11 +48,21 @@ export function createCompanionAction<T extends ZodTypeAny>({
     inputSchema,
     execute: async ({ context, runtimeContext }) => {
       try {
-        const libp2p = runtimeContext.get("libp2p");
-        if (!libp2p) throw new Error("Error:libp2pが初期化されていません!");
+        const libp2p: Libp2p<Services> = runtimeContext.get("libp2p");
+        if (!libp2p || !isLibp2p(libp2p)) {
+          throw new Error("Error:libp2pが初期化されていません!");
+        }
+
         const id = runtimeContext.get("id");
-        if (!id) throw new Error("Error:コンパニオンのidが不正です!");
+        if (!id || typeof id !== "string") {
+          throw new Error("Error:コンパニオンのidが不正です!");
+        }
+
         const companions = runtimeContext.get("companions");
+        if (!(companions instanceof Map)) {
+          throw new Error("Error:companionsの形式が不正です!");
+        }
+
         const data = await publish(context, id, companions);
         libp2p.services.pubsub.publish(
           topic,
@@ -76,8 +94,15 @@ export function createCompanionKnowledge<T extends ZodTypeAny>({
     execute: async ({ context, runtimeContext }) => {
       try {
         const id = runtimeContext.get("id");
-        if (!id) throw new Error("Error:コンパニオンのidが不正です!");
+        if (!id || typeof id !== "string") {
+          throw new Error("Error:コンパニオンのidが不正です!");
+        }
+
         const companions = runtimeContext.get("companions");
+        if (!(companions instanceof Map)) {
+          throw new Error("Error:companionsの形式が不正です!");
+        }
+
         const data = await knowledge(context, id, companions);
         return {
           content: [{ type: "text", text: data }],

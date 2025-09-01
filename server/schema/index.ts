@@ -3,6 +3,7 @@ import { z } from "zod";
 
 export const MetadataSchema = z.object({
   id: z.string(),
+  url: z.string(),
   name: z.string(),
   personality: z.string(),
   story: z.string(),
@@ -40,8 +41,8 @@ export type CompanionCard = z.infer<typeof CompanionSchema>;
 export const MessageSchema = z.object({
   metadata: z.record(z.string(), z.any()).optional(),
   from: z.string(),
+  to: z.string(),
   message: z.string(),
-  target: z.string().optional(),
 });
 export type Message = z.infer<typeof MessageSchema>;
 
@@ -54,7 +55,6 @@ export const ActionSchema = z.object({
 export type Action = z.infer<typeof ActionSchema>;
 
 export const ContextSchema = z.object({
-  type: z.enum(["image", "text"]),
   context: z.string(),
 });
 export type Context = z.infer<typeof ContextSchema>;

@@ -4,15 +4,24 @@
   "private": true,
   "scripts": {
     "companion": "npx tsx ./configs/$npm_config_config/companion.ts",
-    "firehose": "npx tsx ./firehose/index.ts"
+    "router": "npx tsx ./routing/index.ts",
+    "firehose": "npx tsx ./firehose/index.ts",
+    "format": "prettier --write .",
+    "lint": "oxlint ."
   },
   "workspaces": [
-    "core",
+    "server",
     "firehose",
     "configs",
-    "apm_tools"
+    "apm_tools",
+    "routing",
+    "packages/utils"
   ],
   "overrides": {
     "ms": "3.0.0-canary.1"
+  },
+  "devDependencies": {
+    "oxlint": "^1.14.0",
+    "prettier": "^3.6.2"
   }
 }

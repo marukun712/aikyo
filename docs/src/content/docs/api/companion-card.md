@@ -20,9 +20,9 @@ export const CompanionSchema = z.object({
           z.object({
             instruction: z.string(),
             tool: z.instanceof(Tool),
-          })
+          }),
         ),
-      })
+      }),
     ),
   }),
 });
@@ -86,7 +86,7 @@ export const EventCondition = z.object({
     z.object({
       instruction: z.string(),
       tool: z.instanceof(Tool),
-    })
+    }),
   ),
 });
 
