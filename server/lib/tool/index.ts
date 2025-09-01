@@ -48,10 +48,10 @@ export const talkTool = createTool({
     };
     libp2p.services.pubsub.publish(
       "messages",
-      new TextEncoder().encode(JSON.stringify(body, null, 2))
+      new TextEncoder().encode(JSON.stringify(body, null, 2)),
     );
     const target = Array.from(companions.entries()).find(
-      ([k, v]) => v.id === body.to
+      ([_k, v]) => v.id === body.to,
     );
     if (!target)
       return {

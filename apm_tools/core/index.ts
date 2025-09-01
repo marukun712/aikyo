@@ -8,7 +8,7 @@ export const contextAction = createCompanionAction({
     text: z
       .string()
       .describe(
-        "この文章は、キャラクターとしてではなく、本来のあなたとして、共有したい記憶を簡潔に記述してください。"
+        "この文章は、キャラクターとしてではなく、本来のあなたとして、共有したい記憶を簡潔に記述してください。",
       ),
   }),
   topic: "contexts",
@@ -34,7 +34,7 @@ export const companionNetworkKnowledge = createCompanionKnowledge({
   description:
     "同じネットワークに所属しているコンパニオンのリストを取得します。",
   inputSchema: z.object({}),
-  knowledge: async ({}, id, companions) => {
+  knowledge: async (_params, id, companions) => {
     return Array.from(companions.entries())
       .map((metadata) => JSON.stringify(metadata, null, 2))
       .join("\n");

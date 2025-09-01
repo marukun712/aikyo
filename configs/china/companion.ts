@@ -9,8 +9,8 @@ import {
   CompanionServer,
   CompanionAgent,
 } from "@aikyo/server";
-import { anthropic } from "@ai-sdk/anthropic";
-import { google } from "@ai-sdk/google";
+// import { anthropic } from "@ai-sdk/anthropic";
+// import { google } from "@ai-sdk/google";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 
 const openrouter = createOpenRouter({
@@ -273,7 +273,7 @@ export const companionCard: CompanionCard = {
 
 const companion = new CompanionAgent(
   companionCard,
-  openrouter("google/gemini-2.0-flash-001")
+  openrouter("google/gemini-2.0-flash-001"),
 );
 const server = new CompanionServer(companion, 4004);
 await server.start();

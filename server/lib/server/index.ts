@@ -74,9 +74,10 @@ export class CompanionServer implements ICompanionServer {
 
     //イベントハンドラの設定
     libp2p.services.pubsub.addEventListener("message", (evt) =>
-      this.handlePubSubMessage(evt)
+      this.handlePubSubMessage(evt),
     );
 
+    // ピアの識別イベントを処理
     libp2p.addEventListener("peer:identify", async (evt) => {
       try {
         const { agentVersion, peerId } = evt.detail;
@@ -87,11 +88,13 @@ export class CompanionServer implements ICompanionServer {
         this.companionList.set(peerId.toString(), parsed.data);
         console.log(
           `Identified peer ${peerId.toString()} with metadata:`,
-          agentVersion
+          agentVersion,
         );
-      } catch (e) {}
+        console.error('Error during peer identification:', e);
+      }
     });
 
+    // ピアの切断イベントを処理
     libp2p.addEventListener("peer:disconnect", async (evt) => {
       try {
         const peerIdStr = evt.detail.toString();
@@ -99,10 +102,12 @@ export class CompanionServer implements ICompanionServer {
         if (!this.companionList.has(peerIdStr)) return;
         console.log(
           `Peer disconnected: ${peerIdStr}, metadata was:`,
-          agentVersion
+          agentVersion,
         );
         this.companionList.delete(peerIdStr);
-      } catch (e) {}
+      } catch (e) {
+        console.error(e);
+      }
     });
 
     //tool呼び出しのためRuntimeContextにSet
@@ -113,6 +118,7 @@ export class CompanionServer implements ICompanionServer {
   }
 
   private async handlePubSubMessage(message: any) {
+    // 話題を取得
     const topic = message.detail.topic;
 
     try {
@@ -143,7 +149,7 @@ export class CompanionServer implements ICompanionServer {
         const body = c.req.valid("json");
         const message = await this.companionAgent.generateMessage(body);
         return c.json(message, 200);
-      }
+      },
     );
 
     this.app.post(
@@ -157,7 +163,7 @@ export class CompanionServer implements ICompanionServer {
         const body = c.req.valid("json");
         await this.companionAgent.addContext(body.context);
         return c.json({ message: "Added context successfully" }, 201);
-      }
+      },
     );
   }
 
