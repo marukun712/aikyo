@@ -9,7 +9,6 @@ export const ActionSchema = z.object({
 export type Action = z.infer<typeof ActionSchema>;
 
 export const ContextSchema = z.object({
-  type: z.enum(["image", "text"]),
   context: z.string(),
 });
 export type Context = z.infer<typeof ContextSchema>;

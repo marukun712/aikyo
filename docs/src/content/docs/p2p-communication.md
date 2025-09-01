@@ -67,8 +67,8 @@ await libp2p.services.pubsub.publish(
       message: "こんにちは！",
       target: "target-companion-id",
       metadata: {},
-    })
-  )
+    }),
+  ),
 );
 ```
 
@@ -88,8 +88,8 @@ await libp2p.services.pubsub.publish(
       name: "gesture",
       params: { type: "wave" },
       metadata: {},
-    })
-  )
+    }),
+  ),
 );
 ```
 
@@ -107,8 +107,8 @@ await libp2p.services.pubsub.publish(
     JSON.stringify({
       type: "text",
       context: "部屋の明かりが暗くなった",
-    })
-  )
+    }),
+  ),
 );
 ```
 

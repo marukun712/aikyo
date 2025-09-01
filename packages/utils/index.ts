@@ -5,7 +5,7 @@ import { isLibp2p, type Libp2p } from "libp2p";
 import { gossipsub } from "@chainsafe/libp2p-gossipsub";
 import { identify } from "@libp2p/identify";
 
-type Services = {
+export type Services = {
   pubsub: ReturnType<ReturnType<typeof gossipsub>>;
   identify: ReturnType<ReturnType<typeof identify>>;
 };
@@ -48,7 +48,7 @@ export function createCompanionAction<T extends ZodTypeAny>({
     inputSchema,
     execute: async ({ context, runtimeContext }) => {
       try {
-        const libp2p = runtimeContext.get("libp2p");
+        const libp2p: Libp2p<Services> = runtimeContext.get("libp2p");
         if (!libp2p || !isLibp2p(libp2p)) {
           throw new Error("Error:libp2pが初期化されていません!");
         }
@@ -64,8 +64,7 @@ export function createCompanionAction<T extends ZodTypeAny>({
         }
 
         const data = await publish(context, id, companions);
-        const node = libp2p as Libp2p<Services>;
-        node.services.pubsub.publish(
+        libp2p.services.pubsub.publish(
           topic,
           new TextEncoder().encode(JSON.stringify(data))
         );
