@@ -15,11 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run lint` - Lint code with oxlint
 
 ### Available Companion Configs
-The system supports multiple pre-configured companions in the `configs/` directory:
-- `polka` - 高橋ポルカ character
-- `china` - China character configuration
-- `hanabi` - Hanabi character configuration
-- `mai` - Mai character configuration
+The system includes example companion configurations in the `configs/` directory (`polka`, `china`, `hanabi`, `mai`) that demonstrate different character implementations.
 
 ## Architecture Overview
 
