@@ -7,10 +7,10 @@
     "@chainsafe/libp2p-gossipsub": "^14.1.1",
     "@libp2p/identify": "^3.0.38",
     "libp2p": "2.9.0",
-    "@mastra/core": "^0.15.2",
-    "zod": "^4.1.5"
+    "@mastra/core": "ai-v5",
+    "zod": "^3.25.76"
   },
   "peerDependencies": {
-    "typescript": "^5.9.2"
+    "typescript": "^5"
   }
 }
