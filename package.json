@@ -17,9 +17,6 @@
     "routing",
     "packages/utils"
   ],
-  "overrides": {
-    "ms": "3.0.0-canary.1"
-  },
   "devDependencies": {
     "oxlint": "^1.14.0",
     "prettier": "^3.6.2"
