@@ -1,0 +1,65 @@
+services:
+  firehose:
+    build:
+      context: ..
+      dockerfile: docker/firehose.Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ..:/app
+    environment:
+      - NODE_ENV=production
+      - FIREHOSE_PORT=8080
+    restart: unless-stopped
+
+  polka:
+    build:
+      context: ..
+      dockerfile: docker/companion.Dockerfile
+    volumes:
+      - ..:/app
+    environment:
+      - COMPANION_CONFIG=polka
+      - NODE_ENV=production
+    restart: unless-stopped
+    depends_on:
+      - firehose
+
+  china:
+    build:
+      context: ..
+      dockerfile: docker/companion.Dockerfile
+    volumes:
+      - ..:/app
+    environment:
+      - COMPANION_CONFIG=china
+      - NODE_ENV=production
+    restart: unless-stopped
+    depends_on:
+      - firehose
+
+  hanabi:
+    build:
+      context: ..
+      dockerfile: docker/companion.Dockerfile
+    volumes:
+      - ..:/app
+    environment:
+      - COMPANION_CONFIG=hanabi
+      - NODE_ENV=production
+    restart: unless-stopped
+    depends_on:
+      - firehose
+
+  mai:
+    build:
+      context: ..
+      dockerfile: docker/companion.Dockerfile
+    volumes:
+      - ..:/app
+    environment:
+      - COMPANION_CONFIG=mai
+      - NODE_ENV=production
+    restart: unless-stopped
+    depends_on:
+      - firehose

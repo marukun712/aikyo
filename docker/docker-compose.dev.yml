@@ -1,0 +1,78 @@
+services:
+  firehose:
+    build:
+      context: ..
+      dockerfile: docker/firehose.Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ..:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - FIREHOSE_PORT=8080
+    restart: unless-stopped
+
+  # Development mode - only start polka by default
+  polka:
+    build:
+      context: ..
+      dockerfile: docker/companion.Dockerfile
+    volumes:
+      - ..:/app
+      - /app/node_modules
+    environment:
+      - COMPANION_CONFIG=polka
+      - NODE_ENV=development
+    restart: unless-stopped
+    depends_on:
+      - firehose
+
+  # Optional companions (can be started with: docker-compose -f docker-compose.dev.yml up china)
+  china:
+    build:
+      context: ..
+      dockerfile: docker/companion.Dockerfile
+    volumes:
+      - ..:/app
+      - /app/node_modules
+    environment:
+      - COMPANION_CONFIG=china
+      - NODE_ENV=development
+    restart: "no"
+    depends_on:
+      - firehose
+    profiles:
+      - optional
+
+  hanabi:
+    build:
+      context: ..
+      dockerfile: docker/companion.Dockerfile
+    volumes:
+      - ..:/app
+      - /app/node_modules
+    environment:
+      - COMPANION_CONFIG=hanabi
+      - NODE_ENV=development
+    restart: "no"
+    depends_on:
+      - firehose
+    profiles:
+      - optional
+
+  mai:
+    build:
+      context: ..
+      dockerfile: docker/companion.Dockerfile
+    volumes:
+      - ..:/app
+      - /app/node_modules
+    environment:
+      - COMPANION_CONFIG=mai
+      - NODE_ENV=development
+    restart: "no"
+    depends_on:
+      - firehose
+    profiles:
+      - optional
