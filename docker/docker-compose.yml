@@ -1,3 +1,16 @@
+# Common templates using YAML anchors
+x-companion-base: &companion-base
+  build:
+    context: ..
+    dockerfile: docker/companion.Dockerfile
+  volumes:
+    - ..:/app
+  environment:
+    - NODE_ENV=production
+  restart: unless-stopped
+  depends_on:
+    - firehose
+
 services:
   firehose:
     build:
@@ -13,53 +26,25 @@ services:
     restart: unless-stopped
 
   polka:
-    build:
-      context: ..
-      dockerfile: docker/companion.Dockerfile
-    volumes:
-      - ..:/app
+    <<: *companion-base
     environment:
       - COMPANION_CONFIG=polka
       - NODE_ENV=production
-    restart: unless-stopped
-    depends_on:
-      - firehose
 
   china:
-    build:
-      context: ..
-      dockerfile: docker/companion.Dockerfile
-    volumes:
-      - ..:/app
+    <<: *companion-base
     environment:
       - COMPANION_CONFIG=china
       - NODE_ENV=production
-    restart: unless-stopped
-    depends_on:
-      - firehose
 
   hanabi:
-    build:
-      context: ..
-      dockerfile: docker/companion.Dockerfile
-    volumes:
-      - ..:/app
+    <<: *companion-base
     environment:
       - COMPANION_CONFIG=hanabi
       - NODE_ENV=production
-    restart: unless-stopped
-    depends_on:
-      - firehose
 
   mai:
-    build:
-      context: ..
-      dockerfile: docker/companion.Dockerfile
-    volumes:
-      - ..:/app
+    <<: *companion-base
     environment:
       - COMPANION_CONFIG=mai
       - NODE_ENV=production
-    restart: unless-stopped
-    depends_on:
-      - firehose
