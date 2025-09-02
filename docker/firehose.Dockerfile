@@ -15,4 +15,4 @@ ENV FIREHOSE_PORT=8080
 EXPOSE 8080
 
 # Install dependencies when container starts (assumes volume mount)
-CMD ["sh", "-c", "npm ci --frozen-lockfile && npx tsx ./firehose/index.ts"]
+CMD ["sh", "-c", "npm ci && npx tsx ./firehose/index.ts"]

@@ -15,4 +15,4 @@ ENV NODE_ENV=production
 EXPOSE 4000-4099
 
 # Install dependencies when container starts (assumes volume mount)
-CMD ["sh", "-c", "npm ci --frozen-lockfile && npx tsx ./configs/$COMPANION_CONFIG/companion.ts"]
+CMD ["sh", "-c", "npm ci && npx tsx ./configs/$COMPANION_CONFIG/companion.ts"]
