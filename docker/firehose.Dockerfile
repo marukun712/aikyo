@@ -1,10 +1,9 @@
 FROM node:24-slim
 
 # Install basic dependencies
-RUN apt-get update && apt-get install -y \
-    git \
+RUN apt-get update && apt-get install -y --no-install-recommends git \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /app
 
 # Environment variables
