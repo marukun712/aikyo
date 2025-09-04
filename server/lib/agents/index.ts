@@ -20,7 +20,7 @@ export interface ICompanionAgent {
   run: Run;
 
   generateToolInstruction(
-    input: string | { image: string; mimeType: string }
+    input: string | { image: string; mimeType: string },
   ): Promise<string>;
   addContext(input: string): Promise<void>;
   generateMessage(input: Omit<Message, "to">): Promise<Message>;
