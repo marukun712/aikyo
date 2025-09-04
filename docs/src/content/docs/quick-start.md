@@ -61,8 +61,8 @@ ws.addEventListener("open", (event) => {
     JSON.stringify(
       { from: "user", message: "こんにちは！", target: "companion_polka" },
       null,
-      2
-    )
+      2,
+    ),
   );
 });
 ```
