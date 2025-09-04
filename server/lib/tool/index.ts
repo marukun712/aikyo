@@ -48,7 +48,7 @@ export const talkTool = createTool({
     };
     // https://libp2p.github.io/js-libp2p/interfaces/_libp2p_interface.PublishResult.html
     // recipientsは本当に受信したのかどうかわからん！検証したい。
-    const publishResult = libp2p.services.pubsub.publish(
+    const publishResult = await libp2p.services.pubsub.publish(
       "messages",
       new TextEncoder().encode(JSON.stringify(body, null, 2))
     );

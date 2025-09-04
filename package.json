@@ -4,10 +4,9 @@
   "private": true,
   "scripts": {
     "companion": "npx tsx ./configs/$npm_config_config/companion.ts",
-    "router": "npx tsx ./routing/index.ts",
     "firehose": "npx tsx ./firehose/index.ts",
     "format": "prettier --write .",
-    "lint": "oxlint ."
+    "lint": "oxlint server/ firehose/ configs/ packages/"
   },
   "workspaces": [
     "server",
