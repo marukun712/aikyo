@@ -65,7 +65,7 @@ wss.on("connection", (ws) => {
           // メッセージのみPublishする
           const recipients = await libp2p.services.pubsub.publish(
             "messages",
-            new TextEncoder().encode(JSON.stringify(data.data.data))
+            new TextEncoder().encode(JSON.stringify(data.data.data)),
           );
           ws.send(`${recipients.recipients}`);
           break;

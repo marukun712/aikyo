@@ -1,5 +1,5 @@
 import { createTool } from "@mastra/core/tools";
-import { Message, MessageSchema } from "../../schema/index.ts";
+import { Message } from "../../schema/index.ts";
 import { isLibp2p, Libp2p } from "libp2p";
 import { Services } from "@aikyo/utils";
 import z from "zod";
@@ -52,5 +52,6 @@ export const talkTool = createTool({
       "messages",
       new TextEncoder().encode(JSON.stringify(body, null, 2)),
     );
+    console.log("publishResult", publishResult.recipients);
   },
 });
