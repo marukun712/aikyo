@@ -5,9 +5,14 @@ import { identify } from "@libp2p/identify";
 import { mdns } from "@libp2p/mdns";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
+import { MessageSchema } from "../server/schema/index.ts";
+import { z } from "zod";
 import WebSocket, { WebSocketServer } from "ws";
-import { config } from "dotenv";
-config();
+
+export const WSSMessageSchema = z.object({
+  topic: z.enum(["messages", "actions", "contexts"]),
+  data: MessageSchema,
+});
 
 export const libp2p = await createLibp2p({
   addresses: {
@@ -32,6 +37,7 @@ libp2p.addEventListener("peer:discovery", (evt) => {
 libp2p.services.pubsub.subscribe("messages");
 libp2p.services.pubsub.subscribe("actions");
 libp2p.services.pubsub.subscribe("contexts");
+libp2p.services.pubsub.subscribe("metadata");
 
 const port = Number(process.env.FIREHOSE_PORT || 8080);
 
@@ -45,6 +51,48 @@ wss.on("connection", (ws) => {
   ws.on("close", () => {
     clients.delete(ws);
     console.log("WebSocket client disconnected");
+  });
+
+  ws.on("message", async (message: string) => {
+    const mockData: z.infer<typeof MessageSchema> = {
+      from: "user",
+      to: "companion_china",
+      message: "こんにちは！",
+    };
+    console.log("Received message from client:", message);
+    const recipients = await libp2p.services.pubsub.publish(
+      "messages",
+      new TextEncoder().encode(JSON.stringify(mockData))
+    );
+    console.dir(recipients);
+    ws.send(`${recipients.recipients}`);
+    /*
+    try {
+      
+      const data = WSSMessageSchema.safeParse(JSON.parse(message));
+      if (!data.success) {
+        throw new Error("Invalid message format");
+      }
+
+      switch (data.data.topic) {
+        case "messages":
+          // メッセージのみPublishする
+          await libp2p.services.pubsub.publish(
+            data.data.topic,
+            new TextEncoder().encode(JSON.stringify(data.data.data))
+          );
+          break;
+        case "actions":
+          // Handle action
+          break;
+        case "contexts":
+          // Handle context
+          break;
+      }
+    } catch (error) {
+      console.error("Error parsing message:", error);
+    }
+      */
   });
 });
 

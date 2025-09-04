@@ -59,6 +59,7 @@ export class CompanionServer implements ICompanionServer {
     });
 
     //各topicのサブスクライブ
+    libp2p.services.pubsub.subscribe("messages");
     libp2p.services.pubsub.subscribe("actions");
     libp2p.services.pubsub.subscribe("contexts");
     libp2p.services.pubsub.subscribe("metadata"); // Metadataを受信するためのトピック
@@ -132,7 +133,10 @@ export class CompanionServer implements ICompanionServer {
     const topic = message.detail.topic;
     const fromPeerId = message.detail.from.toString();
 
+    console.log(`Received message on topic ${topic} from ${fromPeerId}`);
+
     const data = JSON.parse(new TextDecoder().decode(message.detail.data));
+    console.log(data);
     try {
       switch (topic) {
         case "contexts": {
@@ -164,6 +168,8 @@ export class CompanionServer implements ICompanionServer {
         }
         case "messages": {
           const parsed = MessageSchema.safeParse(data);
+          console.log(parsed);
+          console.log(this.companion.metadata.id);
           if (!parsed.success) return;
 
           // 自分のメッセージは無視
