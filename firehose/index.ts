@@ -54,7 +54,21 @@ wss.on("connection", (ws) => {
   });
 
   ws.on("message", async (message: Buffer) => {
+    const msg = message.toString();
+    const mockData: z.infer<typeof MessageSchema> = {
+      from: "user",
+      to: "companion_china",
+      message: msg,
+    };
+    console.log("Received message from client:", msg);
+    const recipients = await libp2p.services.pubsub.publish(
+      "messages",
+      new TextEncoder().encode(JSON.stringify(mockData))
+    );
+    ws.send(`Message published to ${recipients.recipients.length} peers`);
+    /*
     try {
+      console.log("Received message:", message.toString());
       const data = WSSMessageSchema.safeParse(JSON.parse(message.toString()));
       if (!data.success) {
         throw new Error("Invalid message format");
@@ -65,7 +79,7 @@ wss.on("connection", (ws) => {
           // メッセージのみPublishする
           const recipients = await libp2p.services.pubsub.publish(
             "messages",
-            new TextEncoder().encode(JSON.stringify(data.data.data)),
+            new TextEncoder().encode(JSON.stringify(data.data.data))
           );
           ws.send(`${recipients.recipients}`);
           break;
@@ -78,7 +92,7 @@ wss.on("connection", (ws) => {
       }
     } catch (error) {
       console.error("Error parsing message:", error);
-    }
+    }*/
   });
 });
 
