@@ -46,55 +46,11 @@ export const talkTool = createTool({
       message: context.message,
       metadata: { emotion: context.emotion },
     };
-    libp2p.services.pubsub.publish(
+    // https://libp2p.github.io/js-libp2p/interfaces/_libp2p_interface.PublishResult.html
+    // recipientsは本当に受信したのかどうかわからん！検証したい。
+    const publishResult = libp2p.services.pubsub.publish(
       "messages",
-      new TextEncoder().encode(JSON.stringify(body, null, 2)),
+      new TextEncoder().encode(JSON.stringify(body, null, 2))
     );
-    const target = Array.from(companions.entries()).find(
-      ([_k, v]) => v.id === body.to,
-    );
-    if (!target)
-      return {
-        content: [
-          {
-            type: "text",
-            text: "Error:宛先に指定したコンパニオンが見つかりません。",
-          },
-        ],
-      };
-    const rawUrl = target[1].url;
-    const url = new URL(rawUrl);
-    const res = await fetch(`${url.href}generate`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      const json = await res.json();
-      return {
-        content: [
-          {
-            type: "text",
-            text: "Error:メッセージ送信に失敗しました" + json.error,
-          },
-        ],
-      };
-    }
-    const json = await res.json();
-    const parsed = MessageSchema.safeParse(json);
-    if (!parsed.success)
-      return {
-        content: [
-          {
-            type: "text",
-            text: "Error:メッセージのスキーマが不正です。",
-          },
-        ],
-      };
-    return {
-      content: [{ type: "text", text: parsed.data }],
-    };
   },
 });
