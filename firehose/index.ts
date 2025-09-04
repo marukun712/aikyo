@@ -53,23 +53,9 @@ wss.on("connection", (ws) => {
     console.log("WebSocket client disconnected");
   });
 
-  ws.on("message", async (message: string) => {
-    const mockData: z.infer<typeof MessageSchema> = {
-      from: "user",
-      to: "companion_china",
-      message: "こんにちは！",
-    };
-    console.log("Received message from client:", message);
-    const recipients = await libp2p.services.pubsub.publish(
-      "messages",
-      new TextEncoder().encode(JSON.stringify(mockData)),
-    );
-    console.dir(recipients);
-    ws.send(`${recipients.recipients}`);
-    /*
+  ws.on("message", async (message: Buffer) => {
     try {
-      
-      const data = WSSMessageSchema.safeParse(JSON.parse(message));
+      const data = WSSMessageSchema.safeParse(JSON.parse(message.toString()));
       if (!data.success) {
         throw new Error("Invalid message format");
       }
@@ -77,10 +63,11 @@ wss.on("connection", (ws) => {
       switch (data.data.topic) {
         case "messages":
           // メッセージのみPublishする
-          await libp2p.services.pubsub.publish(
-            data.data.topic,
+          const recipients = await libp2p.services.pubsub.publish(
+            "messages",
             new TextEncoder().encode(JSON.stringify(data.data.data))
           );
+          ws.send(`${recipients.recipients}`);
           break;
         case "actions":
           // Handle action
@@ -92,7 +79,6 @@ wss.on("connection", (ws) => {
     } catch (error) {
       console.error("Error parsing message:", error);
     }
-      */
   });
 });
 
