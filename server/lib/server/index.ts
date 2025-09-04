@@ -66,7 +66,7 @@ export class CompanionServer implements ICompanionServer {
 
     //イベントハンドラの設定
     libp2p.services.pubsub.addEventListener("message", (evt) =>
-      this.handlePubSubMessage(evt)
+      this.handlePubSubMessage(evt),
     );
 
     // ピアの接続イベントを処理（Metadataをブロードキャスト）
@@ -82,7 +82,7 @@ export class CompanionServer implements ICompanionServer {
         const metadataMsg = JSON.stringify(this.companion.metadata);
         await libp2p.services.pubsub.publish(
           "metadata",
-          new TextEncoder().encode(metadataMsg)
+          new TextEncoder().encode(metadataMsg),
         );
       } catch (e) {
         console.error("Error during peer connection:", e);
@@ -98,7 +98,7 @@ export class CompanionServer implements ICompanionServer {
         if (!this.companionList.has(peerIdStr)) return;
         console.log(
           `Peer disconnected: ${peerIdStr}, metadata was:`,
-          agentVersion
+          agentVersion,
         );
         this.companionList.delete(peerIdStr);
       } catch (e) {
