@@ -50,7 +50,7 @@ export const talkTool = createTool({
     // recipientsは本当に受信したのかどうかわからん！検証したい。
     const publishResult = await libp2p.services.pubsub.publish(
       "messages",
-      new TextEncoder().encode(JSON.stringify(body, null, 2))
+      new TextEncoder().encode(JSON.stringify(body, null, 2)),
     );
   },
 });

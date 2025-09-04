@@ -62,7 +62,7 @@ wss.on("connection", (ws) => {
     console.log("Received message from client:", message);
     const recipients = await libp2p.services.pubsub.publish(
       "messages",
-      new TextEncoder().encode(JSON.stringify(mockData))
+      new TextEncoder().encode(JSON.stringify(mockData)),
     );
     console.dir(recipients);
     ws.send(`${recipients.recipients}`);
