@@ -39,7 +39,7 @@ export const CompanionSchema = z.object({
 export type CompanionCard = z.infer<typeof CompanionSchema>;
 
 export const MessageSchema = z.object({
-  metadata: z.record(z.string(), z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(), // MetadataにKindも入れちゃお～！
   from: z.string(),
   to: z.string(),
   message: z.string(),

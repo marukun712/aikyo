@@ -1,6 +1,3 @@
-import { Hono } from "hono";
-import { validator } from "hono/validator";
-import { serve } from "@hono/node-server";
 import { gossipsub } from "@chainsafe/libp2p-gossipsub";
 import { createLibp2p } from "libp2p";
 import { tcp } from "@libp2p/tcp";
@@ -15,14 +12,11 @@ import {
 } from "../../schema/index.ts";
 import { CompanionAgent } from "../agents/index.ts";
 import { MessageSchema, ContextSchema } from "../../schema/index.ts";
-import { logger } from "hono/logger";
-import { cors } from "hono/cors";
 
 export interface ICompanionServer {
   companionAgent: CompanionAgent;
   companion: CompanionCard;
   libp2p: Awaited<ReturnType<typeof initLibp2p>>;
-  app: Hono;
   port: number;
   companionList: Map<string, Metadata>;
 
@@ -47,14 +41,12 @@ export class CompanionServer implements ICompanionServer {
   companionAgent: CompanionAgent;
   companion: CompanionCard;
   libp2p!: Awaited<ReturnType<typeof initLibp2p>>;
-  app: Hono;
   port: number;
   companionList = new Map<string, Metadata>();
 
   constructor(companionAgent: CompanionAgent, port: number) {
     this.companionAgent = companionAgent;
     this.companion = companionAgent.companion;
-    this.app = new Hono();
     this.port = port;
   }
 
@@ -73,7 +65,7 @@ export class CompanionServer implements ICompanionServer {
 
     //イベントハンドラの設定
     libp2p.services.pubsub.addEventListener("message", (evt) =>
-      this.handlePubSubMessage(evt),
+      this.handlePubSubMessage(evt)
     );
 
     // ピアの接続イベントを処理（Metadataをブロードキャスト）
@@ -84,7 +76,7 @@ export class CompanionServer implements ICompanionServer {
         const metadataMsg = JSON.stringify(this.companion.metadata);
         await libp2p.services.pubsub.publish(
           "metadata",
-          new TextEncoder().encode(metadataMsg),
+          new TextEncoder().encode(metadataMsg)
         );
       } catch (e) {
         console.error("Error during peer connection:", e);
@@ -99,7 +91,7 @@ export class CompanionServer implements ICompanionServer {
         if (!this.companionList.has(peerIdStr)) return;
         console.log(
           `Peer disconnected: ${peerIdStr}, metadata was:`,
-          agentVersion,
+          agentVersion
         );
         this.companionList.delete(peerIdStr);
       } catch (e) {
@@ -119,70 +111,60 @@ export class CompanionServer implements ICompanionServer {
     const topic = message.detail.topic;
     const fromPeerId = message.detail.from.toString();
 
+    const data = JSON.parse(new TextDecoder().decode(message.detail.data));
     try {
-      const data = JSON.parse(new TextDecoder().decode(message.detail.data));
-      if (topic === "contexts") {
-        const parsed = ContextSchema.safeParse(data);
-        if (!parsed.success) return;
-        const body = parsed.data;
-        await this.companionAgent.addContext(body.context);
-      } else if (topic === "metadata") {
-        const parsed = MetadataSchema.safeParse(data);
-        if (!parsed.success) return;
+      switch (topic) {
+        case "contexts": {
+          // Contextをパースして、CompanionAgentに追加
+          const parsed = ContextSchema.safeParse(data);
 
-        // 自分のメッセージは無視
-        if (fromPeerId === this.libp2p.peerId.toString()) return;
+          // パースに失敗したら無視
+          if (!parsed.success) return;
 
-        // 既に登録済みの場合は無視
-        if (this.companionList.has(fromPeerId)) return;
+          // Contextに追加
+          const body = parsed.data;
+          await this.companionAgent.addContext(body.context);
+          break;
+        }
+        case "metadata": {
+          const parsed = MetadataSchema.safeParse(data);
+          if (!parsed.success) return;
 
-        this.companionList.set(fromPeerId, parsed.data);
-        console.log(`Added peer ${fromPeerId} with metadata:`, parsed.data);
+          // 自分のメッセージは無視
+          if (fromPeerId === this.libp2p.peerId.toString()) return;
+
+          // 既に登録済みの場合は無視
+          if (this.companionList.has(fromPeerId)) return;
+
+          // CompanionListに追加
+          this.companionList.set(fromPeerId, parsed.data);
+          console.log(`Added peer ${fromPeerId} with metadata:`, parsed.data);
+          break;
+        }
+        case "messages": {
+          const parsed = MessageSchema.safeParse(data);
+          if (!parsed.success) return;
+
+          // 自分のメッセージは無視
+          if (parsed.data.from === this.companion.metadata.id) return;
+
+          // 対象外のメッセージは無視
+          if (parsed.data.to !== this.companion.metadata.id) return;
+
+          // CompanionAgentにメッセージを生成させる
+          await this.companionAgent.generateMessage(parsed.data);
+          break;
+        }
       }
-    } catch (err) {
-      console.error("Error processing pubsub message:", err);
+    } catch (e) {
+      console.error(e);
     }
-  }
-
-  private setupRoutes() {
-    this.app.use(logger());
-    this.app.use("*", cors());
-
-    this.app.post(
-      "/generate",
-      validator("json", (value, c) => {
-        const parsed = MessageSchema.omit({ to: true }).safeParse(value);
-        if (!parsed.success) return c.text("Invalid Body!", 400);
-        return parsed.data;
-      }),
-      async (c) => {
-        const body = c.req.valid("json");
-        const message = await this.companionAgent.generateMessage(body);
-        return c.json(message, 200);
-      },
-    );
-
-    this.app.post(
-      "/context",
-      validator("json", (value, c) => {
-        const parsed = ContextSchema.safeParse(value);
-        if (!parsed.success) return c.text("Invalid Body!", 400);
-        return parsed.data;
-      }),
-      async (c) => {
-        const body = c.req.valid("json");
-        await this.companionAgent.addContext(body.context);
-        return c.json({ message: "Added context successfully" }, 201);
-      },
-    );
   }
 
   //サーバーを起動
   async start() {
     await this.initLibp2p();
-    this.setupRoutes();
 
-    serve({ fetch: this.app.fetch, port: this.port });
-    console.log(`Character server running on http://localhost:${this.port}`);
+    console.log(`Character server started with http://localhost:${this.port}`);
   }
 }
