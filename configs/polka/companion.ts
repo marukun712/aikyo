@@ -1,9 +1,7 @@
 import {
   speakTool,
-  requestTool,
   companionNetworkKnowledge,
 } from "apm_tools/core/index.ts";
-import { motionDBGestureAction } from "apm_tools/motion-db/index.ts";
 import { environmentDBKnowledge } from "apm_tools/environment-db/index.ts";
 import {
   type CompanionCard,
@@ -29,8 +27,8 @@ export const companionCard: CompanionCard = {
       "翔音ちゃんが見せてくれた昔のスクールアイドルの動画の数々 もうすっっっっっごい！！！ かわいかった～！！ 興奮 鼻血でちゃう！！ あ 夏ってなんか鼻血出やすいよね。。。 ティッシュ持ってなくて焦るときあるけど 踊ってごまかすポルカです",
   },
   role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。キャラクター設定に忠実にロールプレイしてください。",
-  actions: { motionDBGestureAction, speakTool, requestTool },
-  knowledge: { environmentDBKnowledge, companionNetworkKnowledge },
+  actions: { speakTool },
+  knowledge: { companionNetworkKnowledge },
   events: {
     params: {
       title: "あなたが判断すべきパラメータ",
@@ -46,24 +44,11 @@ export const companionCard: CompanionCard = {
     },
     conditions: [
       {
-        expression: "need_gesture === true",
-        execute: [
-          {
-            instruction: "ジェスチャーで体の動きを表現する。",
-            tool: motionDBGestureAction,
-          },
-        ],
-      },
-      {
         expression: "true",
         execute: [
           {
-            instruction: "他のコンパニオンに話しかける。",
+            instruction: "ツールを使って返信する。",
             tool: speakTool,
-          },
-          {
-            instruction: "他のコンパニオンに返答を要求する。",
-            tool: requestTool,
           },
         ],
       },

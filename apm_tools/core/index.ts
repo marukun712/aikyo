@@ -3,7 +3,7 @@ import { createCompanionAction, createCompanionKnowledge } from "@aikyo/utils";
 
 export const speakTool = createCompanionAction({
   id: "speak",
-  description: "他のコンパニオンに話しかける",
+  description: "発言する。",
   inputSchema: z.object({
     message: z.string().describe("メッセージ本文"),
   }),

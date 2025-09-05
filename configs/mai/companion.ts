@@ -1,10 +1,7 @@
 import {
   speakTool,
-  requestTool,
   companionNetworkKnowledge,
 } from "apm_tools/core/index.ts";
-import { motionDBGestureAction } from "apm_tools/motion-db/index.ts";
-import { environmentDBKnowledge } from "apm_tools/environment-db/index.ts";
 import {
   type CompanionCard,
   CompanionServer,
@@ -28,8 +25,8 @@ export const companionCard: CompanionCard = {
       "いいわ 先週あったプログラミングのサマーキャンプで 自己紹介の練習は済んでる あとはただポルカの後ろで心を無にして踊ればいい きっとみんなあの子に目が行って私は目立たないはず… 帰ってきたら絶対新しいマウス買う",
   },
   role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。キャラクター設定に忠実にロールプレイしてください。",
-  actions: { motionDBGestureAction, speakTool, requestTool },
-  knowledge: { environmentDBKnowledge, companionNetworkKnowledge },
+  actions: { speakTool },
+  knowledge: { companionNetworkKnowledge },
   events: {
     params: {
       title: "あなたが判断すべきパラメータ",
@@ -45,24 +42,11 @@ export const companionCard: CompanionCard = {
     },
     conditions: [
       {
-        expression: "need_gesture === true",
-        execute: [
-          {
-            instruction: "ジェスチャーで体の動きを表現する。",
-            tool: motionDBGestureAction,
-          },
-        ],
-      },
-      {
         expression: "true",
         execute: [
           {
-            instruction: "他のコンパニオンに話しかける。",
+            instruction: "ツールを使って返信する。",
             tool: speakTool,
-          },
-          {
-            instruction: "他のコンパニオンに返答を要求する。",
-            tool: requestTool,
           },
         ],
       },

@@ -61,12 +61,11 @@ export class CompanionAgent implements ICompanionAgent {
       あなたには、知識を得るための以下のツールが与えられています。
       これらのツールは、あなたが知識を得たいと感じたタイミングで実行してください。
       ${Object.values(companion.knowledge)
-        .map((value) => {
-          return `${value}:${value.description}`;
-        })
-        .join("\n")}
+          .map((value) => {
+            return `${value}:${value.description}`;
+          })
+          .join("\n")}
 
-      "絶対に"、ツールを使用する、のようなメタ的な発言をしてはいけません。
       必ず、定期的にワーキングメモリを更新してください。
       `,
       model,
@@ -82,7 +81,7 @@ export class CompanionAgent implements ICompanionAgent {
     const workflow = createToolInstructionWorkflow(
       this.agent,
       this.runtimeContext,
-      this.companion,
+      this.companion
     );
     this.run = workflow.createRun();
 
@@ -102,19 +101,15 @@ export class CompanionAgent implements ICompanionAgent {
     if (typeof instructions !== "string" || instructions === "failed") {
       throw new Error("イベント実行に失敗しました。");
     }
-    // ツールのみを実行
+    console.log(instructions);
     const res = await this.agent.generate(
-      [
-        {
-          role: "system",
-          content: instructions,
-        },
-      ],
+      JSON.stringify(message, null, 2),
       {
         runtimeContext: this.runtimeContext,
         resourceId: "main",
         threadId: "thread",
-      },
+        context: [{ role: "system", content: instructions }]
+      }
     );
     console.log(res.text);
   }
