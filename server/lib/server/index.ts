@@ -75,7 +75,8 @@ export class CompanionServer implements ICompanionServer {
       try {
         console.log(`Peer connected: ${evt.detail.toString()}`);
         // GossipSubの準備ができるまで少し待機
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        const latency = 100; // 100msの遅延
+        await new Promise((resolve) => setTimeout(resolve, latency));
 
         // 新しいピアが接続した時、既存のピアも自分のMetadataを再送信する
         // これにより、新しいピアは既存のピアのメタデータを受信できる
@@ -114,6 +115,8 @@ export class CompanionServer implements ICompanionServer {
 
     // 初期化後、少し待ってから自分のメタデータをpublish
     // これにより既に接続済みのピア間でもメタデータ交換が可能になる
+    const latency = 500; // 500msの遅延
+
     setTimeout(async () => {
       try {
         const metadataMsg = JSON.stringify(this.companion.metadata);
@@ -125,7 +128,7 @@ export class CompanionServer implements ICompanionServer {
       } catch (e) {
         console.error("Error publishing initial metadata:", e);
       }
-    }, 500); // GossipSubの準備完了を待つため500ms遅延
+    }, latency); // GossipSubの準備完了を待つため500ms遅延
   }
 
   private async handlePubSubMessage(message: any) {
@@ -168,8 +171,8 @@ export class CompanionServer implements ICompanionServer {
         }
         case "messages": {
           const parsed = MessageSchema.safeParse(data);
-          console.log(parsed);
-          console.log(this.companion.metadata.id);
+          console.log("=> Message Received:", parsed);
+
           if (!parsed.success) return;
 
           // 自分のメッセージは無視
