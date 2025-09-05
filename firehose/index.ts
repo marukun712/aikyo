@@ -56,11 +56,16 @@ wss.on("connection", (ws) => {
       }
       const result = await libp2p.services.pubsub.publish(
         "messages",
-        new TextEncoder().encode(JSON.stringify(data.data)),
+        new TextEncoder().encode(JSON.stringify(data.data))
       );
       ws.send(`Message published to ${result.recipients.length} peers`);
     } catch (error) {
       console.error("Error parsing message:", error);
+      try {
+        ws.send(JSON.stringify({ type: "error", error: "Malformed JSON" }));
+      } catch (e) {
+        console.error("Error sending error message:", e);
+      }
     }
   });
 });
@@ -72,7 +77,7 @@ libp2p.services.pubsub.addEventListener("message", async (message) => {
 
     const payload = JSON.stringify(data);
     for (const client of clients) {
-      if (client.readyState === 1) {
+      if (client.readyState === WebSocket.OPEN) {
         client.send(payload);
       }
     }
