@@ -6,13 +6,7 @@ import { mdns } from "@libp2p/mdns";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
 import { MessageSchema } from "../server/schema/index.ts";
-import { z } from "zod";
 import WebSocket, { WebSocketServer } from "ws";
-
-export const WSSMessageSchema = z.object({
-  topic: z.enum(["messages", "actions", "contexts"]),
-  data: MessageSchema,
-});
 
 export const libp2p = await createLibp2p({
   addresses: {
@@ -54,45 +48,20 @@ wss.on("connection", (ws) => {
   });
 
   ws.on("message", async (message: Buffer) => {
-    const msg = message.toString();
-    const mockData: z.infer<typeof MessageSchema> = {
-      from: "user",
-      to: "companion_china",
-      message: msg,
-    };
-    console.log("Received message from client:", msg);
-    const recipients = await libp2p.services.pubsub.publish(
-      "messages",
-      new TextEncoder().encode(JSON.stringify(mockData))
-    );
-    ws.send(`Message published to ${recipients.recipients.length} peers`);
-    /*
     try {
       console.log("Received message:", message.toString());
-      const data = WSSMessageSchema.safeParse(JSON.parse(message.toString()));
+      const data = MessageSchema.safeParse(JSON.parse(message.toString()));
       if (!data.success) {
         throw new Error("Invalid message format");
       }
-
-      switch (data.data.topic) {
-        case "messages":
-          // メッセージのみPublishする
-          const recipients = await libp2p.services.pubsub.publish(
-            "messages",
-            new TextEncoder().encode(JSON.stringify(data.data.data))
-          );
-          ws.send(`${recipients.recipients}`);
-          break;
-        case "actions":
-          // Handle action
-          break;
-        case "contexts":
-          // Handle context
-          break;
-      }
+      const result = await libp2p.services.pubsub.publish(
+        "messages",
+        new TextEncoder().encode(JSON.stringify(data.data))
+      );
+      ws.send(`Message published to ${result.recipients.length} peers`);
     } catch (error) {
       console.error("Error parsing message:", error);
-    }*/
+    }
   });
 });
 
