@@ -56,7 +56,7 @@ wss.on("connection", (ws) => {
       }
       const result = await libp2p.services.pubsub.publish(
         "messages",
-        new TextEncoder().encode(JSON.stringify(data.data))
+        new TextEncoder().encode(JSON.stringify(data.data)),
       );
       ws.send(`Message published to ${result.recipients.length} peers`);
     } catch (error) {
