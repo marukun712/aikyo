@@ -1,6 +1,6 @@
 import { createTool } from "@mastra/core/tools";
 import { z, type ZodTypeAny } from "zod";
-import { type Action, type Context } from "./schema/index.ts";
+import { type Action, type Message } from "./schema/index.ts";
 import { isLibp2p, type Libp2p } from "libp2p";
 import { gossipsub } from "@chainsafe/libp2p-gossipsub";
 import { identify } from "@libp2p/identify";
@@ -10,17 +10,17 @@ export type Services = {
   identify: ReturnType<ReturnType<typeof identify>>;
 };
 
-type Output = Action | Context;
+type Output = Action | Message;
 
 interface CompanionActionConfig<T extends z.ZodSchema> {
   id: string;
   description: string;
   inputSchema: T;
-  topic: "actions" | "contexts";
+  topic: "actions" | "messages";
   publish: (
     input: z.infer<T>,
     id: string,
-    companions: Map<string, string>
+    companions: Map<string, string>,
   ) => Promise<Output> | Output;
 }
 
@@ -31,7 +31,7 @@ interface CompanionKnowledgeConfig<T extends z.ZodSchema> {
   knowledge: (
     input: z.infer<T>,
     id: string,
-    companions: Map<string, string>
+    companions: Map<string, string>,
   ) => Promise<string> | string;
 }
 
@@ -64,9 +64,10 @@ export function createCompanionAction<T extends ZodTypeAny>({
         }
 
         const data = await publish(context, id, companions);
+
         libp2p.services.pubsub.publish(
           topic,
-          new TextEncoder().encode(JSON.stringify(data))
+          new TextEncoder().encode(JSON.stringify(data)),
         );
         return {
           content: [{ type: "text", text: "ツールが正常に実行されました。" }],
@@ -116,3 +117,5 @@ export function createCompanionKnowledge<T extends ZodTypeAny>({
     },
   });
 }
+
+export * from "./schema/index.ts";

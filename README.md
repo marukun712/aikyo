@@ -1,50 +1,8 @@
 # aikyo
 
-aikyoは、相互につながるAIコンパニオンを作成するためのフレームワークです。
-
 ## Concept
 
-aikyoは、リアルタイムでコミュニケーションできるAIコンパニオンを作成するためのフレームワークです。
-
-各コンパニオンは独立したサーバーとして動作し、HTTP APIとlibp2pのP2Pネットワークを通じて3種類のデータをやりとりします。
-
-### **message** - コミュニケーション
-
-コンパニオン間の会話メッセージ（双方向）
-
-```json
-{
-  "from": "companion_xxxx",
-  "to": "companion_xxxx",
-  "message": "こんにちは！",
-  "metadata": {
-    "emotion": "happy"
-  }
-}
-```
-
-### **action** - 物理的動作
-
-コンパニオンの体の動きを表現（送信のみ）
-
-```json
-{
-  "from": "companion_xxxx",
-  "name": "action_name",
-  "params": {},
-  "metadata": {}
-}
-```
-
-### **context** - 共通認識
-
-コンパニオン間で共有する状況情報
-
-```json
-{
-  "context": "部屋の明かりが暗くなった"
-}
-```
+aikyoは、相互につながるAIコンパニオンを作成するためのフレームワークです。
 
 ### Companion Card
 
@@ -185,9 +143,15 @@ export const environmentDBKnowledge = createCompanionKnowledge({
 
 ## Requirements
 
-Node.js 22
+Nix
 
 ## Usage
+
+nix-shellに入ります。
+
+```bash
+nix-shell
+```
 
 パッケージをインストールします。
 

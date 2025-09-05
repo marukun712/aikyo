@@ -1,5 +1,6 @@
 import {
-  contextAction,
+  speakTool,
+  requestTool,
   companionNetworkKnowledge,
 } from "apm_tools/core/index.ts";
 import { motionDBGestureAction } from "apm_tools/motion-db/index.ts";
@@ -9,8 +10,6 @@ import {
   CompanionServer,
   CompanionAgent,
 } from "@aikyo/server";
-// import { anthropic } from "@ai-sdk/anthropic";
-// import { google } from "@ai-sdk/google";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 
 const openrouter = createOpenRouter({
@@ -29,7 +28,7 @@ export const companionCard: CompanionCard = {
       "いいわ 先週あったプログラミングのサマーキャンプで 自己紹介の練習は済んでる あとはただポルカの後ろで心を無にして踊ればいい きっとみんなあの子に目が行って私は目立たないはず… 帰ってきたら絶対新しいマウス買う",
   },
   role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。キャラクター設定に忠実にロールプレイしてください。",
-  actions: { motionDBGestureAction, contextAction },
+  actions: { motionDBGestureAction, speakTool, requestTool },
   knowledge: { environmentDBKnowledge, companionNetworkKnowledge },
   events: {
     params: {
@@ -41,12 +40,8 @@ export const companionCard: CompanionCard = {
           description: "ジェスチャーで表現したいものがあるかどうか",
           type: "boolean",
         },
-        need_context: {
-          description: "周囲に伝えるべき話題があるかどうか。",
-          type: "boolean",
-        },
       },
-      required: ["need_gesture", "need_context"],
+      required: ["need_gesture"],
     },
     conditions: [
       {
@@ -59,12 +54,15 @@ export const companionCard: CompanionCard = {
         ],
       },
       {
-        expression: "need_context === true",
+        expression: "true",
         execute: [
           {
-            instruction:
-              "周囲のコンパニオンに今から自分がどんな話題を提供するか、またはどんな話題を話しているかを周知する。",
-            tool: contextAction,
+            instruction: "他のコンパニオンに話しかける。",
+            tool: speakTool,
+          },
+          {
+            instruction: "他のコンパニオンに返答を要求する。",
+            tool: requestTool,
           },
         ],
       },

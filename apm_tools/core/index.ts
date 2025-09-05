@@ -1,18 +1,18 @@
 import { z } from "zod";
 import { createCompanionAction, createCompanionKnowledge } from "@aikyo/utils";
 
-export const contextAction = createCompanionAction({
-  id: "context",
-  description: "同じネットワークのコンパニオンたちに共有した記憶を送信します。",
+export const speakTool = createCompanionAction({
+  id: "speak",
+  description: "他のコンパニオンに話しかける",
   inputSchema: z.object({
-    text: z
-      .string()
-      .describe(
-        "この文章は、キャラクターとしてではなく、本来のあなたとして、共有したい記憶を簡潔に記述してください。",
-      ),
+    message: z.string().describe("メッセージ本文"),
   }),
-  topic: "contexts",
-  publish: ({ text }) => ({ context: text }),
+  topic: "messages",
+  publish: ({ message }, id) => {
+    return {
+      from: id, message
+    }
+  }
 });
 
 export const gestureAction = createCompanionAction({

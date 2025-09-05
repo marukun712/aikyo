@@ -1,7 +1,6 @@
-import { type CompanionCard } from "../../schema/index.ts";
+import { MessageSchema, type CompanionCard } from "../../schema/index.ts";
 import { convertJsonSchemaToZod } from "zod-from-json-schema";
 import { createWorkflow, createStep } from "@mastra/core/workflows";
-import { type CoreMessage } from "@mastra/core";
 import { z } from "zod";
 import { evaluate } from "cel-js";
 import { RuntimeContext } from "@mastra/core/runtime-context";
@@ -9,7 +8,7 @@ import { CompanionAgent } from "../agents/index.ts";
 
 type AgentType = InstanceType<typeof CompanionAgent>["agent"];
 
-export function createEventWorkflow(
+export function createToolInstructionWorkflow(
   agent: AgentType,
   runtimeContext: RuntimeContext,
   companionCard: CompanionCard,
@@ -18,30 +17,13 @@ export function createEventWorkflow(
   const evaluateStep = createStep({
     id: "evaluate",
     description: "与えられた情報から、状況パラメータの値を設定する。",
-    inputSchema: z.union([
-      z.string(),
-      z.object({ image: z.string(), mimeType: z.string() }),
-    ]),
+    inputSchema: MessageSchema,
     outputSchema: z.object({
       output: outputSchema,
     }),
     execute: async ({ inputData }) => {
       const input = inputData;
-      let interaction: CoreMessage;
-      if (typeof input === "string") {
-        interaction = { role: "user", content: input };
-      } else {
-        interaction = {
-          role: "user" as const,
-          content: [
-            {
-              type: "image" as const,
-              image: input.image,
-            },
-          ],
-        };
-      }
-      const res = await agent.generate([interaction], {
+      const res = await agent.generate(JSON.stringify(input), {
         instructions: `
         与えられた入力から、あなたの長期記憶とワーキングメモリを元に、
         ${JSON.stringify(companionCard.events.params, null, 2)}
@@ -93,11 +75,8 @@ export function createEventWorkflow(
   });
 
   return createWorkflow({
-    id: "event-workflow",
-    inputSchema: z.union([
-      z.string(),
-      z.object({ image: z.string(), mimeType: z.string() }),
-    ]),
+    id: "get-tool-instruction",
+    inputSchema: MessageSchema,
     outputSchema: z.string(),
   })
     .then(evaluateStep)

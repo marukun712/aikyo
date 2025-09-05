@@ -1,5 +1,6 @@
 import {
-  contextAction,
+  speakTool,
+  requestTool,
   companionNetworkKnowledge,
 } from "apm_tools/core/index.ts";
 import { motionDBGestureAction } from "apm_tools/motion-db/index.ts";
@@ -8,9 +9,7 @@ import {
   type CompanionCard,
   CompanionServer,
   CompanionAgent,
-} from "../../server";
-// import { anthropic } from "@ai-sdk/anthropic";
-// import { google } from "@ai-sdk/google";
+} from "@aikyo/server";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 
 const openrouter = createOpenRouter({
@@ -29,7 +28,7 @@ export const companionCard: CompanionCard = {
       "明日の入学式に着ていく着物を選定中 どっちがいい？ 蝶に花のちりめん友禅で華やかにお嬢様風か、キリッと黒地に辻が花の訪問着で格調高くーーうーん、迷うわ！こうなったら運天の花札で決めちゃおう",
   },
   role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。キャラクター設定に忠実にロールプレイしてください。",
-  actions: { motionDBGestureAction, contextAction },
+  actions: { motionDBGestureAction, speakTool, requestTool },
   knowledge: { environmentDBKnowledge, companionNetworkKnowledge },
   events: {
     params: {
@@ -41,12 +40,8 @@ export const companionCard: CompanionCard = {
           description: "ジェスチャーで表現したいものがあるかどうか",
           type: "boolean",
         },
-        need_context: {
-          description: "周囲に伝えるべき話題があるかどうか。",
-          type: "boolean",
-        },
       },
-      required: ["need_gesture", "need_context"],
+      required: ["need_gesture"],
     },
     conditions: [
       {
@@ -59,12 +54,15 @@ export const companionCard: CompanionCard = {
         ],
       },
       {
-        expression: "need_context === true",
+        expression: "true",
         execute: [
           {
-            instruction:
-              "周囲のコンパニオンに今から自分がどんな話題を提供するか、またはどんな話題を話しているかを周知する。",
-            tool: contextAction,
+            instruction: "他のコンパニオンに話しかける。",
+            tool: speakTool,
+          },
+          {
+            instruction: "他のコンパニオンに返答を要求する。",
+            tool: requestTool,
           },
         ],
       },

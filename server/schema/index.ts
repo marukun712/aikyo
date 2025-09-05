@@ -39,10 +39,9 @@ export const CompanionSchema = z.object({
 export type CompanionCard = z.infer<typeof CompanionSchema>;
 
 export const MessageSchema = z.object({
-  metadata: z.record(z.string(), z.any()).optional(),
   from: z.string(),
-  to: z.string(),
   message: z.string(),
+  metadata: z.record(z.string(), z.any()).optional(),
 });
 export type Message = z.infer<typeof MessageSchema>;
 
@@ -54,7 +53,11 @@ export const ActionSchema = z.object({
 });
 export type Action = z.infer<typeof ActionSchema>;
 
-export const ContextSchema = z.object({
-  context: z.string(),
+export const MemorySchema = z.object({
+  messages: z.array(
+    z.object({
+      from: z.string().describe("メッセージを送信したコンパニオンのid"),
+      content: z.string().describe("メッセージ内容を要約したもの"),
+    }),
+  ),
 });
-export type Context = z.infer<typeof ContextSchema>;
