@@ -44,6 +44,9 @@ export class CompanionServer implements ICompanionServer {
   port: number;
   companionList = new Map<string, Metadata>();
 
+  private static readonly GOSSIPSUB_INIT_DELAY = 500; // GossipSubの初期化遅延
+  private static readonly PEER_CONNECT_DELAY = 100; // ピア接続時の遅延
+
   constructor(companionAgent: CompanionAgent, port: number) {
     this.companionAgent = companionAgent;
     this.companion = companionAgent.companion;
@@ -51,84 +54,88 @@ export class CompanionServer implements ICompanionServer {
   }
 
   private async initLibp2p() {
-    const libp2p = await initLibp2p();
+    this.libp2p = await initLibp2p();
 
     //ピア(Companion)を発見したら接続
-    libp2p.addEventListener("peer:discovery", (evt) => {
+    this.libp2p.addEventListener("peer:discovery", (evt) => {
       this.libp2p.dial(evt.detail.multiaddrs);
     });
 
     //各topicのサブスクライブ
-    libp2p.services.pubsub.subscribe("messages");
-    libp2p.services.pubsub.subscribe("actions");
-    libp2p.services.pubsub.subscribe("contexts");
-    libp2p.services.pubsub.subscribe("metadata"); // Metadataを受信するためのトピック
+    this.libp2p.services.pubsub.subscribe("messages");
+    this.libp2p.services.pubsub.subscribe("actions");
+    this.libp2p.services.pubsub.subscribe("contexts");
+    this.libp2p.services.pubsub.subscribe("metadata"); // Metadataを受信するためのトピック
 
     //イベントハンドラの設定
-    libp2p.services.pubsub.addEventListener("message", (evt) =>
-      this.handlePubSubMessage(evt),
+    this.libp2p.services.pubsub.addEventListener("message", (evt) =>
+      this.handlePubSubMessage(evt)
     );
 
     // ピアの接続イベントを処理（Metadataをブロードキャスト）
     // TODO: 関数を分けた方が可読性が上がりそう
-    libp2p.addEventListener("peer:connect", async (evt) => {
-      try {
-        console.log(`Peer connected: ${evt.detail.toString()}`);
-        // GossipSubの準備ができるまで少し待機
-        const latency = 100; // 100msの遅延
-        await new Promise((resolve) => setTimeout(resolve, latency));
-
-        // 新しいピアが接続した時、既存のピアも自分のMetadataを再送信する
-        // これにより、新しいピアは既存のピアのメタデータを受信できる
-        const metadataMsg = JSON.stringify(this.companion.metadata);
-        await libp2p.services.pubsub.publish(
-          "metadata",
-          new TextEncoder().encode(metadataMsg),
-        );
-      } catch (e) {
-        console.error("Error during peer connection:", e);
-      }
-    });
+    this.libp2p.addEventListener(
+      "peer:connect",
+      async (evt) => await this.handlePeerConnect(evt)
+    );
 
     // ピアの切断イベントを処理
     // TODO: 関数を分けた方が可読性が上がりそう
-    libp2p.addEventListener("peer:disconnect", async (evt) => {
-      try {
-        const peerIdStr = evt.detail.toString();
-        const agentVersion = this.companionList.get(peerIdStr);
-        if (!this.companionList.has(peerIdStr)) return;
-        console.log(
-          `Peer disconnected: ${peerIdStr}, metadata was:`,
-          agentVersion,
-        );
-        this.companionList.delete(peerIdStr);
-      } catch (e) {
-        console.error(e);
-      }
-    });
+    this.libp2p.addEventListener(
+      "peer:disconnect",
+      async (evt) => await this.handlePeerDisconnect(evt)
+    );
 
     //tool呼び出しのためRuntimeContextにSet
-    this.companionAgent.runtimeContext.set("libp2p", libp2p);
+    this.companionAgent.runtimeContext.set("libp2p", this.libp2p);
     this.companionAgent.runtimeContext.set("companions", this.companionList);
-
-    this.libp2p = libp2p;
 
     // 初期化後、少し待ってから自分のメタデータをpublish
     // これにより既に接続済みのピア間でもメタデータ交換が可能になる
-    const latency = 500; // 500msの遅延
-
     setTimeout(async () => {
       try {
         const metadataMsg = JSON.stringify(this.companion.metadata);
-        await libp2p.services.pubsub.publish(
+        await this.libp2p.services.pubsub.publish(
           "metadata",
-          new TextEncoder().encode(metadataMsg),
+          new TextEncoder().encode(metadataMsg)
         );
         console.log("Initial metadata published");
       } catch (e) {
         console.error("Error publishing initial metadata:", e);
       }
-    }, latency); // GossipSubの準備完了を待つため500ms遅延
+    }, CompanionServer.GOSSIPSUB_INIT_DELAY);
+  }
+
+  private async handlePeerConnect(evt: any) {
+    try {
+      console.log(`Peer connected: ${evt.detail.toString()}`);
+      // GossipSubの準備ができるまで少し待機
+      await new Promise((resolve) =>
+        setTimeout(resolve, CompanionServer.PEER_CONNECT_DELAY)
+      );
+
+      // 新しいピアが接続した時、既存のピアも自分のMetadataを再送信する
+      // これにより、新しいピアは既存のピアのメタデータを受信できる
+      const metadataMsg = JSON.stringify(this.companion.metadata);
+      await this.libp2p.services.pubsub.publish(
+        "metadata",
+        new TextEncoder().encode(metadataMsg)
+      );
+    } catch (e) {
+      console.error("Error during peer connection:", e);
+    }
+  }
+
+  private async handlePeerDisconnect(evt: any) {
+    try {
+      const peerIdStr = evt.detail.toString();
+      const metadata = this.companionList.get(peerIdStr);
+      if (!this.companionList.has(peerIdStr)) return;
+      console.log(`Peer disconnected: ${peerIdStr}, metadata was:`, metadata);
+      this.companionList.delete(peerIdStr);
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   private async handlePubSubMessage(message: any) {
