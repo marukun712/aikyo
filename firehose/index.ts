@@ -5,9 +5,8 @@ import { identify } from "@libp2p/identify";
 import { mdns } from "@libp2p/mdns";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
+import { MessageSchema } from "../server/schema/index.ts";
 import WebSocket, { WebSocketServer } from "ws";
-import { config } from "dotenv";
-config();
 
 export const libp2p = await createLibp2p({
   addresses: {
@@ -32,6 +31,7 @@ libp2p.addEventListener("peer:discovery", (evt) => {
 libp2p.services.pubsub.subscribe("messages");
 libp2p.services.pubsub.subscribe("actions");
 libp2p.services.pubsub.subscribe("contexts");
+libp2p.services.pubsub.subscribe("metadata");
 
 const port = Number(process.env.FIREHOSE_PORT || 8080);
 
@@ -46,6 +46,28 @@ wss.on("connection", (ws) => {
     clients.delete(ws);
     console.log("WebSocket client disconnected");
   });
+
+  ws.on("message", async (message: Buffer) => {
+    try {
+      console.log("Received message:", message.toString());
+      const data = MessageSchema.safeParse(JSON.parse(message.toString()));
+      if (!data.success) {
+        throw new Error("Invalid message format");
+      }
+      const result = await libp2p.services.pubsub.publish(
+        "messages",
+        new TextEncoder().encode(JSON.stringify(data.data))
+      );
+      ws.send(`Message published to ${result.recipients.length} peers`);
+    } catch (error) {
+      console.error("Error parsing message:", error);
+      try {
+        ws.send(JSON.stringify({ type: "error", error: "Malformed JSON" }));
+      } catch (e) {
+        console.error("Error sending error message:", e);
+      }
+    }
+  });
 });
 
 libp2p.services.pubsub.addEventListener("message", async (message) => {
@@ -55,7 +77,7 @@ libp2p.services.pubsub.addEventListener("message", async (message) => {
 
     const payload = JSON.stringify(data);
     for (const client of clients) {
-      if (client.readyState === 1) {
+      if (client.readyState === WebSocket.OPEN) {
         client.send(payload);
       }
     }
