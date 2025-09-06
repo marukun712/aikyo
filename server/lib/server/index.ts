@@ -145,7 +145,6 @@ export class CompanionServer implements ICompanionServer {
       "states",
       new TextEncoder().encode(JSON.stringify(state)),
     );
-    console.log("State published:", state);
     this.originalMessages.set(message.id, message);
   }
 
@@ -156,8 +155,8 @@ export class CompanionServer implements ICompanionServer {
     }
     const states = this.pendingMessage.get(messageId);
     if (!states) return;
+    console.log(states)
     states.push(state);
-    console.log(states);
     console.log(
       `State received for message ${messageId}. Total states: ${states.length}`,
     );
