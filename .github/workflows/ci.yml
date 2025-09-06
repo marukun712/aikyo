@@ -7,13 +7,11 @@ on:
     types: [opened, synchronize]
     paths-ignore:
       - "*.md"
-      - "*.json"
   push:
     branches:
       - main
     paths-ignore:
       - "*.md"
-      - "*.json"
 
 jobs:
   lint:
