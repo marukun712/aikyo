@@ -36,6 +36,9 @@ export class CompanionServer implements ICompanionServer {
   pendingMessage = new Map<string, State[]>();
   originalMessages = new Map<string, Message>();
 
+  private static readonly GOSSIPSUB_INIT_DELAY = 500; // GossipSubの初期化遅延
+  private static readonly PEER_CONNECT_DELAY = 100; // ピア接続時の遅延
+
   constructor(companionAgent: CompanionAgent) {
     this.companionAgent = companionAgent;
     this.companion = companionAgent.companion;
@@ -43,7 +46,7 @@ export class CompanionServer implements ICompanionServer {
   }
 
   private async initLibp2p() {
-    const libp2p = await createLibp2p({
+    this.libp2p = await createLibp2p({
       addresses: { listen: ["/ip4/0.0.0.0/tcp/0"] },
       transports: [tcp()],
       peerDiscovery: [mdns()], //mdnsでピア探索(ローカル限定)
@@ -54,83 +57,130 @@ export class CompanionServer implements ICompanionServer {
           allowPublishToZeroTopicPeers: true,
           emitSelf: true,
         }),
-        identify: identify({
-          agentVersion: JSON.stringify(this.companion.metadata, null, 2),
-        }),
+        identify: identify(),
       },
     });
 
-    //peer発見時に自動dial
-    libp2p.addEventListener("peer:discovery", (evt) => {
+    //ピア(Companion)を発見したら接続
+    this.libp2p.addEventListener("peer:discovery", (evt) => {
       this.libp2p.dial(evt.detail.multiaddrs);
     });
 
-    //messagesトピックをサブスクライブ
-    libp2p.services.pubsub.subscribe("messages");
-    libp2p.services.pubsub.subscribe("states");
+    // 各topicのサブスクライブ
+    this.libp2p.services.pubsub.subscribe("messages");
+    this.libp2p.services.pubsub.subscribe("actions");
+    this.libp2p.services.pubsub.subscribe("states");
 
     //message受信時
-    libp2p.services.pubsub.addEventListener("message", async (evt) => {
+    this.libp2p.services.pubsub.addEventListener("message", async (evt) => {
       const topic = evt.detail.topic;
       try {
         const data = JSON.parse(new TextDecoder().decode(evt.detail.data));
-        if (topic === "messages") {
-          const parsed = MessageSchema.safeParse(data);
-          console.log("message received.");
-          console.log(parsed);
-          if (!parsed.success) return;
-          const body = parsed.data;
-          await this.handleMessageReceived(body);
-        } else if (topic === "states") {
-          const parsed = StateSchema.safeParse(data);
-          console.log("state received.");
-          console.log(parsed);
-          if (!parsed.success) return;
-          const state = parsed.data;
-          await this.handleStateReceived(state);
+        switch (topic) {
+          case "messages": {
+            const parsed = MessageSchema.safeParse(data);
+            console.log("message received.");
+            console.log(parsed);
+            if (!parsed.success) return;
+            const body = parsed.data;
+            await this.handleMessageReceived(body);
+            break;
+          }
+
+          case "states": {
+            const parsed = StateSchema.safeParse(data);
+            console.log("state received.");
+            console.log(parsed);
+            if (!parsed.success) return;
+            const state = parsed.data;
+            await this.handleStateReceived(state);
+          }
+
+          case "metadata": {
+            console.dir(data);
+            const parsed = MetadataSchema.safeParse(data);
+            console.log("metadata received.");
+            console.log(parsed);
+            if (!parsed.success) return;
+
+            // 自分のメッセージは無視
+            // if (fromPeerId === this.libp2p.peerId.toString()) return;
+
+            // 既に登録済みの場合は無視
+            // if (this.companionList.has(fromPeerId)) return;
+
+            const metadata = parsed.data;
+
+            await this.handleMetadataReceived(metadata, fromPeerId);
+          }
         }
       } catch (err) {
         console.error("Error processing pubsub message:", err);
       }
     });
 
-    //peer接続時
-    libp2p.addEventListener("peer:identify", async (evt) => {
-      try {
-        const { agentVersion, peerId } = evt.detail;
-        if (!agentVersion) return;
-        const parsed = MetadataSchema.safeParse(JSON.parse(agentVersion));
-        if (this.companionList.has(peerId.toString()) || !parsed.success)
-          return;
-        this.companionList.set(peerId.toString(), parsed.data);
-        console.log(
-          `Identified peer ${peerId.toString()} with metadata:`,
-          agentVersion
-        );
-      } catch (e) {}
-    });
+    // ピアの接続イベントを処理（Metadataをブロードキャスト）
+    this.libp2p.addEventListener(
+      "peer:connect",
+      async (evt) => await this.handlePeerConnect(evt)
+    );
 
-    //peer切断時
-    libp2p.addEventListener("peer:disconnect", async (evt) => {
-      try {
-        const peerIdStr = evt.detail.toString();
-        const agentVersion = this.companionList.get(peerIdStr);
-        if (!this.companionList.has(peerIdStr)) return;
-        console.log(
-          `Peer disconnected: ${peerIdStr}, metadata was:`,
-          agentVersion
-        );
-        this.companionList.delete(peerIdStr);
-      } catch (e) {
-        console.error("Error handling peer:disconnect event:", e);
-      }
-    });
+    // ピアの切断イベントを処理
+    this.libp2p.addEventListener(
+      "peer:disconnect",
+      async (evt) => await this.handlePeerDisconnect(evt)
+    );
 
-    //toolからlibp2pインスタンスを参照するためのRuntimeContext
-    this.companionAgent.runtimeContext.set("libp2p", libp2p);
+    //tool呼び出しのためRuntimeContextにSet
+    this.companionAgent.runtimeContext.set("libp2p", this.libp2p);
     this.companionAgent.runtimeContext.set("companions", this.companionList);
 
-    this.libp2p = libp2p;
+    // 初期化後、少し待ってから自分のメタデータをpublish
+    // これにより既に接続済みのピア間でもメタデータ交換が可能になる
+    setTimeout(async () => {
+      try {
+        const metadataMsg = JSON.stringify(this.companion.metadata);
+        await this.libp2p.services.pubsub.publish(
+          "metadata",
+          new TextEncoder().encode(metadataMsg)
+        );
+        console.log("Initial metadata published");
+      } catch (e) {
+        console.error("Error publishing initial metadata:", e);
+      }
+    }, CompanionServer.GOSSIPSUB_INIT_DELAY);
+  }
+
+  private async handlePeerConnect(evt: any) {
+    try {
+      console.log(`Peer connected: ${evt.detail.toString()}`);
+      // GossipSubの準備ができるまで少し待機
+      await new Promise((resolve) =>
+        setTimeout(resolve, CompanionServer.PEER_CONNECT_DELAY)
+      );
+
+      // 新しいピアが接続した時、既存のピアも自分のMetadataを再送信する
+      // これにより、新しいピアは既存のピアのメタデータを受信できる
+      const metadataMsg = JSON.stringify(this.companion.metadata);
+      await this.libp2p.services.pubsub.publish(
+        "metadata",
+        new TextEncoder().encode(metadataMsg)
+      );
+    } catch (e) {
+      console.error("Error during peer connection:", e);
+    }
+  }
+
+  private async handlePeerDisconnect(evt: any) {
+    try {
+      const peerIdStr = evt.detail.toString();
+      const metadata = this.companionList.get(peerIdStr);
+      if (!this.companionList.has(peerIdStr)) return;
+      console.log(`Peer disconnected: ${peerIdStr}, metadata was:`, metadata);
+      this.companionList.delete(peerIdStr);
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   private async handleMessageReceived(message: Message) {
@@ -215,9 +265,21 @@ export class CompanionServer implements ICompanionServer {
     this.pendingMessage.delete(messageId);
   }
 
+  private async handleMetadataReceived(metadata: Metadata, fromPeerId: string) {
+    // 自分のメッセージは無視
+    if (fromPeerId === this.libp2p.peerId.toString()) return;
+
+    // 既に登録済みの場合は無視
+    if (this.companionList.has(fromPeerId)) return;
+
+    // CompanionListに追加
+    this.companionList.set(fromPeerId, metadata);
+    console.log(`Added peer ${fromPeerId} with metadata:`, metadata);
+  }
+
   //サーバーを起動
   async start() {
     await this.initLibp2p();
-    console.log("Companion Server is running")
+    console.log("Companion Server is running");
   }
 }

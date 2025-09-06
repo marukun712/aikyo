@@ -22,7 +22,7 @@ export const EventCondition = z.object({
     z.object({
       instruction: z.string(),
       tool: z.instanceof(Tool),
-    }),
+    })
   ),
 });
 
@@ -42,7 +42,7 @@ export const MessageSchema = z.object({
   id: z.string(),
   from: z.string(),
   message: z.string(),
-  metadata: z.record(z.string(), z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(), // TODO: MetadataにKindも入れちゃお～！
 });
 export type Message = z.infer<typeof MessageSchema>;
 
@@ -76,6 +76,6 @@ export const MemorySchema = z.object({
     z.object({
       from: z.string().describe("メッセージを送信したコンパニオンのid"),
       content: z.string().describe("メッセージ内容を要約したもの"),
-    }),
+    })
   ),
 });

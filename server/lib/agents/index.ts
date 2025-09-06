@@ -84,7 +84,7 @@ export class CompanionAgent implements ICompanionAgent {
     const workflow = createToolInstructionWorkflow(
       this.agent,
       this.runtimeContext,
-      this.companion,
+      this.companion
     );
     this.run = workflow.createRun();
 
