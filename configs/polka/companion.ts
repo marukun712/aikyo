@@ -5,7 +5,6 @@ import {
   CompanionAgent,
 } from "@aikyo/server";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-import { anthropic } from "@ai-sdk/anthropic"
 
 const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
@@ -55,7 +54,7 @@ export const companionCard: CompanionCard = {
 
 const companion = new CompanionAgent(
   companionCard,
-  anthropic("claude-3-5-haiku-latest"),
+  openrouter("google/gemini-2.0-flash-001")
 );
 const server = new CompanionServer(companion);
 await server.start();

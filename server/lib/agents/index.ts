@@ -64,10 +64,10 @@ export class CompanionAgent implements ICompanionAgent {
     あなたには、知識を得るための以下のツールが与えられています。
     これらのツールは、あなたが知識を得たいと感じたタイミングで実行してください。
     ${Object.values(companion.knowledge)
-          .map((value) => {
-            return `${value}:${value.description}`;
-          })
-          .join("\n")}
+      .map((value) => {
+        return `${value}:${value.description}`;
+      })
+      .join("\n")}
 
     必ず、定期的にワーキングメモリを更新してください。
     `,
@@ -134,6 +134,6 @@ export class CompanionAgent implements ICompanionAgent {
       threadId: "thread",
       context: [{ role: "system", content: instructions }],
     });
-    console.log(res.text)
+    console.log(res.text);
   }
 }
