@@ -60,7 +60,7 @@ export class CompanionServer implements ICompanionServer {
       services: {
         pubsub: gossipsub({
           allowPublishToZeroTopicPeers: true,
-          emitSelf: true
+          emitSelf: true,
         }),
         identify: identify({
           agentVersion: JSON.stringify(this.companion.metadata, null, 2),
@@ -113,9 +113,9 @@ export class CompanionServer implements ICompanionServer {
         this.companionList.set(peerId.toString(), parsed.data);
         console.log(
           `Identified peer ${peerId.toString()} with metadata:`,
-          agentVersion,
+          agentVersion
         );
-      } catch (e) { }
+      } catch (e) {}
     });
 
     //peer切断時
@@ -126,7 +126,7 @@ export class CompanionServer implements ICompanionServer {
         if (!this.companionList.has(peerIdStr)) return;
         console.log(
           `Peer disconnected: ${peerIdStr}, metadata was:`,
-          agentVersion,
+          agentVersion
         );
         this.companionList.delete(peerIdStr);
       } catch (e) {
@@ -145,7 +145,7 @@ export class CompanionServer implements ICompanionServer {
     const state = await this.companionAgent.generateState(message);
     this.libp2p.services.pubsub.publish(
       "states",
-      new TextEncoder().encode(JSON.stringify(state)),
+      new TextEncoder().encode(JSON.stringify(state))
     );
     this.originalMessages.set(message.id, message);
   }
@@ -157,15 +157,15 @@ export class CompanionServer implements ICompanionServer {
     }
     const states = this.pendingMessage.get(messageId);
     if (!states) return;
-    console.log(states)
+    console.log(states);
     states.push(state);
     console.log(
-      `State received for message ${messageId}. Total states: ${states.length}`,
+      `State received for message ${messageId}. Total states: ${states.length}`
     );
     const expectedStates = this.companionList.size;
     if (states.length === expectedStates) {
       console.log(
-        `All states collected for message ${messageId}. Deciding next speaker.`,
+        `All states collected for message ${messageId}. Deciding next speaker.`
       );
       await this.decideNextSpeaker(messageId, states);
     }
@@ -175,7 +175,7 @@ export class CompanionServer implements ICompanionServer {
     const selectedAgents = states.filter((state) => state.selected);
     if (selectedAgents.length > 0) {
       const speaker = selectedAgents.reduce((prev, current) =>
-        prev.importance > current.importance ? prev : current,
+        prev.importance > current.importance ? prev : current
       );
       await this.executeSpeaker(messageId, speaker);
       return;
@@ -183,7 +183,7 @@ export class CompanionServer implements ICompanionServer {
     const speakAgents = states.filter((state) => state.state === "speak");
     if (speakAgents.length > 0) {
       const speaker = speakAgents.reduce((prev, current) =>
-        prev.importance > current.importance ? prev : current,
+        prev.importance > current.importance ? prev : current
       );
       await this.executeSpeaker(messageId, speaker);
       return;
@@ -195,7 +195,7 @@ export class CompanionServer implements ICompanionServer {
 
   private async executeSpeaker(messageId: string, speaker: State) {
     console.log(
-      `Speaker selected: ${speaker.id} (importance: ${speaker.importance})`,
+      `Speaker selected: ${speaker.id} (importance: ${speaker.importance})`
     );
     if (speaker.id === this.companion.metadata.id) {
       try {
@@ -204,14 +204,14 @@ export class CompanionServer implements ICompanionServer {
         if (originalMessage) {
           await new Promise<void>((resolve) => {
             setTimeout(() => {
-              resolve()
+              resolve();
             }, 5000);
-          })
+          });
 
           await this.companionAgent.input(originalMessage);
         } else {
           console.warn(
-            `Original message not found for messageId: ${messageId}`,
+            `Original message not found for messageId: ${messageId}`
           );
         }
       } catch (error) {
