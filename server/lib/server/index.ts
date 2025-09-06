@@ -129,7 +129,9 @@ export class CompanionServer implements ICompanionServer {
           agentVersion,
         );
         this.companionList.delete(peerIdStr);
-      } catch (e) { }
+      } catch (e) {
+        console.error("Error handling peer:disconnect event:", e);
+      }
     });
 
     //toolからlibp2pインスタンスを参照するためのRuntimeContext
