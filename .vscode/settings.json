@@ -1,3 +1,5 @@
 {
-  "oxc.enable": true
+  "oxc.enable": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true
 }
