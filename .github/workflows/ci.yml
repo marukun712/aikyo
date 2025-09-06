@@ -1,0 +1,33 @@
+name: CI
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    types: [opened, synchronize]
+    paths-ignore:
+      - "*.md"
+      - "*.json"
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "*.md"
+      - "*.json"
+
+jobs:
+  lint:
+    name: Lint (Oxlint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oxc-project/oxlint-action@v2.0.1
+        with:
+          # Allow, Warn, or Deny specific lint rules or entire categories
+          # https://oxc.rs/docs/guide/usage/linter/cli.html#allowing-denying-multiple-lints
+          deny: |
+            correctness
+            no-eval
+          warn: |
+            suspicious
+            perf
