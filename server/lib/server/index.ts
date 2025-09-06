@@ -1,5 +1,3 @@
-import { Hono } from "hono";
-import { serve } from "@hono/node-server";
 import { gossipsub } from "@chainsafe/libp2p-gossipsub";
 import { createLibp2p, type Libp2p } from "libp2p";
 import { tcp } from "@libp2p/tcp";
@@ -23,8 +21,6 @@ export interface ICompanionServer {
   companionAgent: CompanionAgent;
   companion: CompanionCard;
   libp2p: Libp2p<Services>;
-  app: Hono;
-  port: number;
   companionList: Map<string, Metadata>;
   pendingMessage: Map<string, State[]>;
   originalMessages: Map<string, Message>;
@@ -36,18 +32,14 @@ export class CompanionServer implements ICompanionServer {
   companionAgent: CompanionAgent;
   companion: CompanionCard;
   libp2p: Libp2p<Services>;
-  app: Hono;
-  port: number;
   companionList = new Map<string, Metadata>();
   pendingMessage = new Map<string, State[]>();
   originalMessages = new Map<string, Message>();
 
-  constructor(companionAgent: CompanionAgent, port: number) {
+  constructor(companionAgent: CompanionAgent) {
     this.companionAgent = companionAgent;
     this.companion = companionAgent.companion;
     this.companionList.set(this.companion.metadata.id, this.companion.metadata);
-    this.app = new Hono();
-    this.port = port;
   }
 
   private async initLibp2p() {
@@ -224,8 +216,6 @@ export class CompanionServer implements ICompanionServer {
   //サーバーを起動
   async start() {
     await this.initLibp2p();
-
-    serve({ fetch: this.app.fetch, port: this.port });
-    console.log(`Character server running on http://localhost:${this.port}`);
+    console.log("Companion Server is running")
   }
 }

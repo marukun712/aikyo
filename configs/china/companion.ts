@@ -255,5 +255,5 @@ const companion = new CompanionAgent(
   companionCard,
   anthropic("claude-3-5-haiku-latest"),
 );
-const server = new CompanionServer(companion, 4004);
+const server = new CompanionServer(companion);
 await server.start();
