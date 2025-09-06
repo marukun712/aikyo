@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { gossipsub } from "@chainsafe/libp2p-gossipsub";
-import { createLibp2p, Libp2p } from "libp2p";
+import { createLibp2p, type Libp2p } from "libp2p";
 import { tcp } from "@libp2p/tcp";
 import { identify } from "@libp2p/identify";
 import { mdns } from "@libp2p/mdns";
@@ -9,12 +9,15 @@ import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
 import {
   MetadataSchema,
+  MessageSchema,
+  StateSchema,
+  type State,
   type CompanionCard,
+  type Message,
   type Metadata,
 } from "../../schema/index.ts";
 import { CompanionAgent } from "../agents/index.ts";
-import { MessageSchema } from "../../schema/index.ts";
-import { Services } from "@aikyo/utils";
+import { type Services } from "@aikyo/utils";
 
 export interface ICompanionServer {
   companionAgent: CompanionAgent;
@@ -23,6 +26,8 @@ export interface ICompanionServer {
   app: Hono;
   port: number;
   companionList: Map<string, Metadata>;
+  pendingMessage: Map<string, State[]>;
+  originalMessages: Map<string, Message>;
 
   start(): Promise<void>;
 }
@@ -34,10 +39,13 @@ export class CompanionServer implements ICompanionServer {
   app: Hono;
   port: number;
   companionList = new Map<string, Metadata>();
+  pendingMessage = new Map<string, State[]>();
+  originalMessages = new Map<string, Message>();
 
   constructor(companionAgent: CompanionAgent, port: number) {
     this.companionAgent = companionAgent;
     this.companion = companionAgent.companion;
+    this.companionList.set(this.companion.metadata.id, this.companion.metadata);
     this.app = new Hono();
     this.port = port;
   }
@@ -50,7 +58,10 @@ export class CompanionServer implements ICompanionServer {
       connectionEncrypters: [noise()],
       streamMuxers: [yamux()],
       services: {
-        pubsub: gossipsub({ allowPublishToZeroTopicPeers: true }),
+        pubsub: gossipsub({
+          allowPublishToZeroTopicPeers: true,
+          emitSelf: true
+        }),
         identify: identify({
           agentVersion: JSON.stringify(this.companion.metadata, null, 2),
         }),
@@ -64,6 +75,7 @@ export class CompanionServer implements ICompanionServer {
 
     //messagesトピックをサブスクライブ
     libp2p.services.pubsub.subscribe("messages");
+    libp2p.services.pubsub.subscribe("states");
 
     //message受信時
     libp2p.services.pubsub.addEventListener("message", async (evt) => {
@@ -76,7 +88,14 @@ export class CompanionServer implements ICompanionServer {
           console.log(parsed);
           if (!parsed.success) return;
           const body = parsed.data;
-          await this.companionAgent.input(body);
+          await this.handleMessageReceived(body);
+        } else if (topic === "states") {
+          const parsed = StateSchema.safeParse(data);
+          console.log("state received.");
+          console.log(parsed);
+          if (!parsed.success) return;
+          const state = parsed.data;
+          await this.handleStateReceived(state);
         }
       } catch (err) {
         console.error("Error processing pubsub message:", err);
@@ -118,6 +137,89 @@ export class CompanionServer implements ICompanionServer {
     this.companionAgent.runtimeContext.set("companions", this.companionList);
 
     this.libp2p = libp2p;
+  }
+
+  private async handleMessageReceived(message: Message) {
+    const state = await this.companionAgent.generateState(message);
+    this.libp2p.services.pubsub.publish(
+      "states",
+      new TextEncoder().encode(JSON.stringify(state)),
+    );
+    console.log("State published:", state);
+    this.originalMessages.set(message.id, message);
+  }
+
+  private async handleStateReceived(state: State) {
+    const messageId = state.messageId;
+    if (!this.pendingMessage.has(messageId)) {
+      this.pendingMessage.set(messageId, []);
+    }
+    const states = this.pendingMessage.get(messageId);
+    if (!states) return;
+    states.push(state);
+    console.log(states);
+    console.log(
+      `State received for message ${messageId}. Total states: ${states.length}`,
+    );
+    const expectedStates = this.companionList.size;
+    if (states.length === expectedStates) {
+      console.log(
+        `All states collected for message ${messageId}. Deciding next speaker.`,
+      );
+      await this.decideNextSpeaker(messageId, states);
+    }
+  }
+
+  private async decideNextSpeaker(messageId: string, states: State[]) {
+    const selectedAgents = states.filter((state) => state.selected);
+    if (selectedAgents.length > 0) {
+      const speaker = selectedAgents.reduce((prev, current) =>
+        prev.importance > current.importance ? prev : current,
+      );
+      await this.executeSpeaker(messageId, speaker);
+      return;
+    }
+    const speakAgents = states.filter((state) => state.state === "speak");
+    if (speakAgents.length > 0) {
+      const speaker = speakAgents.reduce((prev, current) =>
+        prev.importance > current.importance ? prev : current,
+      );
+      await this.executeSpeaker(messageId, speaker);
+      return;
+    }
+    this.originalMessages.delete(messageId);
+    this.pendingMessage.delete(messageId);
+    console.log(`No speaker found for message ${messageId}. Cleaning up.`);
+  }
+
+  private async executeSpeaker(messageId: string, speaker: State) {
+    console.log(
+      `Speaker selected: ${speaker.id} (importance: ${speaker.importance})`,
+    );
+    if (speaker.id === this.companion.metadata.id) {
+      try {
+        console.log("I was selected to speak. Executing input logic...");
+        const originalMessage = this.originalMessages.get(messageId);
+        if (originalMessage) {
+          await new Promise<void>((resolve) => {
+            setTimeout(() => {
+              resolve()
+            }, 5000);
+          })
+
+          await this.companionAgent.input(originalMessage);
+        } else {
+          console.warn(
+            `Original message not found for messageId: ${messageId}`,
+          );
+        }
+      } catch (error) {
+        console.error("Failed to execute speaker logic:", error);
+      }
+    }
+
+    this.originalMessages.delete(messageId);
+    this.pendingMessage.delete(messageId);
   }
 
   //サーバーを起動

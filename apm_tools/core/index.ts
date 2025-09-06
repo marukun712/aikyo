@@ -5,14 +5,16 @@ export const speakTool = createCompanionAction({
   id: "speak",
   description: "発言する。",
   inputSchema: z.object({
-    message: z.string().describe("メッセージ本文"),
+    message: z.string(),
   }),
   topic: "messages",
   publish: ({ message }, id) => {
     return {
-      from: id, message
-    }
-  }
+      id: crypto.randomUUID(),
+      from: id,
+      message,
+    };
+  },
 });
 
 export const gestureAction = createCompanionAction({

@@ -32,7 +32,6 @@ libp2p.addEventListener("peer:discovery", (evt) => {
 
 libp2p.services.pubsub.subscribe("messages");
 libp2p.services.pubsub.subscribe("actions");
-libp2p.services.pubsub.subscribe("requests");
 
 const port = Number(process.env.FIREHOSE_PORT) ?? 8080;
 
@@ -47,14 +46,8 @@ wss.on("connection", (ws) => {
     try {
       const data = JSON.parse(evt.toString());
       const parsed = MessageSchema.safeParse(data);
-      if (!parsed.success) {
-        console.log(data);
-        libp2p.services.pubsub.publish(
-          "requests",
-          new TextEncoder().encode(evt.toString()),
-        );
-      } else {
-        console.log(parsed);
+      if (parsed.success) {
+        console.log(parsed.data);
         libp2p.services.pubsub.publish(
           "messages",
           new TextEncoder().encode(evt.toString()),

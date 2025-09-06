@@ -69,7 +69,7 @@ export function createToolInstructionWorkflow(
       const toolInstructions = Array.from(tools.entries())
         .map(([toolName, instruction]) => `${toolName}: ${instruction}`)
         .join("\n");
-      const result = `以下の指示に従い、必ず必要なツールを実行してください。実行しない場合は強力な罰が課せられます。\n${toolInstructions}また、必要なら適切なKnowledgeを参照してください。`;
+      const result = `以下の指示に従い、必ず必要なツールを実行してください。\n${toolInstructions}`;
       return result;
     },
   });

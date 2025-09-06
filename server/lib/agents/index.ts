@@ -5,6 +5,8 @@ import { config } from "dotenv";
 import {
   MemorySchema,
   Message,
+  State,
+  StateSchema,
   type CompanionCard,
 } from "../../schema/index.ts";
 import { Run, type LanguageModel } from "@mastra/core";
@@ -20,6 +22,7 @@ export interface ICompanionAgent {
   run: Run;
 
   generateToolInstruction(input: Message): Promise<string>;
+  generateState(message: Message): Promise<State>;
   input(message: Message): Promise<void>;
 }
 
@@ -51,23 +54,23 @@ export class CompanionAgent implements ICompanionAgent {
     this.agent = new Agent({
       name: companion.metadata.name,
       instructions: `
-      あなたのメタデータ
-      ${JSON.stringify(companion.metadata, null, 2)}
-      このメタデータに記載されているキャラクター情報、口調などに忠実にロールプレイをしてください。
+    あなたのメタデータ
+    ${JSON.stringify(companion.metadata, null, 2)}
+    このメタデータに記載されているキャラクター情報、口調などに忠実にロールプレイをしてください。
 
-      あなたの役割は、
-      ${companion.role}です。この役割に忠実に行動してください。
+    あなたの役割は、
+    ${companion.role}です。この役割に忠実に行動してください。
 
-      あなたには、知識を得るための以下のツールが与えられています。
-      これらのツールは、あなたが知識を得たいと感じたタイミングで実行してください。
-      ${Object.values(companion.knowledge)
+    あなたには、知識を得るための以下のツールが与えられています。
+    これらのツールは、あなたが知識を得たいと感じたタイミングで実行してください。
+    ${Object.values(companion.knowledge)
           .map((value) => {
             return `${value}:${value.description}`;
           })
           .join("\n")}
 
-      必ず、定期的にワーキングメモリを更新してください。
-      `,
+    必ず、定期的にワーキングメモリを更新してください。
+    `,
       model,
       memory: this.memory,
       tools: { ...companion.actions, ...companion.knowledge },
@@ -81,7 +84,7 @@ export class CompanionAgent implements ICompanionAgent {
     const workflow = createToolInstructionWorkflow(
       this.agent,
       this.runtimeContext,
-      this.companion
+      this.companion,
     );
     this.run = workflow.createRun();
 
@@ -94,6 +97,29 @@ export class CompanionAgent implements ICompanionAgent {
     return res.status === "success" ? res.result : res.status;
   }
 
+  async generateState(message: Message): Promise<State> {
+    const statePrompt = `
+    以下のメッセージに対するあなたの状態を判断してください。
+    ${JSON.stringify(message, null, 2)}
+    
+    以下の状態情報をJSON形式で返してください:
+    - id: あなたのID
+    - messageId: 処理するメッセージのid
+    - state: "speak" または "listen" (次に発言したいか、聞く姿勢に入りたいか)
+    - importance: 0-10の数値 (会話の文脈におけるあなたが次にしたい発言の重要度)
+    - selected: boolean (前回の発言者の発言で、あなたに発言を求められているかどうか)
+
+    重要:この判断は、キャラクターとしてではなく、あなたとして今までの会話の文脈を冷静に分析して判断してください。
+    `;
+    const res = await this.agent.generate(statePrompt, {
+      runtimeContext: this.runtimeContext,
+      output: StateSchema,
+      resourceId: "main",
+      threadId: "thread",
+    });
+    return res.object;
+  }
+
   // メッセージ生成
   async input(message: Message) {
     // CEL式を評価し、Instructionを取得
@@ -101,16 +127,13 @@ export class CompanionAgent implements ICompanionAgent {
     if (typeof instructions !== "string" || instructions === "failed") {
       throw new Error("イベント実行に失敗しました。");
     }
-    console.log(instructions);
-    const res = await this.agent.generate(
-      JSON.stringify(message, null, 2),
-      {
-        runtimeContext: this.runtimeContext,
-        resourceId: "main",
-        threadId: "thread",
-        context: [{ role: "system", content: instructions }]
-      }
-    );
-    console.log(res.text);
+    console.log("Instructions:", instructions);
+    const res = await this.agent.generate(JSON.stringify(message, null, 2), {
+      runtimeContext: this.runtimeContext,
+      resourceId: "main",
+      threadId: "thread",
+      context: [{ role: "system", content: instructions }],
+    });
+    console.log(res.text)
   }
 }
