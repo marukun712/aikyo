@@ -3,7 +3,6 @@ import { z } from "zod";
 
 export const MetadataSchema = z.object({
   id: z.string(),
-  url: z.string(),
   name: z.string(),
   personality: z.string(),
   story: z.string(),

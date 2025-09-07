@@ -17,7 +17,6 @@ export interface ICompanionServer {
   companionAgent: CompanionAgent;
   companion: CompanionCard;
   libp2p: Awaited<ReturnType<typeof initLibp2p>>;
-  port: number;
   companionList: Map<string, Metadata>;
 
   start(): Promise<void>;
@@ -41,16 +40,14 @@ export class CompanionServer implements ICompanionServer {
   companionAgent: CompanionAgent;
   companion: CompanionCard;
   libp2p!: Awaited<ReturnType<typeof initLibp2p>>;
-  port: number;
   companionList = new Map<string, Metadata>();
 
   private static readonly GOSSIPSUB_INIT_DELAY = 500; // GossipSubの初期化遅延
   private static readonly PEER_CONNECT_DELAY = 100; // ピア接続時の遅延
 
-  constructor(companionAgent: CompanionAgent, port: number) {
+  constructor(companionAgent: CompanionAgent) {
     this.companionAgent = companionAgent;
     this.companion = companionAgent.companion;
-    this.port = port;
   }
 
   private async initLibp2p() {
@@ -202,6 +199,9 @@ export class CompanionServer implements ICompanionServer {
   async start() {
     await this.initLibp2p();
 
-    console.log(`Character server started with http://localhost:${this.port}`);
+    console.log(
+      `Character started: ${this.companion.metadata.name} ` +
+      `(id=${this.companion.metadata.id}, peerId=${this.libp2p.peerId.toString()})`
+    );
   }
 }
