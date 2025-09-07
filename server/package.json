@@ -6,27 +6,27 @@
     ".": "./index.ts"
   },
   "dependencies": {
-    "@chainsafe/libp2p-gossipsub": "^14.1.1",
-    "@chainsafe/libp2p-noise": "^16.1.4",
-    "@chainsafe/libp2p-yamux": "^7.0.4",
+    "@chainsafe/libp2p-gossipsub": "catalog:",
+    "@chainsafe/libp2p-noise": "catalog:",
+    "@chainsafe/libp2p-yamux": "catalog:",
     "@libp2p/identify": "^3.0.38",
     "@libp2p/mdns": "^11.0.46",
-    "@libp2p/tcp": "^10.1.19",
+    "@libp2p/tcp": "catalog:",
     "@mastra/core": "ai-v5",
     "@mastra/libsql": "ai-v5",
     "@mastra/loggers": "ai-v5",
     "@mastra/mcp": "ai-v5",
     "@mastra/memory": "ai-v5",
-    "cel-js": "^0.8.2",
-    "helia": "^5.5.1",
+    "cel-js": "catalog:",
+    "helia": "catalog:",
     "libp2p": "2.9.0",
-    "zod": "^3.25.76",
-    "zod-from-json-schema": "^0.0.5"
+    "zod": "catalog:",
+    "zod-from-json-schema": "catalog:"
   },
   "devDependencies": {
-    "@types/node": "^24.3.0",
+    "@types/node": "catalog:",
     "mastra": "ai-v5",
-    "typescript": "^5.9.2"
+    "typescript": "catalog:"
   },
   "engines": {
     "node": ">=20.9.0"

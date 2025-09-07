@@ -4,11 +4,11 @@
   "type": "module",
   "exports": {
     "./core/index.ts": "./core/index.ts",
-    "./motion-db/index.ts": "./motion-db/index.ts", 
+    "./motion-db/index.ts": "./motion-db/index.ts",
     "./environment-db/index.ts": "./environment-db/index.ts"
   },
   "dependencies": {
-    "zod": "^3.24.1",
+    "zod": "catalog:",
     "@aikyo/utils": "workspace:*"
   }
 }
