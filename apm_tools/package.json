@@ -1,5 +1,14 @@
 {
   "name": "apm_tools",
   "version": "1.0.0",
-  "type": "module"
+  "type": "module",
+  "exports": {
+    "./core/index.ts": "./core/index.ts",
+    "./motion-db/index.ts": "./motion-db/index.ts", 
+    "./environment-db/index.ts": "./environment-db/index.ts"
+  },
+  "dependencies": {
+    "zod": "^3.24.1",
+    "@aikyo/utils": "workspace:*"
+  }
 }
