@@ -3,8 +3,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "companion": "pnpx tsx ./scripts/companion.ts",
-    "firehose": "npx tsx ./firehose/index.ts",
+    "companion": "tsx ./scripts/companion.ts",
+    "firehose": "tsx ./firehose/index.ts",
     "format": "prettier --write .",
     "lint": "oxlint server/ firehose/ configs/ packages/"
   },
@@ -21,6 +21,7 @@
   "devDependencies": {
     "@types/node": "catalog:",
     "oxlint": "catalog:",
-    "prettier": "catalog:"
+    "prettier": "catalog:",
+    "tsx": "^4.20.5"
   }
 }
