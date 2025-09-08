@@ -19,8 +19,6 @@ catalog:
   cel-js: ^0.8.2
   helia: ^5.5.1
   ollama-ai-provider: ^1.2.0
-  oxlint: ^1.14.0
-  prettier: ^3.6.2
   typescript: ^5.9.2
   ws: ^8.18.3
   zod-from-json-schema: ^0.0.5
