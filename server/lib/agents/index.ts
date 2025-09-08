@@ -1,7 +1,6 @@
 import { Agent } from "@mastra/core/agent";
 import { Memory } from "@mastra/memory";
 import { LibSQLStore, LibSQLVector } from "@mastra/libsql";
-import { config } from "dotenv";
 import { Message, type CompanionCard } from "../../schema/index.ts";
 import { CoreMessage, Run, type LanguageModel } from "@mastra/core";
 import { RuntimeContext } from "@mastra/core/runtime-context";
@@ -10,7 +9,6 @@ import { talkTool } from "../tool/index.ts";
 import z from "zod";
 import { Libp2p } from "libp2p";
 import { Services } from "@aikyo/utils";
-config();
 
 export interface ICompanionAgent {
   companion: CompanionCard;
@@ -64,10 +62,10 @@ export class CompanionAgent implements ICompanionAgent {
       あなたには、知識を得るための以下のツールが与えられています。
       これらのツールは、あなたが知識を得たいと感じたタイミングで実行してください。
       ${Object.values(companion.knowledge)
-        .map((value) => {
-          return `${value}:${value.description}`;
-        })
-        .join("\n")}
+          .map((value) => {
+            return `${value}:${value.description}`;
+          })
+          .join("\n")}
 
       あなたには、他のコンパニオンと会話するためのtalkツールが与えられています。
       このツールを使うときは、できるだけ会話をながく続けることを意識してください。

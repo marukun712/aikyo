@@ -1,0 +1,30 @@
+packages:
+  - server/
+  - firehose/
+  - configs/
+  - apm_tools/
+  - packages/utils/
+  - docs/
+
+catalog:
+  '@ai-sdk/anthropic': 2.0.6
+  '@ai-sdk/google': 2.0.8
+  '@chainsafe/libp2p-gossipsub': ^14.1.1
+  '@chainsafe/libp2p-noise': ^16.1.4
+  '@chainsafe/libp2p-yamux': ^7.0.4
+  '@libp2p/tcp': ^10.1.19
+  '@openrouter/ai-sdk-provider': ^1.1.2
+  '@types/ws': ^8.18.1
+  '@types/node': ^24.3.1
+  cel-js: ^0.8.2
+  helia: ^5.5.1
+  ollama-ai-provider: ^1.2.0
+  oxlint: ^1.14.0
+  prettier: ^3.6.2
+  typescript: ^5.9.2
+  ws: ^8.18.3
+  zod-from-json-schema: ^0.0.5
+  zod: ^3.25.76
+
+ignoredBuiltDependencies:
+  - sharp
