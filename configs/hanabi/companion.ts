@@ -20,7 +20,6 @@ const openrouter = createOpenRouter({
 export const companionCard: CompanionCard = {
   metadata: {
     id: "companion_hanabi",
-    url: "http://localhost:4003",
     name: "駒形花火",
     personality: "駒形花火は明るくしっかり者な性格です。",
     story:
@@ -76,5 +75,5 @@ const companion = new CompanionAgent(
   companionCard,
   openrouter("google/gemini-2.0-flash-001"),
 );
-const server = new CompanionServer(companion, 4003);
+const server = new CompanionServer(companion);
 await server.start();

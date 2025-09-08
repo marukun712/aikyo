@@ -221,7 +221,6 @@ const roleplay = `
 export const companionCard: CompanionCard = {
   metadata: {
     id: "companion_china",
-    url: "http://localhost:4004",
     name: "倉本千奈",
     personality: roleplay,
     story: story,
@@ -275,5 +274,5 @@ const companion = new CompanionAgent(
   companionCard,
   openrouter("google/gemini-2.0-flash-001"),
 );
-const server = new CompanionServer(companion, 4004);
+const server = new CompanionServer(companion);
 await server.start();
