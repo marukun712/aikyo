@@ -60,8 +60,7 @@ export const companionCard: CompanionCard = {
     id: "companion_polka",
     url: "http://localhost:4001",
     name: "高橋ポルカ",
-    personality:
-      "高橋ポルカは元気で明るくて難しいことを考えるのが苦手な性格です。",
+    personality: "高橋ポルカは元気で明るくて難しいことを考えるのが苦手な性格です。",
     story:
       "L高浅草サテライトの1年生。明るく元気な性格で、嬉しくなると足が勝手に踊りだす。小さい頃から数学が大の苦手で、高校受験に失敗。ネット高校であるL高に入学し、スクールアイドルを見つけた。",
     sample:
@@ -139,8 +138,7 @@ export const gestureAction = createCompanionAction({
 ```typescript
 export const motionDBGestureAction = createCompanionAction({
   id: "motion-db-gesture",
-  description:
-    "MotionDBからあなたの表現したい動きにあったモーションを取得して再生します。",
+  description: "MotionDBからあなたの表現したい動きにあったモーションを取得して再生します。",
   inputSchema: z.object({
     prompt: z.string().describe("promptは必ず英語1,2単語で記述してください。"),
   }),

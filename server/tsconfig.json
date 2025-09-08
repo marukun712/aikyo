@@ -11,5 +11,5 @@
     "outDir": "dist",
     "allowImportingTsExtensions": true
   },
-  "include": ["src/**/*", "config/tools", "lib/agents"]
+  "include": ["src/**/*", "config/tools", "lib/agents", "lib/server"]
 }

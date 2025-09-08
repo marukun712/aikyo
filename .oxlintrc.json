@@ -1,14 +1,9 @@
 {
-    "extends": [
-        "oxlint:recommended"
-    ],
-    "ignorePatterns": [
-        "db/*",
-        "node_modules/*"
-    ],
-    "rules": {
-        "no-unused-vars": "error",
-        "prefer-const": "error",
-        "no-eval": "error"
-    }
+  "extends": ["oxlint:recommended"],
+  "ignorePatterns": ["db/*", "node_modules/*"],
+  "rules": {
+    "no-unused-vars": "error",
+    "prefer-const": "error",
+    "no-eval": "error"
+  }
 }
