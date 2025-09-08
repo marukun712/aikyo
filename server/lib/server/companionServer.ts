@@ -27,7 +27,9 @@ export class CompanionServer implements ICompanionServer {
     this.libp2p = await initLibp2p();
 
     this.libp2p.addEventListener("peer:discovery", (evt) => {
-      this.libp2p.dial(evt.detail.multiaddrs);
+      this.libp2p.dial(evt.detail.multiaddrs).catch((error) => {
+        console.error(`ピアへの接続に失敗しました: ${evt.detail.id}`, error);
+      });
     });
 
     this.libp2p.services.pubsub.subscribe("messages");

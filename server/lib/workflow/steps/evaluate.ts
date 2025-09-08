@@ -33,18 +33,22 @@ export function createEvaluateStep(
         };
       }
 
-      const res = await agent.generate([interaction], {
-        instructions: `
-        与えられた入力から、あなたの長期記憶とワーキングメモリを元に、
-        ${JSON.stringify(companionCard.events.params, null, 2)}
-        に適切なパラメータを代入して返却してください。
+      try {
+        const res = await agent.generate([interaction], {
+          instructions: `
+          与えられた入力から、あなたの長期記憶とワーキングメモリを元に、
+          ${JSON.stringify(companionCard.events.params, null, 2)}
+          に適切なパラメータを代入して返却してください。
         `,
-        runtimeContext,
-        resourceId: "main",
-        threadId: "thread",
-        output: outputSchema,
-      });
-      return { output: res.object };
+          runtimeContext,
+          resourceId: "main",
+          threadId: "thread",
+          output: outputSchema,
+        });
+        return { output: res.object };
+      } catch (error) {
+        throw new Error(`評価ステップでエラーが発生しました: ${error}`);
+      }
     },
   });
 }
