@@ -1,9 +1,12 @@
 import { createStep } from "@mastra/core/workflows";
-import { z, type ZodTypeAny } from "zod";
 import { evaluate } from "cel-js";
-import { type CompanionCard } from "../../../schema/index.ts";
+import { type ZodTypeAny, z } from "zod";
+import type { CompanionCard } from "../../../schema/index.ts";
 
-export function createRunStep(companionCard: CompanionCard, outputSchema: ZodTypeAny) {
+export function createRunStep(
+  companionCard: CompanionCard,
+  outputSchema: ZodTypeAny,
+) {
   return createStep({
     id: "run",
     description: "状況パラメータから実行するツールを特定する",

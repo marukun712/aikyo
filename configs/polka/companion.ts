@@ -1,10 +1,17 @@
-import { contextAction, companionNetworkKnowledge } from "apm_tools/core/index.ts";
-import { motionDBGestureAction } from "apm_tools/motion-db/index.ts";
-import { environmentDBKnowledge } from "apm_tools/environment-db/index.ts";
-import { type CompanionCard, CompanionServer, CompanionAgent } from "@aikyo/server";
+import {
+  CompanionAgent,
+  type CompanionCard,
+  CompanionServer,
+} from "@aikyo/server";
 // import { anthropic } from "@ai-sdk/anthropic";
 // import { google } from "@ai-sdk/google";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import {
+  companionNetworkKnowledge,
+  contextAction,
+} from "apm_tools/core/index.ts";
+import { environmentDBKnowledge } from "apm_tools/environment-db/index.ts";
+import { motionDBGestureAction } from "apm_tools/motion-db/index.ts";
 
 const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
@@ -14,7 +21,8 @@ export const companionCard: CompanionCard = {
   metadata: {
     id: "companion_polka",
     name: "高橋ポルカ",
-    personality: "高橋ポルカは元気で明るくて難しいことを考えるのが苦手な性格です。",
+    personality:
+      "高橋ポルカは元気で明るくて難しいことを考えるのが苦手な性格です。",
     story:
       "L高浅草サテライトの1年生。明るく元気な性格で、嬉しくなると足が勝手に踊りだす。小さい頃から数学が大の苦手で、高校受験に失敗。ネット高校であるL高に入学し、スクールアイドルを見つけた。",
     sample:
@@ -64,6 +72,9 @@ export const companionCard: CompanionCard = {
   },
 };
 
-const companion = new CompanionAgent(companionCard, openrouter("google/gemini-2.0-flash-001"));
+const companion = new CompanionAgent(
+  companionCard,
+  openrouter("google/gemini-2.0-flash-001"),
+);
 const server = new CompanionServer(companion);
 await server.start();

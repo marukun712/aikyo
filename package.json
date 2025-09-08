@@ -5,8 +5,12 @@
   "scripts": {
     "companion": "tsx ./scripts/companion.ts",
     "firehose": "tsx ./firehose/index.ts",
-    "format": "prettier --write .",
-    "lint": "oxlint server/ firehose/ configs/ packages/"
+    "format": "biome format server/ firehose/ configs/ packages/",
+    "format:fix": "biome format --write server/ firehose/ configs/ packages/",
+    "lint": "biome lint server/ firehose/ configs/ packages/",
+    "lint:fix": "biome lint --write server/ firehose/ configs/ packages/",
+    "check": "biome check server/ firehose/ configs/ packages/",
+    "check:fix": "biome check --write server/ firehose/ configs/ packages/"
   },
   "workspaces": [
     "server",
@@ -19,9 +23,8 @@
     "ms": "3.0.0-canary.1"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.2.3",
     "@types/node": "catalog:",
-    "oxlint": "catalog:",
-    "prettier": "catalog:",
     "tsx": "^4.20.5"
   }
 }

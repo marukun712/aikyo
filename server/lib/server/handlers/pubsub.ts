@@ -1,7 +1,14 @@
+import {
+  ContextSchema,
+  MessageSchema,
+  MetadataSchema,
+} from "../../../schema/index.ts";
 import type { CompanionServer } from "../companionServer.ts";
-import { ContextSchema, MetadataSchema, MessageSchema } from "../../../schema/index.ts";
 
-export const handlePubSubMessage = async (self: CompanionServer, message: any) => {
+export const handlePubSubMessage = async (
+  self: CompanionServer,
+  message: any,
+) => {
   const topic = message.detail.topic;
   const fromPeerId = message.detail.from.toString();
 

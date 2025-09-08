@@ -1,10 +1,17 @@
-import { contextAction, companionNetworkKnowledge } from "apm_tools/core/index.ts";
-import { motionDBGestureAction } from "apm_tools/motion-db/index.ts";
-import { environmentDBKnowledge } from "apm_tools/environment-db/index.ts";
-import { type CompanionCard, CompanionServer, CompanionAgent } from "@aikyo/server";
+import {
+  CompanionAgent,
+  type CompanionCard,
+  CompanionServer,
+} from "@aikyo/server";
 // import { anthropic } from "@ai-sdk/anthropic";
 // import { google } from "@ai-sdk/google";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import {
+  companionNetworkKnowledge,
+  contextAction,
+} from "apm_tools/core/index.ts";
+import { environmentDBKnowledge } from "apm_tools/environment-db/index.ts";
+import { motionDBGestureAction } from "apm_tools/motion-db/index.ts";
 
 const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
@@ -263,6 +270,9 @@ export const companionCard: CompanionCard = {
   },
 };
 
-const companion = new CompanionAgent(companionCard, openrouter("google/gemini-2.0-flash-001"));
+const companion = new CompanionAgent(
+  companionCard,
+  openrouter("google/gemini-2.0-flash-001"),
+);
 const server = new CompanionServer(companion);
 await server.start();

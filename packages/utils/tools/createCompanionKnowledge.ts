@@ -1,5 +1,5 @@
 import { createTool } from "@mastra/core/tools";
-import { z, type ZodTypeAny } from "zod";
+import type { ZodTypeAny, z } from "zod";
 
 export interface CompanionKnowledgeConfig<T extends z.ZodSchema> {
   id: string;
@@ -41,7 +41,7 @@ export function createCompanionKnowledge<T extends ZodTypeAny>({
       } catch (e) {
         console.error(e);
         return {
-          content: [{ type: "text", text: "知識の取得に失敗しました。" + e }],
+          content: [{ type: "text", text: `知識の取得に失敗しました。${e}` }],
         };
       }
     },

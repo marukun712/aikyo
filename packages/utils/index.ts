@@ -1,9 +1,9 @@
 export type { Services } from "./lib/services.ts";
 export {
-  createCompanionAction,
   type CompanionActionConfig,
+  createCompanionAction,
 } from "./tools/createCompanionAction.ts";
 export {
-  createCompanionKnowledge,
   type CompanionKnowledgeConfig,
+  createCompanionKnowledge,
 } from "./tools/createCompanionKnowledge.ts";

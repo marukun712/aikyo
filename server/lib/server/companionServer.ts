@@ -1,8 +1,12 @@
 import type { CompanionCard, Metadata } from "../../schema/index.ts";
-import { CompanionAgent } from "../agents/index.ts";
-import { initLibp2p } from "./libp2p.ts";
-import { onPeerConnect, onPeerDisconnect, publishInitialMetadata } from "./handlers/peer.ts";
+import type { CompanionAgent } from "../agents/index.ts";
+import {
+  onPeerConnect,
+  onPeerDisconnect,
+  publishInitialMetadata,
+} from "./handlers/peer.ts";
 import { handlePubSubMessage } from "./handlers/pubsub.ts";
+import { initLibp2p } from "./libp2p.ts";
 
 export interface ICompanionServer {
   companionAgent: CompanionAgent;
@@ -41,8 +45,12 @@ export class CompanionServer implements ICompanionServer {
       handlePubSubMessage(this, evt),
     );
 
-    this.libp2p.addEventListener("peer:connect", async (evt) => onPeerConnect(this, evt));
-    this.libp2p.addEventListener("peer:disconnect", async (evt) => onPeerDisconnect(this, evt));
+    this.libp2p.addEventListener("peer:connect", async (evt) =>
+      onPeerConnect(this, evt),
+    );
+    this.libp2p.addEventListener("peer:disconnect", async (evt) =>
+      onPeerDisconnect(this, evt),
+    );
 
     this.companionAgent.runtimeContext.set("libp2p", this.libp2p);
     this.companionAgent.runtimeContext.set("companions", this.companionList);

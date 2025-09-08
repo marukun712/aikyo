@@ -1,14 +1,14 @@
+import type { Services } from "@aikyo/utils";
+import type { CoreMessage, LanguageModel, Run } from "@mastra/core";
 import { Agent } from "@mastra/core/agent";
-import { Memory } from "@mastra/memory";
-import { LibSQLStore, LibSQLVector } from "@mastra/libsql";
-import { Message, type CompanionCard } from "../../schema/index.ts";
-import { CoreMessage, Run, type LanguageModel } from "@mastra/core";
 import { RuntimeContext } from "@mastra/core/runtime-context";
-import { createEventWorkflow } from "../workflow/index.ts";
-import { talkTool } from "../tool/index.ts";
+import { LibSQLStore, LibSQLVector } from "@mastra/libsql";
+import { Memory } from "@mastra/memory";
+import type { Libp2p } from "libp2p";
 import z from "zod";
-import { Libp2p } from "libp2p";
-import { Services } from "@aikyo/utils";
+import type { CompanionCard, Message } from "../../schema/index.ts";
+import { talkTool } from "../tool/index.ts";
+import { createEventWorkflow } from "../workflow/index.ts";
 
 export interface ICompanionAgent {
   companion: CompanionCard;
@@ -17,7 +17,9 @@ export interface ICompanionAgent {
   runtimeContext: RuntimeContext;
   run: Run;
 
-  generateToolInstruction(input: string | { image: string; mimeType: string }): Promise<string>;
+  generateToolInstruction(
+    input: string | { image: string; mimeType: string },
+  ): Promise<string>;
   addContext(input: string): Promise<void>;
   generateMessage(input: Omit<Message, "to">): Promise<Message>;
 }
@@ -81,7 +83,11 @@ export class CompanionAgent implements ICompanionAgent {
     this.runtimeContext.set("id", companion.metadata.id);
 
     // Workflowを初期化
-    const workflow = createEventWorkflow(this.agent, this.runtimeContext, this.companion);
+    const workflow = createEventWorkflow(
+      this.agent,
+      this.runtimeContext,
+      this.companion,
+    );
     this.run = workflow.createRun();
 
     // スレッドを作成
@@ -89,7 +95,9 @@ export class CompanionAgent implements ICompanionAgent {
   }
 
   // 画像またはテキスト入力に対応
-  async generateToolInstruction(input: string | { image: string; mimeType: string }) {
+  async generateToolInstruction(
+    input: string | { image: string; mimeType: string },
+  ) {
     const res = await this.run.start({ inputData: input });
     return res.status === "success" ? res.result : res.status;
   }
@@ -150,7 +158,9 @@ export class CompanionAgent implements ICompanionAgent {
         metadata: z.object({
           emotion: z
             .enum(["neutral", "happy", "sad", "angry"])
-            .describe("キャラクターとしての感情として、最も適切なものを入れてください。"),
+            .describe(
+              "キャラクターとしての感情として、最も適切なものを入れてください。",
+            ),
         }),
         message: z.string(),
       }),
