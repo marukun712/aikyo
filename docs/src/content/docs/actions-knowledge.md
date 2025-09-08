@@ -24,14 +24,10 @@ import { z } from "zod";
 
 export const speakAction = createCompanionAction({
   id: "speak",
-  description:
-    "話す。特定のコンパニオンに向けて話したい場合はtargetを指定できます。",
+  description: "話す。特定のコンパニオンに向けて話したい場合はtargetを指定できます。",
   inputSchema: z.object({
     message: z.string(),
-    target: z
-      .string()
-      .optional()
-      .describe("特定のコンパニオンのIDを指定(任意)"),
+    target: z.string().optional().describe("特定のコンパニオンのIDを指定(任意)"),
     emotion: z
       .enum(["happy", "sad", "angry", "neutral"])
       .describe("あなたの感情に最も適している値を入れてください。"),
@@ -75,8 +71,7 @@ export const speakAction = createCompanionAction({
 ```typescript
 export const motionDBGestureAction = createCompanionAction({
   id: "motion-db-gesture",
-  description:
-    "MotionDBからあなたの表現したい動きにあったモーションを取得して再生します。",
+  description: "MotionDBからあなたの表現したい動きにあったモーションを取得して再生します。",
   inputSchema: z.object({
     prompt: z.string().describe("promptは必ず英語1,2単語で記述してください。"),
   }),

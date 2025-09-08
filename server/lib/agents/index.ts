@@ -17,9 +17,7 @@ export interface ICompanionAgent {
   runtimeContext: RuntimeContext;
   run: Run;
 
-  generateToolInstruction(
-    input: string | { image: string; mimeType: string },
-  ): Promise<string>;
+  generateToolInstruction(input: string | { image: string; mimeType: string }): Promise<string>;
   addContext(input: string): Promise<void>;
   generateMessage(input: Omit<Message, "to">): Promise<Message>;
 }
@@ -62,10 +60,10 @@ export class CompanionAgent implements ICompanionAgent {
       あなたには、知識を得るための以下のツールが与えられています。
       これらのツールは、あなたが知識を得たいと感じたタイミングで実行してください。
       ${Object.values(companion.knowledge)
-          .map((value) => {
-            return `${value}:${value.description}`;
-          })
-          .join("\n")}
+        .map((value) => {
+          return `${value}:${value.description}`;
+        })
+        .join("\n")}
 
       あなたには、他のコンパニオンと会話するためのtalkツールが与えられています。
       このツールを使うときは、できるだけ会話をながく続けることを意識してください。
@@ -83,11 +81,7 @@ export class CompanionAgent implements ICompanionAgent {
     this.runtimeContext.set("id", companion.metadata.id);
 
     // Workflowを初期化
-    const workflow = createEventWorkflow(
-      this.agent,
-      this.runtimeContext,
-      this.companion,
-    );
+    const workflow = createEventWorkflow(this.agent, this.runtimeContext, this.companion);
     this.run = workflow.createRun();
 
     // スレッドを作成
@@ -95,9 +89,7 @@ export class CompanionAgent implements ICompanionAgent {
   }
 
   // 画像またはテキスト入力に対応
-  async generateToolInstruction(
-    input: string | { image: string; mimeType: string },
-  ) {
+  async generateToolInstruction(input: string | { image: string; mimeType: string }) {
     const res = await this.run.start({ inputData: input });
     return res.status === "success" ? res.result : res.status;
   }
@@ -158,9 +150,7 @@ export class CompanionAgent implements ICompanionAgent {
         metadata: z.object({
           emotion: z
             .enum(["neutral", "happy", "sad", "angry"])
-            .describe(
-              "キャラクターとしての感情として、最も適切なものを入れてください。",
-            ),
+            .describe("キャラクターとしての感情として、最も適切なものを入れてください。"),
         }),
         message: z.string(),
       }),

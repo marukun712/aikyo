@@ -58,11 +58,7 @@ const ws = new WebSocket(firehoseUrl);
 
 ws.addEventListener("open", (event) => {
   ws.send(
-    JSON.stringify(
-      { from: "user", message: "こんにちは！", target: "companion_polka" },
-      null,
-      2,
-    ),
+    JSON.stringify({ from: "user", message: "こんにちは！", target: "companion_polka" }, null, 2),
   );
 });
 ```

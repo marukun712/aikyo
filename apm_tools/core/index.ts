@@ -31,8 +31,7 @@ export const gestureAction = createCompanionAction({
 
 export const companionNetworkKnowledge = createCompanionKnowledge({
   id: "companions-network",
-  description:
-    "同じネットワークに所属しているコンパニオンのリストを取得します。",
+  description: "同じネットワークに所属しているコンパニオンのリストを取得します。",
   inputSchema: z.object({}),
   knowledge: async (_params, id, companions) => {
     return Array.from(companions.entries())
