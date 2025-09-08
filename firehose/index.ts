@@ -1,12 +1,12 @@
 import { gossipsub } from "@chainsafe/libp2p-gossipsub";
-import { createLibp2p } from "libp2p";
-import { tcp } from "@libp2p/tcp";
-import { identify } from "@libp2p/identify";
-import { mdns } from "@libp2p/mdns";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
-import { MessageSchema } from "../server/schema/index.ts";
+import { identify } from "@libp2p/identify";
+import { mdns } from "@libp2p/mdns";
+import { tcp } from "@libp2p/tcp";
+import { createLibp2p } from "libp2p";
 import WebSocket, { WebSocketServer } from "ws";
+import { MessageSchema } from "../server/schema/index.ts";
 
 export const libp2p = await createLibp2p({
   addresses: {

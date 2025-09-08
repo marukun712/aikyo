@@ -1,13 +1,15 @@
+import type { Services } from "@aikyo/utils";
 import { createTool } from "@mastra/core/tools";
-import { Message } from "../../schema/index.ts";
-import { isLibp2p, Libp2p } from "libp2p";
-import { Services } from "@aikyo/utils";
+import { isLibp2p, type Libp2p } from "libp2p";
 import z from "zod";
+import type { Message } from "../../schema/index.ts";
 
 export const talkTool = createTool({
   id: "talk",
   inputSchema: z.object({
-    to: z.string().describe('必ず、送信先コンパニオンの"id"を指定してください。'),
+    to: z
+      .string()
+      .describe('必ず、送信先コンパニオンの"id"を指定してください。'),
     message: z.string(),
     emotion: z.enum(["neutral", "happy", "sad", "angry"]),
   }),
@@ -22,7 +24,9 @@ export const talkTool = createTool({
     const libp2p: Libp2p<Services> = runtimeContext.get("libp2p");
     if (!libp2p || !isLibp2p(libp2p)) {
       return {
-        content: [{ type: "text", text: "Error:Libp2pが初期化されていません。" }],
+        content: [
+          { type: "text", text: "Error:Libp2pが初期化されていません。" },
+        ],
       };
     }
     const companions = runtimeContext.get("companions");

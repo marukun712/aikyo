@@ -6,7 +6,10 @@ export const onPeerConnect = async (self: CompanionServer, evt: any) => {
     console.log(`Peer connected: ${evt.detail.toString()}`);
     await new Promise((resolve) => setTimeout(resolve, PEER_CONNECT_DELAY));
     const metadataMsg = JSON.stringify(self.companion.metadata);
-    await self.libp2p.services.pubsub.publish("metadata", new TextEncoder().encode(metadataMsg));
+    await self.libp2p.services.pubsub.publish(
+      "metadata",
+      new TextEncoder().encode(metadataMsg),
+    );
   } catch (e) {
     console.error("Error during peer connection:", e);
   }
@@ -28,7 +31,10 @@ export const publishInitialMetadata = async (self: CompanionServer) => {
   setTimeout(async () => {
     try {
       const metadataMsg = JSON.stringify(self.companion.metadata);
-      await self.libp2p.services.pubsub.publish("metadata", new TextEncoder().encode(metadataMsg));
+      await self.libp2p.services.pubsub.publish(
+        "metadata",
+        new TextEncoder().encode(metadataMsg),
+      );
       console.log("Initial metadata published");
     } catch (e) {
       console.error("Error publishing initial metadata:", e);

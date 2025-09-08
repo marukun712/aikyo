@@ -6,7 +6,7 @@
     "companion": "tsx ./scripts/companion.ts",
     "firehose": "tsx ./firehose/index.ts",
     "format": "biome format server/ firehose/ configs/ packages/",
-    "format:fix": "biome format server/ firehose/ configs/ packages/",
+    "format:fix": "biome format --write server/ firehose/ configs/ packages/",
     "lint": "biome lint server/ firehose/ configs/ packages/",
     "lint:fix": "biome lint --write server/ firehose/ configs/ packages/",
     "check": "biome check server/ firehose/ configs/ packages/",

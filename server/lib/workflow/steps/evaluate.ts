@@ -1,9 +1,9 @@
+import type { CoreMessage } from "@mastra/core";
+import type { RuntimeContext } from "@mastra/core/runtime-context";
 import { createStep } from "@mastra/core/workflows";
-import { type CoreMessage } from "@mastra/core";
-import { z, type ZodTypeAny } from "zod";
-import { RuntimeContext } from "@mastra/core/runtime-context";
-import { type CompanionCard } from "../../../schema/index.ts";
-import { type AgentType } from "../types.ts";
+import { type ZodTypeAny, z } from "zod";
+import type { CompanionCard } from "../../../schema/index.ts";
+import type { AgentType } from "../types.ts";
 
 export function createEvaluateStep(
   agent: AgentType,
@@ -14,7 +14,10 @@ export function createEvaluateStep(
   return createStep({
     id: "evaluate",
     description: "与えられた情報から、状況パラメータの値を設定する。",
-    inputSchema: z.union([z.string(), z.object({ image: z.string(), mimeType: z.string() })]),
+    inputSchema: z.union([
+      z.string(),
+      z.object({ image: z.string(), mimeType: z.string() }),
+    ]),
     outputSchema: z.object({ output: outputSchema }),
     execute: async ({ inputData }) => {
       const input = inputData;

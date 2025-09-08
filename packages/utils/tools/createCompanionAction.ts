@@ -1,8 +1,8 @@
 import { createTool } from "@mastra/core/tools";
-import { z, type ZodTypeAny } from "zod";
-import { type Action, type Context } from "../schema/index.ts";
 import { isLibp2p, type Libp2p } from "libp2p";
-import { type Services } from "../lib/services.ts";
+import type { ZodTypeAny, z } from "zod";
+import type { Services } from "../lib/services.ts";
+import type { Action, Context } from "../schema/index.ts";
 
 type Output = Action | Context;
 
@@ -47,14 +47,17 @@ export function createCompanionAction<T extends ZodTypeAny>({
         }
 
         const data = await publish(context, id, companions);
-        libp2p.services.pubsub.publish(topic, new TextEncoder().encode(JSON.stringify(data)));
+        libp2p.services.pubsub.publish(
+          topic,
+          new TextEncoder().encode(JSON.stringify(data)),
+        );
         return {
           content: [{ type: "text", text: "ツールが正常に実行されました。" }],
         };
       } catch (e) {
         console.error(e);
         return {
-          content: [{ type: "text", text: "ツールの実行に失敗しました" + e }],
+          content: [{ type: "text", text: `ツールの実行に失敗しました${e}` }],
         };
       }
     },
