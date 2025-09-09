@@ -37,14 +37,6 @@ export const CompanionSchema = z.object({
 });
 export type CompanionCard = z.infer<typeof CompanionSchema>;
 
-export const MessageSchema = z.object({
-  id: z.string(),
-  from: z.string(),
-  message: z.string(),
-  metadata: z.record(z.string(), z.any()).optional(),
-});
-export type Message = z.infer<typeof MessageSchema>;
-
 export const StateSchema = z.object({
   id: z.string(),
   messageId: z.string().describe("このstateが対応する元のメッセージのID"),
@@ -61,6 +53,14 @@ export const StateSchema = z.object({
     .describe("前回の発言者の発言で、あなたに発言を求められているかどうか"),
 });
 export type State = z.infer<typeof StateSchema>;
+
+export const MessageSchema = z.object({
+  id: z.string(),
+  from: z.string(),
+  message: z.string(),
+  metadata: z.record(z.string(), z.any()).optional(),
+});
+export type Message = z.infer<typeof MessageSchema>;
 
 export const ActionSchema = z.object({
   metadata: z.record(z.string(), z.any()).optional(),

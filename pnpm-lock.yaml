@@ -119,6 +119,9 @@ importers:
 
   firehose:
     dependencies:
+      '@aikyo/server':
+        specifier: workspace:*
+        version: link:../server
       '@chainsafe/libp2p-gossipsub':
         specifier: 'catalog:'
         version: 14.1.1
@@ -137,6 +140,9 @@ importers:
       '@libp2p/tcp':
         specifier: 'catalog:'
         version: 10.1.19
+      dotenv:
+        specifier: ^17.2.2
+        version: 17.2.2
       helia:
         specifier: 'catalog:'
         version: 5.5.1(react-native@0.81.1(@babel/core@7.28.4)(react@19.1.1))
@@ -225,6 +231,9 @@ importers:
       cel-js:
         specifier: 'catalog:'
         version: 0.8.2
+      dotenv:
+        specifier: ^17.2.2
+        version: 17.2.2
       helia:
         specifier: 'catalog:'
         version: 5.5.1(react-native@0.81.1(@babel/core@7.28.4)(react@19.1.1))
@@ -3554,6 +3563,10 @@ packages:
 
   dotenv@16.6.1:
     resolution: {integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==}
+    engines: {node: '>=12'}
+
+  dotenv@17.2.2:
+    resolution: {integrity: sha512-Sf2LSQP+bOlhKWWyhFsn0UsfdK/kCWRv1iuA2gXAwt3dyNabr6QSj00I2V10pidqz69soatm9ZwZvpQMTIOd5Q==}
     engines: {node: '>=12'}
 
   dset@3.1.4:
@@ -11251,6 +11264,8 @@ snapshots:
       '@leichtgewicht/ip-codec': 2.0.5
 
   dotenv@16.6.1: {}
+
+  dotenv@17.2.2: {}
 
   dset@3.1.4: {}
 

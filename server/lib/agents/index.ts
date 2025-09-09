@@ -1,16 +1,19 @@
+import type { LanguageModel, Run } from "@mastra/core";
 import { Agent } from "@mastra/core/agent";
-import { Memory } from "@mastra/memory";
+import { RuntimeContext } from "@mastra/core/runtime-context";
 import { LibSQLStore, LibSQLVector } from "@mastra/libsql";
+import { Memory } from "@mastra/memory";
+import { config } from "dotenv";
 import {
+  type CompanionCard,
   MemorySchema,
   type Message,
   type State,
   StateSchema,
-  type CompanionCard,
 } from "../../schema/index.ts";
-import type { Run, LanguageModel } from "@mastra/core";
-import { RuntimeContext } from "@mastra/core/runtime-context";
 import { createToolInstructionWorkflow } from "../workflow/index.ts";
+
+config();
 
 export interface ICompanionAgent {
   companion: CompanionCard;
@@ -63,7 +66,7 @@ export class CompanionAgent implements ICompanionAgent {
     これらのツールは、あなたが知識を得たいと感じたタイミングで実行してください。
     ${Object.values(companion.knowledge)
       .map((value) => {
-        return `${value}:${value.description}`;
+        return `${value.id}:${value.description}`;
       })
       .join("\n")}
 

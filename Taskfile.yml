@@ -1,27 +1,11 @@
 version: "3"
 
 tasks:
-  run:
-    cmds:
-      - |
-        echo "
-         █████╗  ██╗ ██╗  ██╗ ██╗   ██╗  ██████╗
-        ██╔══██╗ ██║ ██║ ██╔╝ ╚██╗ ██╔╝ ██╔═══██╗
-        ███████║ ██║ █████╔╝   ╚████╔╝  ██║   ██║
-        ██╔══██║ ██║ ██╔═██╗    ╚██╔╝   ██║   ██║
-        ██║  ██║ ██║ ██║  ██╗    ██║    ╚██████╔╝
-        ╚═╝  ╚═╝ ╚═╝ ╚═╝  ╚═╝    ╚═╝     ╚═════╝
-        "
-      - task: up
-
-  up:
-    deps:
-      - task: firehose
-
   firehose:
     cmds:
-      - npm run firehose
+      - npx oh-my-logo "aikyo" sunset --filled
+      - pnpm run firehose
 
-  companion:
+  run:
     cmds:
-      - npm run companion --config={{.CLI_ARGS}}
+      - pnpm companion {{.CLI_ARGS}}

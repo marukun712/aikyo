@@ -20,6 +20,7 @@
     "@mastra/mcp": "ai-v5",
     "@mastra/memory": "ai-v5",
     "cel-js": "catalog:",
+    "dotenv": "^17.2.2",
     "helia": "catalog:",
     "libp2p": "2.9.0",
     "zod": "catalog:",

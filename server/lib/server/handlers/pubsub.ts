@@ -1,37 +1,51 @@
-import { MessageSchema, MetadataSchema } from "../../../schema/index.ts";
+import type { Message } from "@libp2p/interface";
+import {
+  MessageSchema,
+  MetadataSchema,
+  StateSchema,
+} from "../../../schema/index.ts";
 import type { CompanionServer } from "../companionServer.ts";
 
 export const handlePubSubMessage = async (
   self: CompanionServer,
-  message: CustomEvent,
+  message: CustomEvent<Message>,
 ) => {
+  if (message.detail.type === "unsigned") return;
   const topic = message.detail.topic;
-  const fromPeerId = message.detail.from.toString();
-
-  console.log(`Received message on topic ${topic} from ${fromPeerId}`);
-
+  const peerId = message.detail.from.toString();
   const data = JSON.parse(new TextDecoder().decode(message.detail.data));
-  console.log(data);
 
   try {
     switch (topic) {
       case "metadata": {
         const parsed = MetadataSchema.safeParse(data);
-        if (!parsed.success) return;
-        if (fromPeerId === self.libp2p.peerId.toString()) return;
-        if (self.companionList.has(fromPeerId)) return;
-        self.companionList.set(fromPeerId, parsed.data);
-        console.log(`Added peer ${fromPeerId} with metadata:`, parsed.data);
+        if (
+          !parsed.success ||
+          peerId === self.libp2p.peerId.toString() ||
+          self.companionList.has(peerId)
+        )
+          return;
+        console.log("metadata received.");
+        console.log(parsed);
+        self.companionList.set(peerId, parsed.data);
         break;
       }
       case "messages": {
         const parsed = MessageSchema.safeParse(data);
-        console.log("=> Message Received:", parsed);
+        console.log("message received.");
+        console.log(parsed);
         if (!parsed.success) return;
-        if (parsed.data.from === self.companion.metadata.id) return;
-        if (parsed.data.to !== self.companion.metadata.id) return;
-        await self.companionAgent.generateMessage(parsed.data);
+        const body = parsed.data;
+        await self.handleMessageReceived(body);
         break;
+      }
+      case "states": {
+        const parsed = StateSchema.safeParse(data);
+        console.log("state received.");
+        console.log(parsed);
+        if (!parsed.success) return;
+        const state = parsed.data;
+        await self.turnTakingManager.handleStateReceived(state);
       }
     }
   } catch (e) {

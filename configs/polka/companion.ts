@@ -1,14 +1,10 @@
-import { speakTool, companionNetworkKnowledge } from "apm_tools/core/index.ts";
+import { anthropic } from "@ai-sdk/anthropic";
 import {
+  CompanionAgent,
   type CompanionCard,
   CompanionServer,
-  CompanionAgent,
 } from "@aikyo/server";
-import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-
-const openrouter = createOpenRouter({
-  apiKey: process.env.OPENROUTER_API_KEY,
-});
+import { companionNetworkKnowledge, speakTool } from "apm_tools/core/index.ts";
 
 export const companionCard: CompanionCard = {
   metadata: {
@@ -53,7 +49,7 @@ export const companionCard: CompanionCard = {
 
 const companion = new CompanionAgent(
   companionCard,
-  openrouter("google/gemini-2.0-flash-001"),
+  anthropic("claude-3-5-haiku-latest"),
 );
 const server = new CompanionServer(companion);
 await server.start();
