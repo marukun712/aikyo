@@ -1,7 +1,11 @@
+import type { Libp2pEvents } from "@libp2p/interface";
 import type { CompanionServer } from "../companionServer.ts";
 import { GOSSIPSUB_INIT_DELAY, PEER_CONNECT_DELAY } from "../constants.ts";
 
-export const onPeerConnect = async (self: CompanionServer, evt: any) => {
+export const onPeerConnect = async (
+  self: CompanionServer,
+  evt: Libp2pEvents["peer:connect"],
+) => {
   try {
     console.log(`Peer connected: ${evt.detail.toString()}`);
     await new Promise((resolve) => setTimeout(resolve, PEER_CONNECT_DELAY));
@@ -15,7 +19,10 @@ export const onPeerConnect = async (self: CompanionServer, evt: any) => {
   }
 };
 
-export const onPeerDisconnect = async (self: CompanionServer, evt: any) => {
+export const onPeerDisconnect = async (
+  self: CompanionServer,
+  evt: Libp2pEvents["peer:disconnect"],
+) => {
   try {
     const peerIdStr = evt.detail.toString();
     const metadata = self.companionList.get(peerIdStr);

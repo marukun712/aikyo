@@ -1,3 +1,4 @@
+import type { GossipsubEvents } from "@chainsafe/libp2p-gossipsub";
 import {
   ContextSchema,
   MessageSchema,
@@ -7,7 +8,7 @@ import type { CompanionServer } from "../companionServer.ts";
 
 export const handlePubSubMessage = async (
   self: CompanionServer,
-  message: any,
+  message: GossipsubEvents["message"],
 ) => {
   const topic = message.detail.topic;
   const fromPeerId = message.detail.from.toString();
