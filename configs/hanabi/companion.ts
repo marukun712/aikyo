@@ -1,17 +1,10 @@
-// import { anthropic } from "@ai-sdk/anthropic";
-// import { google } from "@ai-sdk/google";
-import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { speakTool, companionNetworkKnowledge } from "apm_tools/core/index.ts";
 import {
-  companionNetworkKnowledge,
-  contextAction,
-} from "apm_tools/core/index.ts";
-import { environmentDBKnowledge } from "apm_tools/environment-db/index.ts";
-import { motionDBGestureAction } from "apm_tools/motion-db/index.ts";
-import {
-  CompanionAgent,
   type CompanionCard,
   CompanionServer,
-} from "../../server";
+  CompanionAgent,
+} from "@aikyo/server";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 
 const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
@@ -28,8 +21,8 @@ export const companionCard: CompanionCard = {
       "明日の入学式に着ていく着物を選定中 どっちがいい？ 蝶に花のちりめん友禅で華やかにお嬢様風か、キリッと黒地に辻が花の訪問着で格調高くーーうーん、迷うわ！こうなったら運天の花札で決めちゃおう",
   },
   role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。キャラクター設定に忠実にロールプレイしてください。",
-  actions: { motionDBGestureAction, contextAction },
-  knowledge: { environmentDBKnowledge, companionNetworkKnowledge },
+  actions: { speakTool },
+  knowledge: { companionNetworkKnowledge },
   events: {
     params: {
       title: "あなたが判断すべきパラメータ",
@@ -40,30 +33,16 @@ export const companionCard: CompanionCard = {
           description: "ジェスチャーで表現したいものがあるかどうか",
           type: "boolean",
         },
-        need_context: {
-          description: "周囲に伝えるべき話題があるかどうか。",
-          type: "boolean",
-        },
       },
-      required: ["need_gesture", "need_context"],
+      required: ["need_gesture"],
     },
     conditions: [
       {
-        expression: "need_gesture === true",
+        expression: "true",
         execute: [
           {
-            instruction: "ジェスチャーで体の動きを表現する。",
-            tool: motionDBGestureAction,
-          },
-        ],
-      },
-      {
-        expression: "need_context === true",
-        execute: [
-          {
-            instruction:
-              "周囲のコンパニオンに今から自分がどんな話題を提供するか、またはどんな話題を話しているかを周知する。",
-            tool: contextAction,
+            instruction: "ツールを使って返信する。",
+            tool: speakTool,
           },
         ],
       },

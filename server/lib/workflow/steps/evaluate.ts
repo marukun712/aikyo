@@ -1,8 +1,7 @@
-import type { CoreMessage } from "@mastra/core";
 import type { RuntimeContext } from "@mastra/core/runtime-context";
 import { createStep } from "@mastra/core/workflows";
 import { type ZodTypeAny, z } from "zod";
-import type { CompanionCard } from "../../../schema/index.ts";
+import { MessageSchema, type CompanionCard } from "../../../schema/index.ts";
 import type { AgentType } from "../types.ts";
 
 export function createEvaluateStep(
@@ -14,44 +13,24 @@ export function createEvaluateStep(
   return createStep({
     id: "evaluate",
     description: "与えられた情報から、状況パラメータの値を設定する。",
-    inputSchema: z.union([
-      z.string(),
-      z.object({ image: z.string(), mimeType: z.string() }),
-    ]),
-    outputSchema: z.object({ output: outputSchema }),
+    inputSchema: MessageSchema,
+    outputSchema: z.object({
+      output: outputSchema,
+    }),
     execute: async ({ inputData }) => {
       const input = inputData;
-      let interaction: CoreMessage;
-      if (typeof input === "string") {
-        interaction = { role: "user", content: input };
-      } else {
-        interaction = {
-          role: "user" as const,
-          content: [
-            {
-              type: "image" as const,
-              image: input.image,
-            },
-          ],
-        };
-      }
-
-      try {
-        const res = await agent.generate([interaction], {
-          instructions: `
-          与えられた入力から、あなたの長期記憶とワーキングメモリを元に、
-          ${JSON.stringify(companionCard.events.params, null, 2)}
-          に適切なパラメータを代入して返却してください。
+      const res = await agent.generate(JSON.stringify(input), {
+        instructions: `
+        与えられた入力から、あなたの長期記憶とワーキングメモリを元に、
+        ${JSON.stringify(companionCard.events.params, null, 2)}
+        に適切なパラメータを代入して返却してください。
         `,
-          runtimeContext,
-          resourceId: "main",
-          threadId: "thread",
-          output: outputSchema,
-        });
-        return { output: res.object };
-      } catch (error) {
-        throw new Error(`評価ステップでエラーが発生しました: ${error}`);
-      }
+        runtimeContext,
+        resourceId: "main",
+        threadId: "thread",
+        output: outputSchema,
+      });
+      return { output: res.object };
     },
   });
 }

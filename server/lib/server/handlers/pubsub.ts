@@ -1,13 +1,9 @@
-import {
-  ContextSchema,
-  MessageSchema,
-  MetadataSchema,
-} from "../../../schema/index.ts";
+import { MessageSchema, MetadataSchema } from "../../../schema/index.ts";
 import type { CompanionServer } from "../companionServer.ts";
 
 export const handlePubSubMessage = async (
   self: CompanionServer,
-  message: any,
+  message: CustomEvent,
 ) => {
   const topic = message.detail.topic;
   const fromPeerId = message.detail.from.toString();
@@ -19,12 +15,6 @@ export const handlePubSubMessage = async (
 
   try {
     switch (topic) {
-      case "contexts": {
-        const parsed = ContextSchema.safeParse(data);
-        if (!parsed.success) return;
-        await self.companionAgent.addContext(parsed.data.context);
-        break;
-      }
       case "metadata": {
         const parsed = MetadataSchema.safeParse(data);
         if (!parsed.success) return;

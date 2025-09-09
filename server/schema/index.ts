@@ -38,12 +38,29 @@ export const CompanionSchema = z.object({
 export type CompanionCard = z.infer<typeof CompanionSchema>;
 
 export const MessageSchema = z.object({
-  metadata: z.record(z.string(), z.any()).optional(), // MetadataにKindも入れちゃお～！
+  id: z.string(),
   from: z.string(),
-  to: z.string(),
   message: z.string(),
+  metadata: z.record(z.string(), z.any()).optional(),
 });
 export type Message = z.infer<typeof MessageSchema>;
+
+export const StateSchema = z.object({
+  id: z.string(),
+  messageId: z.string().describe("このstateが対応する元のメッセージのID"),
+  state: z
+    .enum(["speak", "listen"])
+    .describe("次に発言をしたいか、聞く姿勢に入りたいか"),
+  importance: z
+    .number()
+    .min(0)
+    .max(10)
+    .describe("会話の文脈におけるあなたが次にしたい発言の重要度"),
+  selected: z
+    .boolean()
+    .describe("前回の発言者の発言で、あなたに発言を求められているかどうか"),
+});
+export type State = z.infer<typeof StateSchema>;
 
 export const ActionSchema = z.object({
   metadata: z.record(z.string(), z.any()).optional(),
@@ -53,7 +70,11 @@ export const ActionSchema = z.object({
 });
 export type Action = z.infer<typeof ActionSchema>;
 
-export const ContextSchema = z.object({
-  context: z.string(),
+export const MemorySchema = z.object({
+  messages: z.array(
+    z.object({
+      from: z.string().describe("メッセージを送信したコンパニオンのid"),
+      content: z.string().describe("メッセージ内容を要約したもの"),
+    }),
+  ),
 });
-export type Context = z.infer<typeof ContextSchema>;

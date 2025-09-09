@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+export const MessageSchema = z.object({
+  id: z.string(),
+  from: z.string(),
+  message: z.string(),
+  metadata: z.record(z.string(), z.any()).optional(),
+});
+export type Message = z.infer<typeof MessageSchema>;
+
 export const ActionSchema = z.object({
   metadata: z.record(z.string(), z.any()).optional(),
   from: z.string(),
@@ -7,8 +15,3 @@ export const ActionSchema = z.object({
   params: z.record(z.string(), z.any()),
 });
 export type Action = z.infer<typeof ActionSchema>;
-
-export const ContextSchema = z.object({
-  context: z.string(),
-});
-export type Context = z.infer<typeof ContextSchema>;

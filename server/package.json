@@ -6,10 +6,12 @@
     ".": "./index.ts"
   },
   "dependencies": {
+    "@aikyo/utils": "workspace:*",
     "@chainsafe/libp2p-gossipsub": "catalog:",
     "@chainsafe/libp2p-noise": "catalog:",
     "@chainsafe/libp2p-yamux": "catalog:",
     "@libp2p/identify": "^3.0.38",
+    "@libp2p/interface": "^2.11.0",
     "@libp2p/mdns": "^11.0.46",
     "@libp2p/tcp": "catalog:",
     "@mastra/core": "ai-v5",

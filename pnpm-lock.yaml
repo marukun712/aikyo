@@ -42,12 +42,6 @@ catalogs:
     ollama-ai-provider:
       specifier: ^1.2.0
       version: 1.2.0
-    oxlint:
-      specifier: ^1.14.0
-      version: 1.14.0
-    prettier:
-      specifier: ^3.6.2
-      version: 3.6.2
     typescript:
       specifier: ^5.9.2
       version: 5.9.2
@@ -71,12 +65,6 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 24.3.1
-      oxlint:
-        specifier: 'catalog:'
-        version: 1.14.0
-      prettier:
-        specifier: 'catalog:'
-        version: 3.6.2
       tsx:
         specifier: ^4.20.5
         version: 4.20.5
@@ -103,7 +91,7 @@ importers:
         version: link:../server
       '@openrouter/ai-sdk-provider':
         specifier: 'catalog:'
-        version: 1.2.0(ai@5.0.35(zod@3.25.76))(zod@3.25.76)
+        version: 1.2.0(ai@5.0.38(zod@3.25.76))(zod@3.25.76)
       apm_tools:
         specifier: workspace:*
         version: link:../apm_tools
@@ -195,6 +183,9 @@ importers:
 
   server:
     dependencies:
+      '@aikyo/utils':
+        specifier: workspace:*
+        version: link:../packages/utils
       '@chainsafe/libp2p-gossipsub':
         specifier: 'catalog:'
         version: 14.1.1
@@ -207,6 +198,9 @@ importers:
       '@libp2p/identify':
         specifier: ^3.0.38
         version: 3.0.39
+      '@libp2p/interface':
+        specifier: ^2.11.0
+        version: 2.11.0
       '@libp2p/mdns':
         specifier: ^11.0.46
         version: 11.0.47
@@ -275,8 +269,8 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4
 
-  '@ai-sdk/gateway@1.0.19':
-    resolution: {integrity: sha512-TYLxx8Sclr/RdB0RIwGmA8OtJtyJxoPGtrTYgwrbzM2GdtwYtUuA/UIc4tZyCeyR1ujfqjbqiIF3kB54zGRD3A==}
+  '@ai-sdk/gateway@1.0.20':
+    resolution: {integrity: sha512-2K0kGnHyLfT1v2+3xXbLqohfWBJ/vmIh1FTWnrvZfvuUuBdOi2DMgnSQzkLvFVLyM8mhOcx+ZwU6IOOsuyOv/w==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4
@@ -2019,46 +2013,6 @@ packages:
   '@oslojs/encoding@1.1.0':
     resolution: {integrity: sha512-70wQhgYmndg4GCPxPPxPGevRKqTIJ2Nh4OkiMWmDAVYsTQ+Ta7Sq+rPevXyXGdzr30/qZBnyOalCszoMxlyldQ==}
 
-  '@oxlint/darwin-arm64@1.14.0':
-    resolution: {integrity: sha512-rcTw0QWeOc6IeVp+Up7WtcwdS9l4j7TOq4tihF0Ud/fl+VUVdvDCPuZ9QTnLXJhwMXiyQRWdxRyI6XBwf80ncQ==}
-    cpu: [arm64]
-    os: [darwin]
-
-  '@oxlint/darwin-x64@1.14.0':
-    resolution: {integrity: sha512-TWFSEmyl2/DN4HoXNwQl0y/y3EXFJDctfv5MiDtVOV1GJKX80cGSIxMxXb08Q3CCWqteqEijmfSMo5TG8X1H/A==}
-    cpu: [x64]
-    os: [darwin]
-
-  '@oxlint/linux-arm64-gnu@1.14.0':
-    resolution: {integrity: sha512-N1FqdKfwhVWPpMElv8qlGqdEefTbDYaRVhdGWOjs/2f7FESa5vX0cvA7ToqzkoXyXZI5DqByWiPML33njK30Kg==}
-    cpu: [arm64]
-    os: [linux]
-
-  '@oxlint/linux-arm64-musl@1.14.0':
-    resolution: {integrity: sha512-v/BPuiateLBb7Gz1STb69EWjkgKdlPQ1NM56z+QQur21ly2hiMkBX2n0zEhqfu9PQVRUizu6AlsYuzcPY/zsIQ==}
-    cpu: [arm64]
-    os: [linux]
-
-  '@oxlint/linux-x64-gnu@1.14.0':
-    resolution: {integrity: sha512-gUTp8KIrSYt97dn+tRRC3LKnH4xlHKCwrPwiDcGmLbCxojuN9/H5mnIhPKEfwNuZNdoKGS/ABuq3neVyvRCRtQ==}
-    cpu: [x64]
-    os: [linux]
-
-  '@oxlint/linux-x64-musl@1.14.0':
-    resolution: {integrity: sha512-DpN6cW2HPjYXeENG0JBbmubO8LtfKt6qJqEMBw9gUevbyBaX+k+Jn7sYgh6S23wGOkzmTNphBsf/7ulj4nIVYA==}
-    cpu: [x64]
-    os: [linux]
-
-  '@oxlint/win32-arm64@1.14.0':
-    resolution: {integrity: sha512-oXxJksnUTUMgJ0NvjKS1mrCXAy1ttPgIVacRSlxQ+1XHy+aJDMM7I8fsCtoKoEcTIpPaD98eqUqlLYs0H2MGjA==}
-    cpu: [arm64]
-    os: [win32]
-
-  '@oxlint/win32-x64@1.14.0':
-    resolution: {integrity: sha512-iRYy2rhTQKFztyx0jtNMRBnFpzsRwFdjWQ7sKKzJpmbijA3Tw3DCqlGT7QRgoVRF0+X/ccNGvvsrgMohPVfLeQ==}
-    cpu: [x64]
-    os: [win32]
-
   '@pagefind/darwin-arm64@1.4.0':
     resolution: {integrity: sha512-2vMqkbv3lbx1Awea90gTaBsvpzgRs7MuSgKDxW0m9oV1GPZCZbZBJg/qL83GIUEN2BFlY46dtUZi54pwH+/pTQ==}
     cpu: [arm64]
@@ -2960,8 +2914,8 @@ packages:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
 
-  ai@5.0.35:
-    resolution: {integrity: sha512-cXk+jk3MkK1iX0A+EoTQGpwcL8zuNNxFO5SIqOI5DwtR5Dn5h942U97zETvG1eNh75hfoJJ9UOJAm5a2nvs+7Q==}
+  ai@5.0.38:
+    resolution: {integrity: sha512-ocJURGbEXt1DNqurqavs43kBS2tTzWR71nMTWB1UKDswvjrgOLnibLDF/z7SeRV4DGWt8Kc5LWRXfNlBKkht0A==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4
@@ -5177,16 +5131,6 @@ packages:
   openapi-types@12.1.3:
     resolution: {integrity: sha512-N4YtSYJqghVu4iek2ZUvcN/0aqH1kRDuNqzcycDxhOUpg7GdvLa2F3DgS6yBNhInhv2r/6I0Flkn7CqL8+nIcw==}
 
-  oxlint@1.14.0:
-    resolution: {integrity: sha512-oo0nq3zF9hmgATGc9esoMahLuEESOodUxEDeHDA2K7tbYcSfcmReE9G2QNppnq9rOSQHLTwlMtzGAjjttYaufQ==}
-    engines: {node: '>=8.*'}
-    hasBin: true
-    peerDependencies:
-      oxlint-tsgolint: '>=0.1.5'
-    peerDependenciesMeta:
-      oxlint-tsgolint:
-        optional: true
-
   p-defer@4.0.1:
     resolution: {integrity: sha512-Mr5KC5efvAK5VUptYEIopP1bakB85k2IWXaRC0rsh1uwn1L6M0LVml8OIQ4Gudg4oyZakf7FmeRLkMMtZW1i5A==}
     engines: {node: '>=12'}
@@ -6631,7 +6575,7 @@ snapshots:
       '@ai-sdk/provider-utils': 3.0.5(zod@3.25.76)
       zod: 3.25.76
 
-  '@ai-sdk/gateway@1.0.19(zod@3.25.76)':
+  '@ai-sdk/gateway@1.0.20(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
       '@ai-sdk/provider-utils': 3.0.8(zod@3.25.76)
@@ -8569,7 +8513,7 @@ snapshots:
       '@ai-sdk/provider': 2.0.0
       '@ai-sdk/provider-utils': 3.0.8(zod@3.25.76)
       '@ai-sdk/ui-utils': 1.2.11(zod@3.25.76)
-      '@mastra/schema-compat': 0.0.0-ai-v5-20250813235735(ai@5.0.35(zod@3.25.76))(zod@3.25.76)
+      '@mastra/schema-compat': 0.0.0-ai-v5-20250813235735(ai@5.0.38(zod@3.25.76))(zod@3.25.76)
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/auto-instrumentations-node': 0.62.2(@opentelemetry/api@1.9.0)(@opentelemetry/core@2.1.0(@opentelemetry/api@1.9.0))
       '@opentelemetry/core': 2.1.0(@opentelemetry/api@1.9.0)
@@ -8584,7 +8528,7 @@ snapshots:
       '@opentelemetry/sdk-trace-node': 2.1.0(@opentelemetry/api@1.9.0)
       '@opentelemetry/semantic-conventions': 1.37.0
       '@sindresorhus/slugify': 2.2.1
-      ai: 5.0.35(zod@3.25.76)
+      ai: 5.0.38(zod@3.25.76)
       cohere-ai: 7.18.1
       date-fns: 3.6.0
       dotenv: 16.6.1
@@ -8681,9 +8625,9 @@ snapshots:
   '@mastra/memory@0.0.0-ai-v5-20250813235735(@mastra/core@0.0.0-ai-v5-20250813235735(openapi-types@12.1.3)(zod@3.25.76))':
     dependencies:
       '@mastra/core': 0.0.0-ai-v5-20250813235735(openapi-types@12.1.3)(zod@3.25.76)
-      '@mastra/schema-compat': 0.0.0-ai-v5-20250813235735(ai@5.0.35(zod@3.25.76))(zod@3.25.76)
+      '@mastra/schema-compat': 0.0.0-ai-v5-20250813235735(ai@5.0.38(zod@3.25.76))(zod@3.25.76)
       '@upstash/redis': 1.35.3
-      ai: 5.0.35(zod@3.25.76)
+      ai: 5.0.38(zod@3.25.76)
       async-mutex: 0.5.0
       js-tiktoken: 1.0.21
       json-schema: 0.4.0
@@ -8697,9 +8641,9 @@ snapshots:
     transitivePeerDependencies:
       - pg-native
 
-  '@mastra/schema-compat@0.0.0-ai-v5-20250813235735(ai@5.0.35(zod@3.25.76))(zod@3.25.76)':
+  '@mastra/schema-compat@0.0.0-ai-v5-20250813235735(ai@5.0.38(zod@3.25.76))(zod@3.25.76)':
     dependencies:
-      ai: 5.0.35(zod@3.25.76)
+      ai: 5.0.38(zod@3.25.76)
       json-schema: 0.4.0
       zod: 3.25.76
       zod-from-json-schema: 0.0.5
@@ -8824,9 +8768,9 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.19.1
 
-  '@openrouter/ai-sdk-provider@1.2.0(ai@5.0.35(zod@3.25.76))(zod@3.25.76)':
+  '@openrouter/ai-sdk-provider@1.2.0(ai@5.0.38(zod@3.25.76))(zod@3.25.76)':
     dependencies:
-      ai: 5.0.35(zod@3.25.76)
+      ai: 5.0.38(zod@3.25.76)
       zod: 3.25.76
 
   '@opentelemetry/api-logs@0.203.0':
@@ -9545,30 +9489,6 @@ snapshots:
       magic-string: 0.30.18
 
   '@oslojs/encoding@1.1.0': {}
-
-  '@oxlint/darwin-arm64@1.14.0':
-    optional: true
-
-  '@oxlint/darwin-x64@1.14.0':
-    optional: true
-
-  '@oxlint/linux-arm64-gnu@1.14.0':
-    optional: true
-
-  '@oxlint/linux-arm64-musl@1.14.0':
-    optional: true
-
-  '@oxlint/linux-x64-gnu@1.14.0':
-    optional: true
-
-  '@oxlint/linux-x64-musl@1.14.0':
-    optional: true
-
-  '@oxlint/win32-arm64@1.14.0':
-    optional: true
-
-  '@oxlint/win32-x64@1.14.0':
-    optional: true
 
   '@pagefind/darwin-arm64@1.4.0':
     optional: true
@@ -10499,7 +10419,7 @@ snapshots:
 
   '@types/sax@1.2.7':
     dependencies:
-      '@types/node': 17.0.45
+      '@types/node': 24.3.1
 
   '@types/send@0.17.5':
     dependencies:
@@ -10586,9 +10506,9 @@ snapshots:
 
   agent-base@7.1.4: {}
 
-  ai@5.0.35(zod@3.25.76):
+  ai@5.0.38(zod@3.25.76):
     dependencies:
-      '@ai-sdk/gateway': 1.0.19(zod@3.25.76)
+      '@ai-sdk/gateway': 1.0.20(zod@3.25.76)
       '@ai-sdk/provider': 2.0.0
       '@ai-sdk/provider-utils': 3.0.8(zod@3.25.76)
       '@opentelemetry/api': 1.9.0
@@ -13599,17 +13519,6 @@ snapshots:
       is-wsl: 2.2.0
 
   openapi-types@12.1.3: {}
-
-  oxlint@1.14.0:
-    optionalDependencies:
-      '@oxlint/darwin-arm64': 1.14.0
-      '@oxlint/darwin-x64': 1.14.0
-      '@oxlint/linux-arm64-gnu': 1.14.0
-      '@oxlint/linux-arm64-musl': 1.14.0
-      '@oxlint/linux-x64-gnu': 1.14.0
-      '@oxlint/linux-x64-musl': 1.14.0
-      '@oxlint/win32-arm64': 1.14.0
-      '@oxlint/win32-x64': 1.14.0
 
   p-defer@4.0.1: {}
 
