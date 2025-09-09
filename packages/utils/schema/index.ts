@@ -3,6 +3,7 @@ import { z } from "zod";
 export const MessageSchema = z.object({
   id: z.string(),
   from: z.string(),
+  to: z.array(z.string()),
   message: z.string(),
   metadata: z.record(z.string(), z.any()).optional(),
 });

@@ -6,12 +6,18 @@ export const speakTool = createCompanionAction({
   description: "発言する。",
   inputSchema: z.object({
     message: z.string(),
+    to: z
+      .array(z.string())
+      .describe(
+        "このメッセージの宛先。必ずコンパニオンのidを指定してください。",
+      ),
   }),
   topic: "messages",
-  publish: ({ message }, id) => {
+  publish: ({ message, to }, id) => {
     return {
       id: crypto.randomUUID(),
       from: id,
+      to,
       message,
     };
   },
