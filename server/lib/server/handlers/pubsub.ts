@@ -1,4 +1,4 @@
-import type { GossipsubEvents } from "@chainsafe/libp2p-gossipsub";
+import type { PubSubEvents } from "@libp2p/interface";
 import {
   ContextSchema,
   MessageSchema,
@@ -8,10 +8,13 @@ import type { CompanionServer } from "../companionServer.ts";
 
 export const handlePubSubMessage = async (
   self: CompanionServer,
-  message: GossipsubEvents["message"],
+  message: PubSubEvents["message"],
 ) => {
   const topic = message.detail.topic;
-  const fromPeerId = message.detail.from.toString();
+  const fromPeerId =
+    message.detail.type === "signed"
+      ? message.detail.from.toString()
+      : undefined;
 
   console.log(`Received message on topic ${topic} from ${fromPeerId}`);
 
@@ -29,6 +32,10 @@ export const handlePubSubMessage = async (
       case "metadata": {
         const parsed = MetadataSchema.safeParse(data);
         if (!parsed.success) return;
+        if (!fromPeerId) {
+          console.warn("Received metadata without sender; ignoring.");
+          return;
+        }
         if (fromPeerId === self.libp2p.peerId.toString()) return;
         if (self.companionList.has(fromPeerId)) return;
         self.companionList.set(fromPeerId, parsed.data);

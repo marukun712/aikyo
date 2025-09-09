@@ -3,6 +3,11 @@
   "type": "module",
   "version": "1.0.0",
   "license": "MIT",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": "./index.ts"
+  },
   "dependencies": {
     "@chainsafe/libp2p-gossipsub": "catalog:",
     "@libp2p/identify": "^3.0.38",
