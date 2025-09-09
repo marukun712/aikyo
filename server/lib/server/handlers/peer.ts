@@ -1,19 +1,23 @@
-import type { PeerId } from "@libp2p/interface";
+import {
+  type IdentifyResult,
+  type PeerId,
+  UnsupportedProtocolError,
+} from "@libp2p/interface";
 import type { CompanionServer } from "../companionServer.ts";
+import { requestMetadata } from "./metadata.ts";
 
 export const onPeerConnect = async (
   self: CompanionServer,
-  evt: CustomEvent<PeerId>,
+  evt: CustomEvent<IdentifyResult>,
 ) => {
   try {
-    console.log(`Peer connected: ${evt.detail.toString()}`);
-    const metadataMsg = JSON.stringify(self.companion.metadata);
-    await self.libp2p.services.pubsub.publish(
-      "metadata",
-      new TextEncoder().encode(metadataMsg),
-    );
+    const peerId = evt.detail.peerId;
+    console.log(`Peer connected: ${peerId.toString()}`);
+    await requestMetadata(self, peerId);
   } catch (e) {
-    console.error("Error during peer connection:", e);
+    if (!(e instanceof UnsupportedProtocolError)) {
+      console.error("Error during peer connection:", e);
+    }
   }
 };
 
@@ -29,18 +33,5 @@ export const onPeerDisconnect = async (
     self.companionList.delete(peerIdStr);
   } catch (e) {
     console.error(e);
-  }
-};
-
-export const publishInitialMetadata = async (self: CompanionServer) => {
-  try {
-    const metadataMsg = JSON.stringify(self.companion.metadata);
-    await self.libp2p.services.pubsub.publish(
-      "metadata",
-      new TextEncoder().encode(metadataMsg),
-    );
-    console.log("Initial metadata published");
-  } catch (e) {
-    console.error("Error publishing initial metadata:", e);
   }
 };

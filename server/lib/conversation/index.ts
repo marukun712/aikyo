@@ -1,21 +1,16 @@
-import type { Message, Metadata, State } from "../../schema/index.ts";
+import type { Message, State } from "../../schema/index.ts";
 import { arrayToSet, setsAreEqual } from "../../utils/array.ts";
 import type { CompanionAgent } from "../agents/index.ts";
 
 export class TurnTakingManager {
   private companionAgent: CompanionAgent;
-  private companionList: Map<string, Metadata>;
   private pending: Map<
     string,
     { participants: Set<string>; message: Message; states: State[] }
   >;
 
-  constructor(
-    companionAgent: CompanionAgent,
-    companionList: Map<string, Metadata>,
-  ) {
+  constructor(companionAgent: CompanionAgent) {
     this.companionAgent = companionAgent;
-    this.companionList = companionList;
     this.pending = new Map();
   }
 
@@ -37,7 +32,6 @@ export class TurnTakingManager {
     const pending = this.pending.get(messageId);
     if (!pending) return;
     pending.states.push(state);
-    console.log(pending.states, this.companionList.size);
     console.log(
       `State received for message ${messageId}. Total states: ${pending.states.length}`,
     );

@@ -33,7 +33,6 @@ libp2p.addEventListener("peer:discovery", (evt) => {
 });
 
 libp2p.services.pubsub.subscribe("messages");
-libp2p.services.pubsub.subscribe("states");
 libp2p.services.pubsub.subscribe("actions");
 
 const port = Number(process.env.FIREHOSE_PORT || 8080);

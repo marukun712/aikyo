@@ -3,7 +3,7 @@ import { gossipsub } from "@chainsafe/libp2p-gossipsub";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
 import { identify } from "@libp2p/identify";
-import type { Message, PeerId } from "@libp2p/interface";
+import type { IdentifyResult, Message, PeerId } from "@libp2p/interface";
 import { mdns } from "@libp2p/mdns";
 import { tcp } from "@libp2p/tcp";
 import type { Libp2p } from "libp2p";
@@ -17,10 +17,10 @@ import type { CompanionAgent } from "../agents/index.ts";
 
 import { TurnTakingManager } from "../conversation/index.ts";
 import {
-  onPeerConnect,
-  onPeerDisconnect,
-  publishInitialMetadata,
-} from "./handlers/peer.ts";
+  handleMetadataProtocol,
+  METADATA_PROTOCOL,
+} from "./handlers/metadata.ts";
+import { onPeerConnect, onPeerDisconnect } from "./handlers/peer.ts";
 import { handlePubSubMessage } from "./handlers/pubsub.ts";
 
 export interface ICompanionServer {
@@ -42,10 +42,8 @@ export class CompanionServer implements ICompanionServer {
   constructor(companionAgent: CompanionAgent) {
     this.companionAgent = companionAgent;
     this.companion = companionAgent.companion;
-    this.turnTakingManager = new TurnTakingManager(
-      this.companionAgent,
-      this.companionList,
-    );
+    this.turnTakingManager = new TurnTakingManager(this.companionAgent);
+    this.companionList.set(this.companion.metadata.id, this.companion.metadata);
   }
 
   private async setupLibp2p() {
@@ -58,6 +56,7 @@ export class CompanionServer implements ICompanionServer {
       services: {
         pubsub: gossipsub({
           allowPublishToZeroTopicPeers: true,
+          emitSelf: true,
         }),
         identify: identify(),
       },
@@ -70,7 +69,6 @@ export class CompanionServer implements ICompanionServer {
     });
 
     this.libp2p.services.pubsub.subscribe("messages");
-    this.libp2p.services.pubsub.subscribe("metadata");
     this.libp2p.services.pubsub.subscribe("states");
 
     this.libp2p.services.pubsub.addEventListener(
@@ -78,9 +76,13 @@ export class CompanionServer implements ICompanionServer {
       (evt: CustomEvent<Message>) => handlePubSubMessage(this, evt),
     );
 
+    await this.libp2p.handle(METADATA_PROTOCOL, (data) =>
+      handleMetadataProtocol(this, data),
+    );
+
     this.libp2p.addEventListener(
-      "peer:connect",
-      async (evt: CustomEvent<PeerId>) => onPeerConnect(this, evt),
+      "peer:identify",
+      async (evt: CustomEvent<IdentifyResult>) => onPeerConnect(this, evt),
     );
     this.libp2p.addEventListener(
       "peer:disconnect",
@@ -88,16 +90,15 @@ export class CompanionServer implements ICompanionServer {
     );
     this.companionAgent.runtimeContext.set("libp2p", this.libp2p);
     this.companionAgent.runtimeContext.set("companions", this.companionList);
-    await publishInitialMetadata(this);
   }
 
   async handleMessageReceived(message: AikyoMessage) {
+    this.turnTakingManager.addPending(message);
     const state = await this.companionAgent.generateState(message);
     this.libp2p.services.pubsub.publish(
       "states",
       new TextEncoder().encode(JSON.stringify(state)),
     );
-    this.turnTakingManager.addPending(message);
   }
 
   async start() {
