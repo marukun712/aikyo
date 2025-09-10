@@ -1,21 +1,30 @@
+import {
+  type IdentifyResult,
+  type PeerId,
+  UnsupportedProtocolError,
+} from "@libp2p/interface";
 import type { CompanionServer } from "../companionServer.ts";
-import { GOSSIPSUB_INIT_DELAY, PEER_CONNECT_DELAY } from "../constants.ts";
+import { requestMetadata } from "./metadata.ts";
 
-export const onPeerConnect = async (self: CompanionServer, evt: any) => {
+export const onPeerConnect = async (
+  self: CompanionServer,
+  evt: CustomEvent<IdentifyResult>,
+) => {
   try {
-    console.log(`Peer connected: ${evt.detail.toString()}`);
-    await new Promise((resolve) => setTimeout(resolve, PEER_CONNECT_DELAY));
-    const metadataMsg = JSON.stringify(self.companion.metadata);
-    await self.libp2p.services.pubsub.publish(
-      "metadata",
-      new TextEncoder().encode(metadataMsg),
-    );
+    const peerId = evt.detail.peerId;
+    console.log(`Peer connected: ${peerId.toString()}`);
+    await requestMetadata(self, peerId);
   } catch (e) {
-    console.error("Error during peer connection:", e);
+    if (!(e instanceof UnsupportedProtocolError)) {
+      console.error("Error during peer connection:", e);
+    }
   }
 };
 
-export const onPeerDisconnect = async (self: CompanionServer, evt: any) => {
+export const onPeerDisconnect = async (
+  self: CompanionServer,
+  evt: CustomEvent<PeerId>,
+) => {
   try {
     const peerIdStr = evt.detail.toString();
     const metadata = self.companionList.get(peerIdStr);
@@ -25,19 +34,4 @@ export const onPeerDisconnect = async (self: CompanionServer, evt: any) => {
   } catch (e) {
     console.error(e);
   }
-};
-
-export const publishInitialMetadata = async (self: CompanionServer) => {
-  setTimeout(async () => {
-    try {
-      const metadataMsg = JSON.stringify(self.companion.metadata);
-      await self.libp2p.services.pubsub.publish(
-        "metadata",
-        new TextEncoder().encode(metadataMsg),
-      );
-      console.log("Initial metadata published");
-    } catch (e) {
-      console.error("Error publishing initial metadata:", e);
-    }
-  }, GOSSIPSUB_INIT_DELAY);
 };

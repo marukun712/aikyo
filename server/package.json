@@ -6,10 +6,12 @@
     ".": "./index.ts"
   },
   "dependencies": {
+    "@aikyo/utils": "workspace:*",
     "@chainsafe/libp2p-gossipsub": "catalog:",
     "@chainsafe/libp2p-noise": "catalog:",
     "@chainsafe/libp2p-yamux": "catalog:",
     "@libp2p/identify": "^3.0.38",
+    "@libp2p/interface": "^2.11.0",
     "@libp2p/mdns": "^11.0.46",
     "@libp2p/tcp": "catalog:",
     "@mastra/core": "ai-v5",
@@ -18,6 +20,7 @@
     "@mastra/mcp": "ai-v5",
     "@mastra/memory": "ai-v5",
     "cel-js": "catalog:",
+    "dotenv": "^17.2.2",
     "helia": "catalog:",
     "libp2p": "2.9.0",
     "zod": "catalog:",

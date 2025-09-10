@@ -21,7 +21,9 @@ try {
 }
 
 if (!availableConfigs.includes(configName)) {
-  console.error(`Config "${configName}" not found. Available: ${availableConfigs.join(", ")}`);
+  console.error(
+    `Config "${configName}" not found. Available: ${availableConfigs.join(", ")}`,
+  );
   process.exit(1);
 }
 

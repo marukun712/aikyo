@@ -1,21 +1,10 @@
+import { anthropic } from "@ai-sdk/anthropic";
 import {
   CompanionAgent,
   type CompanionCard,
   CompanionServer,
 } from "@aikyo/server";
-// import { anthropic } from "@ai-sdk/anthropic";
-// import { google } from "@ai-sdk/google";
-import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-import {
-  companionNetworkKnowledge,
-  contextAction,
-} from "apm_tools/core/index.ts";
-import { environmentDBKnowledge } from "apm_tools/environment-db/index.ts";
-import { motionDBGestureAction } from "apm_tools/motion-db/index.ts";
-
-const openrouter = createOpenRouter({
-  apiKey: process.env.OPENROUTER_API_KEY,
-});
+import { companionNetworkKnowledge, speakTool } from "apm_tools/core/index.ts";
 
 const story = `
 # 倉本千奈 キャラクターストーリー設定
@@ -227,8 +216,8 @@ export const companionCard: CompanionCard = {
     sample: "わたくし、学園最下位のアイドルなのですけれど！？",
   },
   role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。キャラクター設定に忠実にロールプレイしてください。",
-  actions: { motionDBGestureAction, contextAction },
-  knowledge: { environmentDBKnowledge, companionNetworkKnowledge },
+  actions: { speakTool },
+  knowledge: { companionNetworkKnowledge },
   events: {
     params: {
       title: "あなたが判断すべきパラメータ",
@@ -239,30 +228,16 @@ export const companionCard: CompanionCard = {
           description: "ジェスチャーで表現したいものがあるかどうか",
           type: "boolean",
         },
-        need_context: {
-          description: "周囲に伝えるべき話題があるかどうか。",
-          type: "boolean",
-        },
       },
-      required: ["need_gesture", "need_context"],
+      required: ["need_gesture"],
     },
     conditions: [
       {
-        expression: "need_gesture === true",
+        expression: "true",
         execute: [
           {
-            instruction: "ジェスチャーで体の動きを表現する。",
-            tool: motionDBGestureAction,
-          },
-        ],
-      },
-      {
-        expression: "need_context === true",
-        execute: [
-          {
-            instruction:
-              "周囲のコンパニオンに今から自分がどんな話題を提供するか、またはどんな話題を話しているかを周知する。",
-            tool: contextAction,
+            instruction: "ツールを使って返信する。",
+            tool: speakTool,
           },
         ],
       },
@@ -272,7 +247,7 @@ export const companionCard: CompanionCard = {
 
 const companion = new CompanionAgent(
   companionCard,
-  openrouter("google/gemini-2.0-flash-001"),
+  anthropic("claude-3-5-haiku-latest"),
 );
 const server = new CompanionServer(companion);
 await server.start();
