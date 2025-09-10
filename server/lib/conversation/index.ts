@@ -2,7 +2,12 @@ import type { Message, State } from "../../schema/index.ts";
 import { arrayToSet, setsAreEqual } from "../../utils/array.ts";
 import type { CompanionAgent } from "../agents/index.ts";
 
-export class TurnTakingManager {
+export interface ITurnTakingManager {
+  addPending(message: Message): Promise<void>;
+  handleStateReceived(state: State): Promise<void>;
+}
+
+export class TurnTakingManager implements ITurnTakingManager {
   private companionAgent: CompanionAgent;
   private pending: Map<
     string,
@@ -37,7 +42,7 @@ export class TurnTakingManager {
     );
     const voted = new Set<string>();
     pending.states.forEach((state) => {
-      voted.add(state.id);
+      voted.add(state.from);
     });
     //参加者全員の投票が集まった場合
     if (setsAreEqual(voted, pending.participants)) {
@@ -71,13 +76,20 @@ export class TurnTakingManager {
 
   private async executeSpeaker(messageId: string, speaker: State) {
     console.log(
-      `Speaker selected: ${speaker.id} (importance: ${speaker.importance})`,
+      `Speaker selected: ${speaker.from} (importance: ${speaker.importance})`,
     );
-    if (speaker.id === this.companionAgent.companion.metadata.id) {
+    if (speaker.from === this.companionAgent.companion.metadata.id) {
       try {
         console.log("I was selected to speak. Executing input logic...");
         const pending = this.pending.get(messageId);
         if (pending) {
+          const myState = pending.states.find((state) => {
+            return state.from === this.companionAgent.companion.metadata.id;
+          });
+          if (myState && myState.closing === "terminal") {
+            console.log("The conversation is over.");
+            return;
+          }
           await new Promise<void>((resolve) => {
             setTimeout(() => {
               resolve();

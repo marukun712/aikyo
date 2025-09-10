@@ -21,6 +21,8 @@ export interface ICompanionAgent {
   memory: Memory;
   runtimeContext: RuntimeContext;
   run: Run;
+  count: number;
+  maxTurn: number | null;
 
   generateToolInstruction(input: Message): Promise<string>;
   generateState(message: Message): Promise<State>;
@@ -33,8 +35,14 @@ export class CompanionAgent implements ICompanionAgent {
   memory: Memory;
   runtimeContext: RuntimeContext;
   run: Run;
+  count: number;
+  maxTurn: number | null;
 
-  constructor(companion: CompanionCard, model: LanguageModel) {
+  constructor(
+    companion: CompanionCard,
+    model: LanguageModel,
+    config?: { maxTurn: number | null },
+  ) {
     // コンパニオンを初期化
     this.companion = companion;
 
@@ -91,6 +99,9 @@ export class CompanionAgent implements ICompanionAgent {
 
     // スレッドを作成
     this.memory.createThread({ resourceId: "main", threadId: "thread" });
+
+    this.count = 0;
+    this.maxTurn = config ? config.maxTurn : null;
   }
 
   async generateToolInstruction(input: Message) {
@@ -104,13 +115,19 @@ export class CompanionAgent implements ICompanionAgent {
     ${JSON.stringify(message, null, 2)}
     
     以下の状態情報をJSON形式で返してください:
-    - id: あなたのID
+    - from: あなたのID
     - messageId: 処理するメッセージのid
     - state: "speak" または "listen" (次に発言したいか、聞く姿勢に入りたいか)
     - importance: 0-10の数値 (会話の文脈におけるあなたが次にしたい発言の重要度)
     - selected: boolean (前回の発言者の発言で、あなたに発言を求められているかどうか)
+    - closing ("none", "pre-closing", "closing", "terminal")
+      - none: 会話継続
+      - pre-closing: 会話を終わりに向ける布石
+      - closing: クロージング表現（感謝・挨拶など）
+      - terminal: 最後の別れの挨拶
 
     重要:この判断は、キャラクターとしてではなく、あなたとして今までの会話の文脈を冷静に分析して判断してください。
+    最重要:あなたは積極的に会話をpre-closingにします。pre-closingにしたら、すぐにclosing,terminalと続けます。
     `;
     const res = await this.agent.generate(statePrompt, {
       runtimeContext: this.runtimeContext,
@@ -118,6 +135,21 @@ export class CompanionAgent implements ICompanionAgent {
       resourceId: "main",
       threadId: "thread",
     });
+
+    //ターン上限が設けられている場合;
+    if (this.maxTurn) {
+      //会話が終了したらターンカウントを0に
+      if (res.object.closing === "terminal") {
+        this.count = 0;
+        //ターン上限を超えたら
+      } else if (this.count >= this.maxTurn) {
+        //強制的に会話終了の意思表示
+        res.object.closing = "terminal";
+        this.count = 0;
+      } else {
+        this.count++;
+      }
+    }
     return res.object;
   }
 
