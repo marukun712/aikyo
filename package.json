@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "companion": "tsx ./scripts/companion.ts",
-    "firehose": "tsx ./scripts/firehose.ts",
+    "firehose": "tsx packages/firehose/index.ts",
     "format": "biome format ./",
     "format:fix": "biome format --write ./",
     "lint": "biome lint ./",
