@@ -106,5 +106,10 @@ export class Firehose {
 
 if (import.meta.main) {
   const firehose = new Firehose(8080);
-  await firehose.start();
+  try {
+    await firehose.start();
+  } catch (err) {
+    console.error("Failed to start firehose:", err);
+    process.exit(1);
+  }
 }
