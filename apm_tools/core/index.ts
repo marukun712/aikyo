@@ -9,7 +9,7 @@ export const speakTool = createCompanionAction({
     to: z
       .array(z.string())
       .describe(
-        "このメッセージの宛先。必ずコンパニオンのidを指定してください。",
+        "このメッセージの宛先。必ずコンパニオンのidを指定してください。特定のコンパニオンに個人的に話しかけたいとき以外は、必ず、会話に参加したことのある全員を含むようにしてください。",
       ),
   }),
   topic: "messages",

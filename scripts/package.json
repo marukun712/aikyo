@@ -1,11 +1,10 @@
 {
-  "name": "apm_tools",
+  "name": "scripts",
   "type": "module",
   "version": "1.0.0",
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "zod": "catalog:",
-    "@aikyo/utils": "workspace:*"
+    "@aikyo/firehose": "workspace:*"
   }
 }

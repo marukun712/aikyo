@@ -1,12 +1,9 @@
 {
   "name": "@aikyo/server",
-  "version": "1.0.0",
   "type": "module",
-  "exports": {
-    ".": "./index.ts"
-  },
+  "version": "1.0.0",
+  "license": "MIT",
   "dependencies": {
-    "@aikyo/utils": "workspace:*",
     "@chainsafe/libp2p-gossipsub": "catalog:",
     "@chainsafe/libp2p-noise": "catalog:",
     "@chainsafe/libp2p-yamux": "catalog:",
@@ -30,8 +27,5 @@
     "@types/node": "catalog:",
     "mastra": "ai-v5",
     "typescript": "catalog:"
-  },
-  "engines": {
-    "node": ">=20.9.0"
   }
 }

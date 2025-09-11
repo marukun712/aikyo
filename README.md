@@ -26,12 +26,12 @@ pnpm i
 
 firehoseサーバーを起動します。
 ```bash
-task firehose
+pnpm run firehose
 ```
 
 コンパニオン名を指定してコンパニオンを起動します。
 ```bash
-task run -- companion_name
+pnpm run companion companion_name
 ```
 
 ## License

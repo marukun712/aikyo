@@ -1,4 +1,3 @@
-import type { Services } from "@aikyo/utils";
 import { gossipsub } from "@chainsafe/libp2p-gossipsub";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
@@ -22,6 +21,11 @@ import {
 } from "./handlers/metadata.ts";
 import { onPeerConnect, onPeerDisconnect } from "./handlers/peer.ts";
 import { handlePubSubMessage } from "./handlers/pubsub.ts";
+
+export type Services = {
+  pubsub: ReturnType<ReturnType<typeof gossipsub>>;
+  identify: ReturnType<ReturnType<typeof identify>>;
+};
 
 export interface ICompanionServer {
   companionAgent: CompanionAgent;

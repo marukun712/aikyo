@@ -19,7 +19,8 @@ const fetcher = new MotionDBFetcher("http://localhost:3000");
 
 export const motionDBGestureAction = createCompanionAction({
   id: "motion-db-gesture",
-  description: "MotionDBからあなたの表現したい動きにあったモーションを取得して再生します。",
+  description:
+    "MotionDBからあなたの表現したい動きにあったモーションを取得して再生します。",
   inputSchema: z.object({
     prompt: z.string().describe("promptは必ず英語1,2単語で記述してください。"),
   }),
