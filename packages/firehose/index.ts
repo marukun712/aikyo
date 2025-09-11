@@ -100,6 +100,11 @@ export class Firehose {
       }
     });
 
-    console.log(`WebSocket server running on ws://localhost:${this.port}`);
+    console.log(`aikyo firehose server running on ws://localhost:${this.port}`);
   }
+}
+
+if (import.meta.main) {
+  const firehose = new Firehose(8080);
+  await firehose.start();
 }
