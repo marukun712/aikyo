@@ -88,10 +88,10 @@ importers:
         version: 2.0.8(zod@3.25.76)
       '@aikyo/server':
         specifier: workspace:*
-        version: link:../server
+        version: link:../packages/server
       '@openrouter/ai-sdk-provider':
         specifier: 'catalog:'
-        version: 1.2.0(ai@5.0.38(zod@3.25.76))(zod@3.25.76)
+        version: 1.2.0(ai@5.0.39(zod@3.25.76))(zod@3.25.76)
       apm_tools:
         specifier: workspace:*
         version: link:../apm_tools
@@ -117,11 +117,8 @@ importers:
         specifier: ^0.34.2
         version: 0.34.3
 
-  firehose:
+  packages/firehose:
     dependencies:
-      '@aikyo/server':
-        specifier: workspace:*
-        version: link:../server
       '@chainsafe/libp2p-gossipsub':
         specifier: 'catalog:'
         version: 14.1.1
@@ -140,9 +137,6 @@ importers:
       '@libp2p/tcp':
         specifier: 'catalog:'
         version: 10.1.19
-      dotenv:
-        specifier: ^17.2.2
-        version: 17.2.2
       helia:
         specifier: 'catalog:'
         version: 5.5.1(react-native@0.81.1(@babel/core@7.28.4)(react@19.1.1))
@@ -166,32 +160,8 @@ importers:
         specifier: 'catalog:'
         version: 8.18.1
 
-  packages/utils:
+  packages/server:
     dependencies:
-      '@chainsafe/libp2p-gossipsub':
-        specifier: 'catalog:'
-        version: 14.1.1
-      '@libp2p/identify':
-        specifier: ^3.0.38
-        version: 3.0.39
-      '@mastra/core':
-        specifier: ai-v5
-        version: 0.0.0-ai-v5-20250813235735(openapi-types@12.1.3)(zod@3.25.76)
-      libp2p:
-        specifier: 2.9.0
-        version: 2.9.0
-      typescript:
-        specifier: ^5
-        version: 5.9.2
-      zod:
-        specifier: 'catalog:'
-        version: 3.25.76
-
-  server:
-    dependencies:
-      '@aikyo/utils':
-        specifier: workspace:*
-        version: link:../packages/utils
       '@chainsafe/libp2p-gossipsub':
         specifier: 'catalog:'
         version: 14.1.1
@@ -256,6 +226,33 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: 5.9.2
+
+  packages/utils:
+    dependencies:
+      '@chainsafe/libp2p-gossipsub':
+        specifier: 'catalog:'
+        version: 14.1.1
+      '@libp2p/identify':
+        specifier: ^3.0.38
+        version: 3.0.39
+      '@mastra/core':
+        specifier: ai-v5
+        version: 0.0.0-ai-v5-20250813235735(openapi-types@12.1.3)(zod@3.25.76)
+      libp2p:
+        specifier: 2.9.0
+        version: 2.9.0
+      typescript:
+        specifier: ^5
+        version: 5.9.2
+      zod:
+        specifier: 'catalog:'
+        version: 3.25.76
+
+  scripts:
+    dependencies:
+      '@aikyo/firehose':
+        specifier: workspace:*
+        version: link:../packages/firehose
 
 packages:
 
@@ -2923,8 +2920,8 @@ packages:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
 
-  ai@5.0.38:
-    resolution: {integrity: sha512-ocJURGbEXt1DNqurqavs43kBS2tTzWR71nMTWB1UKDswvjrgOLnibLDF/z7SeRV4DGWt8Kc5LWRXfNlBKkht0A==}
+  ai@5.0.39:
+    resolution: {integrity: sha512-1AOjTHY8MUY4T/X/I+otGTbvKmMQCCGWffuVDyQ21l/2Vv/QoLZcw+ZZHVvp+wvQcPOsfXjURGSFZtin7rnghA==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4
@@ -8526,7 +8523,7 @@ snapshots:
       '@ai-sdk/provider': 2.0.0
       '@ai-sdk/provider-utils': 3.0.8(zod@3.25.76)
       '@ai-sdk/ui-utils': 1.2.11(zod@3.25.76)
-      '@mastra/schema-compat': 0.0.0-ai-v5-20250813235735(ai@5.0.38(zod@3.25.76))(zod@3.25.76)
+      '@mastra/schema-compat': 0.0.0-ai-v5-20250813235735(ai@5.0.39(zod@3.25.76))(zod@3.25.76)
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/auto-instrumentations-node': 0.62.2(@opentelemetry/api@1.9.0)(@opentelemetry/core@2.1.0(@opentelemetry/api@1.9.0))
       '@opentelemetry/core': 2.1.0(@opentelemetry/api@1.9.0)
@@ -8541,7 +8538,7 @@ snapshots:
       '@opentelemetry/sdk-trace-node': 2.1.0(@opentelemetry/api@1.9.0)
       '@opentelemetry/semantic-conventions': 1.37.0
       '@sindresorhus/slugify': 2.2.1
-      ai: 5.0.38(zod@3.25.76)
+      ai: 5.0.39(zod@3.25.76)
       cohere-ai: 7.18.1
       date-fns: 3.6.0
       dotenv: 16.6.1
@@ -8638,9 +8635,9 @@ snapshots:
   '@mastra/memory@0.0.0-ai-v5-20250813235735(@mastra/core@0.0.0-ai-v5-20250813235735(openapi-types@12.1.3)(zod@3.25.76))':
     dependencies:
       '@mastra/core': 0.0.0-ai-v5-20250813235735(openapi-types@12.1.3)(zod@3.25.76)
-      '@mastra/schema-compat': 0.0.0-ai-v5-20250813235735(ai@5.0.38(zod@3.25.76))(zod@3.25.76)
+      '@mastra/schema-compat': 0.0.0-ai-v5-20250813235735(ai@5.0.39(zod@3.25.76))(zod@3.25.76)
       '@upstash/redis': 1.35.3
-      ai: 5.0.38(zod@3.25.76)
+      ai: 5.0.39(zod@3.25.76)
       async-mutex: 0.5.0
       js-tiktoken: 1.0.21
       json-schema: 0.4.0
@@ -8654,9 +8651,9 @@ snapshots:
     transitivePeerDependencies:
       - pg-native
 
-  '@mastra/schema-compat@0.0.0-ai-v5-20250813235735(ai@5.0.38(zod@3.25.76))(zod@3.25.76)':
+  '@mastra/schema-compat@0.0.0-ai-v5-20250813235735(ai@5.0.39(zod@3.25.76))(zod@3.25.76)':
     dependencies:
-      ai: 5.0.38(zod@3.25.76)
+      ai: 5.0.39(zod@3.25.76)
       json-schema: 0.4.0
       zod: 3.25.76
       zod-from-json-schema: 0.0.5
@@ -8781,9 +8778,9 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.19.1
 
-  '@openrouter/ai-sdk-provider@1.2.0(ai@5.0.38(zod@3.25.76))(zod@3.25.76)':
+  '@openrouter/ai-sdk-provider@1.2.0(ai@5.0.39(zod@3.25.76))(zod@3.25.76)':
     dependencies:
-      ai: 5.0.38(zod@3.25.76)
+      ai: 5.0.39(zod@3.25.76)
       zod: 3.25.76
 
   '@opentelemetry/api-logs@0.203.0':
@@ -10519,7 +10516,7 @@ snapshots:
 
   agent-base@7.1.4: {}
 
-  ai@5.0.38(zod@3.25.76):
+  ai@5.0.39(zod@3.25.76):
     dependencies:
       '@ai-sdk/gateway': 1.0.20(zod@3.25.76)
       '@ai-sdk/provider': 2.0.0

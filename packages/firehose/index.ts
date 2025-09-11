@@ -1,0 +1,105 @@
+import { gossipsub } from "@chainsafe/libp2p-gossipsub";
+import { noise } from "@chainsafe/libp2p-noise";
+import { yamux } from "@chainsafe/libp2p-yamux";
+import { identify } from "@libp2p/identify";
+import { mdns } from "@libp2p/mdns";
+import { tcp } from "@libp2p/tcp";
+import { createLibp2p, type Libp2p } from "libp2p";
+import type WebSocket from "ws";
+import { WebSocketServer } from "ws";
+import z from "zod";
+
+type Services = {
+  pubsub: ReturnType<ReturnType<typeof gossipsub>>;
+  identify: ReturnType<ReturnType<typeof identify>>;
+};
+
+const MessageSchema = z.object({
+  id: z.string(),
+  from: z.string(),
+  to: z.array(z.string()),
+  message: z.string(),
+  metadata: z.record(z.string(), z.any()).optional(),
+});
+
+export class Firehose {
+  private libp2p!: Libp2p<Services>;
+  private wss!: WebSocketServer;
+  private clients: Set<WebSocket>;
+  private readonly port: number;
+
+  constructor(port: number) {
+    this.port = port;
+    this.clients = new Set();
+  }
+
+  async start() {
+    this.libp2p = await createLibp2p({
+      addresses: {
+        listen: ["/ip4/0.0.0.0/tcp/0"],
+      },
+      transports: [tcp()],
+      peerDiscovery: [mdns()],
+      connectionEncrypters: [noise()],
+      streamMuxers: [yamux()],
+      services: {
+        pubsub: gossipsub({ allowPublishToZeroTopicPeers: true }),
+        identify: identify(),
+      },
+    });
+
+    this.libp2p.addEventListener("peer:discovery", (evt) => {
+      this.libp2p.dial(evt.detail.multiaddrs).catch((err) => {
+        console.error("Dial error:", err);
+      });
+    });
+
+    this.libp2p.services.pubsub.subscribe("messages");
+    this.libp2p.services.pubsub.subscribe("actions");
+
+    this.wss = new WebSocketServer({ port: this.port });
+
+    this.wss.on("connection", (ws) => {
+      this.clients.add(ws);
+      console.log("WebSocket client connected");
+
+      ws.on("message", (evt) => {
+        try {
+          const data = JSON.parse(evt.toString());
+          const parsed = MessageSchema.safeParse(data);
+          if (parsed.success) {
+            console.log(parsed.data);
+            this.libp2p.services.pubsub.publish(
+              "messages",
+              new TextEncoder().encode(evt.toString()),
+            );
+          }
+        } catch (e) {
+          console.log(e);
+        }
+      });
+
+      ws.on("close", () => {
+        this.clients.delete(ws);
+        console.log("WebSocket client disconnected");
+      });
+    });
+
+    this.libp2p.services.pubsub.addEventListener("message", async (message) => {
+      try {
+        const data = JSON.parse(new TextDecoder().decode(message.detail.data));
+        console.log(data);
+        const payload = JSON.stringify(data);
+        for (const client of this.clients) {
+          if (client.readyState === 1) {
+            client.send(payload);
+          }
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    });
+
+    console.log(`WebSocket server running on ws://localhost:${this.port}`);
+  }
+}

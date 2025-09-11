@@ -1,9 +1,10 @@
 packages:
-  - server/
-  - firehose/
+  - packages/server/
+  - packages/firehose/
+  - packages/utils/
+  - scripts/
   - configs/
   - apm_tools/
-  - packages/utils/
   - docs/
 
 catalog:
@@ -16,13 +17,13 @@ catalog:
   "@openrouter/ai-sdk-provider": ^1.1.2
   "@types/ws": ^8.18.1
   "@types/node": ^24.3.1
-  cel-js: ^0.8.2
-  helia: ^5.5.1
-  ollama-ai-provider: ^1.2.0
-  typescript: ^5.9.2
-  ws: ^8.18.3
-  zod-from-json-schema: ^0.0.5
-  zod: ^3.25.76
+  "cel-js": ^0.8.2
+  "helia": ^5.5.1
+  "ollama-ai-provider": ^1.2.0
+  "typescript": ^5.9.2
+  "ws": ^8.18.3
+  "zod-from-json-schema": ^0.0.5
+  "zod": ^3.25.76
 
 ignoredBuiltDependencies:
   - sharp

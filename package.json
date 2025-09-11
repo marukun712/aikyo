@@ -4,21 +4,14 @@
   "private": true,
   "scripts": {
     "companion": "tsx ./scripts/companion.ts",
-    "firehose": "tsx ./firehose/index.ts",
-    "format": "biome format server/ firehose/ configs/ packages/",
-    "format:fix": "biome format --write server/ firehose/ configs/ packages/",
-    "lint": "biome lint server/ firehose/ configs/ packages/",
-    "lint:fix": "biome lint --write server/ firehose/ configs/ packages/",
-    "check": "biome check server/ firehose/ configs/ packages/",
-    "check:fix": "biome check --write server/ firehose/ configs/ packages/"
+    "firehose": "tsx ./scripts/firehose.ts",
+    "format": "biome format ./",
+    "format:fix": "biome format --write ./",
+    "lint": "biome lint ./",
+    "lint:fix": "biome lint --write ./",
+    "check": "biome check ./",
+    "check:fix": "biome check --write ./"
   },
-  "workspaces": [
-    "server",
-    "firehose",
-    "configs",
-    "apm_tools",
-    "packages/utils"
-  ],
   "overrides": {
     "ms": "3.0.0-canary.1"
   },
