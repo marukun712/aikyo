@@ -1,5 +1,5 @@
 import type { Message, State } from "../../schema/index.ts";
-import { arrayToSet, setsAreEqual } from "../../utils/array.ts";
+import { setsAreEqual } from "../../utils/array.ts";
 import type { CompanionAgent } from "../agents/index.ts";
 
 export interface ITurnTakingManager {
@@ -20,7 +20,7 @@ export class TurnTakingManager implements ITurnTakingManager {
   }
 
   async addPending(message: Message) {
-    const participants = arrayToSet(message.to);
+    const participants = new Set(message.to);
 
     this.pending.set(message.id, {
       participants,
