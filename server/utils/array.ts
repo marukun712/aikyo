@@ -6,12 +6,3 @@ export function setsAreEqual(setA: Set<string>, setB: Set<string>) {
   }
   return true;
 }
-
-//string[]をSet<string>に
-export function arrayToSet(array: string[]) {
-  const set = new Set<string>();
-  array.forEach((str: string) => {
-    set.add(str);
-  });
-  return set;
-}
