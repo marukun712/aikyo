@@ -10,13 +10,16 @@
     "lint": "biome lint ./",
     "lint:fix": "biome lint --write ./",
     "check": "biome check ./",
-    "check:fix": "biome check --write ./"
+    "check:fix": "biome check --write ./",
+    "changeset": "changeset",
+    "release": "changeset publish"
   },
   "overrides": {
     "ms": "3.0.0-canary.1"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.3",
+    "@changesets/cli": "^2.29.7",
     "@types/node": "catalog:",
     "tsx": "^4.20.5"
   }
