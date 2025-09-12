@@ -7,20 +7,19 @@ import { tcp } from "@libp2p/tcp";
 import { createLibp2p, type Libp2p } from "libp2p";
 import type WebSocket from "ws";
 import { WebSocketServer } from "ws";
-import z from "zod";
+import {
+  RawMessageSchema,
+  MessageSchema,
+  ResourceSchema,
+  type MessageHandlers
+} from "./types/wsMesssages.js";
 
 type Services = {
   pubsub: ReturnType<ReturnType<typeof gossipsub>>;
   identify: ReturnType<ReturnType<typeof identify>>;
 };
 
-const MessageSchema = z.object({
-  id: z.string(),
-  from: z.string(),
-  to: z.array(z.string()),
-  message: z.string(),
-  metadata: z.record(z.string(), z.any()).optional(),
-});
+
 
 export class Firehose {
   private libp2p!: Libp2p<Services>;
@@ -64,18 +63,23 @@ export class Firehose {
       console.log("WebSocket client connected");
 
       ws.on("message", (evt) => {
-        try {
-          const data = JSON.parse(evt.toString());
-          const parsed = MessageSchema.safeParse(data);
-          if (parsed.success) {
-            console.log(parsed.data);
-            this.libp2p.services.pubsub.publish(
-              "messages",
-              new TextEncoder().encode(evt.toString()),
-            );
+        const data = RawMessageSchema.safeParse(JSON.parse(evt.toString()));
+        if (!data.success) {
+          console.log("Invalid message format:", data.error);
+          return;
+        }
+        switch (data.data.kind) {
+          case "message": {
+            const parsed = MessageSchema.safeParse(data.data);
+            if (parsed.success) {
+              console.log(parsed.data);
+              this.libp2p.services.pubsub.publish(
+                "messages",
+                new TextEncoder().encode(evt.toString()),
+              );
+            }
+            break;
           }
-        } catch (e) {
-          console.log(e);
         }
       });
 
