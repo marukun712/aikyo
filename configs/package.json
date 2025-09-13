@@ -1,12 +1,16 @@
 {
   "name": "configs",
-  "version": "1.0.0",
   "type": "module",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
   "dependencies": {
-    "@ai-sdk/anthropic": "2.0.6",
-    "@ai-sdk/google": "2.0.8",
-    "@openrouter/ai-sdk-provider": "^1.1.2",
-    "ollama-ai-provider": "^1.2.0",
-    "zod": "^3.25.76"
+    "@ai-sdk/anthropic": "catalog:",
+    "@ai-sdk/google": "catalog:",
+    "@openrouter/ai-sdk-provider": "catalog:",
+    "ollama-ai-provider": "catalog:",
+    "zod": "catalog:",
+    "@aikyo/server": "workspace:*",
+    "apm_tools": "workspace:*"
   }
 }

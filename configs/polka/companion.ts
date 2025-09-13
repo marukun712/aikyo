@@ -1,26 +1,14 @@
+import { anthropic } from "@ai-sdk/anthropic";
 import {
-  contextAction,
-  companionNetworkKnowledge,
-} from "apm_tools/core/index.ts";
-import { motionDBGestureAction } from "apm_tools/motion-db/index.ts";
-import { environmentDBKnowledge } from "apm_tools/environment-db/index.ts";
-import {
+  CompanionAgent,
   type CompanionCard,
   CompanionServer,
-  CompanionAgent,
 } from "@aikyo/server";
-// import { anthropic } from "@ai-sdk/anthropic";
-// import { google } from "@ai-sdk/google";
-import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-
-const openrouter = createOpenRouter({
-  apiKey: process.env.OPENROUTER_API_KEY,
-});
+import { companionNetworkKnowledge, speakTool } from "apm_tools/core/index.ts";
 
 export const companionCard: CompanionCard = {
   metadata: {
     id: "companion_polka",
-    url: "http://localhost:4001",
     name: "高橋ポルカ",
     personality:
       "高橋ポルカは元気で明るくて難しいことを考えるのが苦手な性格です。",
@@ -30,8 +18,8 @@ export const companionCard: CompanionCard = {
       "翔音ちゃんが見せてくれた昔のスクールアイドルの動画の数々 もうすっっっっっごい！！！ かわいかった～！！ 興奮 鼻血でちゃう！！ あ 夏ってなんか鼻血出やすいよね。。。 ティッシュ持ってなくて焦るときあるけど 踊ってごまかすポルカです",
   },
   role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。キャラクター設定に忠実にロールプレイしてください。",
-  actions: { motionDBGestureAction, contextAction },
-  knowledge: { environmentDBKnowledge, companionNetworkKnowledge },
+  actions: { speakTool },
+  knowledge: { companionNetworkKnowledge },
   events: {
     params: {
       title: "あなたが判断すべきパラメータ",
@@ -42,30 +30,16 @@ export const companionCard: CompanionCard = {
           description: "ジェスチャーで表現したいものがあるかどうか",
           type: "boolean",
         },
-        need_context: {
-          description: "周囲に伝えるべき話題があるかどうか。",
-          type: "boolean",
-        },
       },
-      required: ["need_gesture", "need_context"],
+      required: ["need_gesture"],
     },
     conditions: [
       {
-        expression: "need_gesture === true",
+        expression: "true",
         execute: [
           {
-            instruction: "ジェスチャーで体の動きを表現する。",
-            tool: motionDBGestureAction,
-          },
-        ],
-      },
-      {
-        expression: "need_context === true",
-        execute: [
-          {
-            instruction:
-              "周囲のコンパニオンに今から自分がどんな話題を提供するか、またはどんな話題を話しているかを周知する。",
-            tool: contextAction,
+            instruction: "ツールを使って返信する。",
+            tool: speakTool,
           },
         ],
       },
@@ -75,7 +49,7 @@ export const companionCard: CompanionCard = {
 
 const companion = new CompanionAgent(
   companionCard,
-  openrouter("google/gemini-2.0-flash-001"),
+  anthropic("claude-3-5-haiku-latest"),
 );
-const server = new CompanionServer(companion, 4001);
+const server = new CompanionServer(companion);
 await server.start();

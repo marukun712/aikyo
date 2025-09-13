@@ -1,0 +1,25 @@
+{
+  "name": "@aikyo/firehose",
+  "type": "module",
+  "version": "1.0.0",
+  "license": "MIT",
+  "dependencies": {
+    "@chainsafe/libp2p-gossipsub": "catalog:",
+    "@chainsafe/libp2p-noise": "catalog:",
+    "@chainsafe/libp2p-yamux": "catalog:",
+    "@libp2p/identify": "^3.0.39",
+    "@libp2p/mdns": "^11.0.47",
+    "@libp2p/tcp": "catalog:",
+    "helia": "catalog:",
+    "libp2p": "^2.9.0",
+    "ws": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/ws": "catalog:"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

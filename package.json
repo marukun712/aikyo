@@ -3,25 +3,24 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "companion": "npx tsx ./configs/$npm_config_config/companion.ts",
-    "router": "npx tsx ./routing/index.ts",
-    "firehose": "npx tsx ./firehose/index.ts",
-    "format": "prettier --write .",
-    "lint": "oxlint ."
+    "companion": "tsx ./scripts/companion.ts",
+    "firehose": "tsx packages/firehose/index.ts",
+    "format": "biome format ./",
+    "format:fix": "biome format --write ./",
+    "lint": "biome lint ./",
+    "lint:fix": "biome lint --write ./",
+    "check": "biome check ./",
+    "check:fix": "biome check --write ./",
+    "changeset": "changeset",
+    "release": "changeset publish"
   },
-  "workspaces": [
-    "server",
-    "firehose",
-    "configs",
-    "apm_tools",
-    "routing",
-    "packages/utils"
-  ],
   "overrides": {
     "ms": "3.0.0-canary.1"
   },
   "devDependencies": {
-    "oxlint": "^1.14.0",
-    "prettier": "^3.6.2"
+    "@biomejs/biome": "2.2.3",
+    "@changesets/cli": "^2.29.7",
+    "@types/node": "catalog:",
+    "tsx": "^4.20.5"
   }
 }
