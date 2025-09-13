@@ -11,6 +11,9 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: read          # PR作成に必要
+      pull-requests: write    # PRの作成・更新
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
