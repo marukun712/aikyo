@@ -24,11 +24,9 @@ Contributions are welcome!
 
 ### prerequisites
 
-Nix, or `pnpm` and `Node.js` >= 22
+`pnpm` and `Node.js` (>= 22)
 
-### Setup
-
-<details><summary>Using nix</summary>
+<details><summary>Using nix-shell</summary>
 
 First, enter the nix-shell.
 ```bash
@@ -36,6 +34,17 @@ $ nix-shell
 ```
 
 </details>
+
+<details><summary>using mise</summary>
+
+
+```bash
+$ mise install
+```
+
+</details>
+
+### Setup
 
 Install the packages.
 

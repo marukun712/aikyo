@@ -24,11 +24,9 @@ $ pnpm i @aikyo/utils @aikyo/server @aikyo/firehose
 
 ### 前提条件
 
-Nix、または `pnpm` と `Node.js` (>= 22)
+`pnpm` と `Node.js` (>= 22)
 
-### セットアップ
-
-<details><summary>nix を使う場合</summary>
+<details><summary>nix-shellを使う場合</summary>
 
 先に`nix-shell`に入ります。
 
@@ -37,6 +35,17 @@ $ nix-shell
 ```
 
 </details>
+
+<details><summary>miseを使う場合</summary>
+
+
+```bash
+$ mise install
+```
+
+</details>
+
+### セットアップ
 
 依存パッケージをインストールします。
 
