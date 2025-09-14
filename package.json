@@ -2,6 +2,7 @@
   "name": "aikyo",
   "type": "module",
   "private": true,
+  "packageManager": "pnpm@10.16.1",
   "scripts": {
     "companion": "tsx ./scripts/companion.ts",
     "firehose": "tsx packages/firehose/index.ts",

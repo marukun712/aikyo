@@ -26,11 +26,11 @@ Contributions are welcome!
 
 `pnpm` and `Node.js` (>= 22)
 
-<details><summary>Using nix-shell</summary>
+<details><summary>Using nix flake</summary>
 
-First, enter the nix-shell.
+First, enter the devShell.
 ```bash
-$ nix-shell
+$ nix develop
 ```
 
 </details>
@@ -59,6 +59,17 @@ $ cp .env.example .env
 ```
 
 ### Run / Development Workflow
+
+<details><summary>Using nix flake</summary>
+
+Both firehose and companion can be launched simultaneously.
+```bash
+# Usage: nix run .#dev -- <COMPANION> [<COMPANION> ...]
+# Example: nix run .#dev -- hanabi polka
+$ nix run .#dev
+```
+
+</details>
 
 ```bash
 # 1) Start the firehose server (default: http://localhost:8080)
