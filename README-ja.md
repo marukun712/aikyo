@@ -26,12 +26,12 @@ $ pnpm i @aikyo/utils @aikyo/server @aikyo/firehose
 
 `pnpm` と `Node.js` (>= 22)
 
-<details><summary>nix-shellを使う場合</summary>
+<details><summary>nix flakeを使う場合</summary>
 
-先に`nix-shell`に入ります。
+先に`devShell`に入ります。
 
 ```bash
-$ nix-shell
+$ nix develop
 ```
 
 </details>
@@ -50,7 +50,7 @@ $ mise install
 依存パッケージをインストールします。
 
 ```bash
-$ pnpm install
+$ pnpm -w install
 ```
 
 `.env` ファイルを用意します。
@@ -61,6 +61,16 @@ $ cp .env.example .env
 ```
 
 ### 実行 / 開発ワークフロー
+<details><summary>nix flakeを使う場合</summary>
+
+firehoseとcompanionを同時起動できます。
+```bash
+# Usage: nix run .#dev -- <COMPANION> [<COMPANION> ...]
+# Example: nix run .#dev -- hanabi polka
+$ nix run .#dev
+```
+
+</details>
 
 ```bash
 # 1) firehose サーバーを起動（デフォルト: http://localhost:8080）
