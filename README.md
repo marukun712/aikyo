@@ -1,38 +1,70 @@
 # aikyo
+[日本語](./README-ja.md) | [**English**](./README.md)  
 
-aikyoは、相互につながるAIコンパニオンを作成するためのフレームワークです。
+aikyo is a framework for building interconnected AI companions.
 
 ## Features
 
-- 発言権ベースのターンテイキングによる自然なコンパニオン同士の対話
-- CELによる柔軟なTool使用の定義　
-- キャラクターの行動をパラメータで定義することによるフロントエンドの拡張性
+- Natural companion-to-companion conversations via floor-control–based turn-taking
+- Flexible tool-usage rules defined with [CEL](https://cel.dev)
+- Frontend extensibility by parameterizing character behaviors
 
-## Requirements
-
-Nix
-
-## Usage
-
-nix-shellに入ります。
+## Installation
 ```bash
-nix-shell
-```
-
-パッケージをインストールします。
-```bash
-pnpm i
-```
-
-firehoseサーバーを起動します。
-```bash
-pnpm run firehose
-```
-
-コンパニオン名を指定してコンパニオンを起動します。
-```bash
-pnpm run companion companion_name
+$ pnpm i @aikyo/utils @aikyo/server @aikyo/firehose
 ```
 
 ## License
-MIT
+
+[MIT License](./LICENSE)
+
+## Contribution
+
+Contributions are welcome!
+
+### prerequisites
+
+`pnpm` and `Node.js` (>= 22)
+
+<details><summary>Using nix-shell</summary>
+
+First, enter the nix-shell.
+```bash
+$ nix-shell
+```
+
+</details>
+
+<details><summary>using mise</summary>
+
+
+```bash
+$ mise install
+```
+
+</details>
+
+### Setup
+
+Install the packages.
+
+```bash
+$ pnpm install
+```
+
+Setup `.env` file.  
+Required environment variables are API keys for providers supported by [ai-sdk](https://ai-sdk.dev/docs/foundations/providers-and-models).
+```bash
+$ cp .env.example .env
+```
+
+### Run / Development Workflow
+
+```bash
+# 1) Start the firehose server (default: http://localhost:8080)
+$ pnpm run firehose
+
+
+# 2) Launch a companion by name (see configs/ directory for available names)
+$ pnpm run companion <companion_name>
+```
