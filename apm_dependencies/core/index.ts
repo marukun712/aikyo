@@ -13,12 +13,12 @@ export const speakTool = createCompanionAction({
       ),
   }),
   topic: "messages",
-  publish: ({ message, to }, id) => {
+  publish: ({ input, id }) => {
     return {
       id: crypto.randomUUID(),
       from: id,
-      to,
-      message,
+      to: input.to,
+      message: input.message,
     };
   },
 });
@@ -30,10 +30,10 @@ export const gestureAction = createCompanionAction({
     type: z.enum(["wave", "jump", "dance", "nod", "stretch", "clap"]),
   }),
   topic: "actions",
-  publish: ({ type }, id) => ({
+  publish: ({ input, id }) => ({
     from: id,
     name: "gesture",
-    params: { type },
+    params: { input },
   }),
 });
 
@@ -42,9 +42,12 @@ export const companionNetworkKnowledge = createCompanionKnowledge({
   description:
     "同じネットワークに所属しているコンパニオンのリストを取得します。",
   inputSchema: z.object({}),
-  knowledge: async (_params, _id, companions) => {
-    return Array.from(companions.entries())
-      .map((metadata) => JSON.stringify(metadata, null, 2))
-      .join("\n");
-  },
+  knowledge: async ({ companions }) => [
+    {
+      type: "text",
+      text: Array.from(companions.entries())
+        .map((metadata) => JSON.stringify(metadata, null, 2))
+        .join("\n"),
+    },
+  ],
 });

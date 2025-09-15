@@ -25,8 +25,8 @@ export const motionDBGestureAction = createCompanionAction({
     prompt: z.string().describe("promptは必ず英語1,2単語で記述してください。"),
   }),
   topic: "actions",
-  publish: async ({ prompt }, id) => {
-    const url = await fetcher.fetch(prompt);
+  publish: async ({ input, id }) => {
+    const url = await fetcher.fetch(input.prompt);
     const data = {
       from: id,
       name: "gesture",

@@ -16,3 +16,15 @@ export const ActionSchema = z.object({
   params: z.record(z.string(), z.any()),
 });
 export type Action = z.infer<typeof ActionSchema>;
+
+export const QueryRequest = z.object({
+  id: z.string(),
+  from: z.string(),
+});
+export type QueryRequest = z.infer<typeof QueryRequest>;
+
+export const QueryResult = z.object({
+  id: z.string(),
+  body: z.string(),
+});
+export type QueryResult = z.infer<typeof QueryResult>;
