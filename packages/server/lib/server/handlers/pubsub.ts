@@ -1,7 +1,7 @@
 import type { Message } from "@libp2p/interface";
 import {
   MessageSchema,
-  QueryResult,
+  QueryResultSchema,
   StateSchema,
 } from "../../../schema/index.ts";
 import type { CompanionServer } from "../companionServer.ts";
@@ -39,7 +39,7 @@ export const handlePubSubMessage = async (
         break;
       }
       case "query-results": {
-        const parsed = QueryResult.safeParse(data);
+        const parsed = QueryResultSchema.safeParse(data);
         if (!parsed.success) return;
         console.log("query result received.");
         console.log(parsed);

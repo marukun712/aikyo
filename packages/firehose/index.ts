@@ -22,6 +22,18 @@ const MessageSchema = z.object({
   metadata: z.record(z.string(), z.any()).optional(),
 });
 
+export const QueryResultSchema = z.object({
+  id: z.string(),
+  success: z.boolean(),
+  body: z.string().optional(),
+  error: z.string().optional().describe("エラーメッセージ"),
+});
+
+const RequestSchema = z.object({
+  topic: z.string(),
+  body: z.union([QueryResultSchema, MessageSchema]),
+});
+
 export class Firehose {
   private libp2p!: Libp2p<Services>;
   private wss!: WebSocketServer;
@@ -56,6 +68,7 @@ export class Firehose {
 
     this.libp2p.services.pubsub.subscribe("messages");
     this.libp2p.services.pubsub.subscribe("actions");
+    this.libp2p.services.pubsub.subscribe("queries");
 
     this.wss = new WebSocketServer({ port: this.port });
 
@@ -66,13 +79,25 @@ export class Firehose {
       ws.on("message", (evt) => {
         try {
           const data = JSON.parse(evt.toString());
-          const parsed = MessageSchema.safeParse(data);
+          const parsed = RequestSchema.safeParse(data);
           if (parsed.success) {
             console.log(parsed.data);
-            this.libp2p.services.pubsub.publish(
-              "messages",
-              new TextEncoder().encode(evt.toString()),
-            );
+            switch (parsed.data.topic) {
+              case "messages":
+                this.libp2p.services.pubsub.publish(
+                  "messages",
+                  new TextEncoder().encode(JSON.stringify(parsed.data.body)),
+                );
+                break;
+              case "query-results":
+                this.libp2p.services.pubsub.publish(
+                  "query-results",
+                  new TextEncoder().encode(JSON.stringify(parsed.data.body)),
+                );
+                break;
+              default:
+                console.log("Unknown topic:", parsed.data.topic);
+            }
           }
         } catch (e) {
           console.log(e);
