@@ -1,118 +1,88 @@
 # CLAUDE.md
 
-必ず日本語で回答してください。
-
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Common Development Commands
+必ず日本語で回答してください。
 
-### Starting Services
+## Project Overview
 
-- `task run` - Start the full aikyo system with ASCII art banner
-- `npm run companion --config=<config-name>` - Start a companion with specific config (e.g., `polka`, `china`, `hanabi`, `mai`)
-- `npm run firehose` - Start the P2P WebSocket bridge server
-- `task companion -- <config-name>` - Alternative way to start companion via Taskfile
+aikyoは、相互接続されたAIコンパニオンを構築するためのフレームワークです。libp2pを使用したP2Pネットワーク上で動作し、複数のAIコンパニオンが自然な会話を行えます。
 
-**Note**: The `npm run router` script exists in package.json but the routing directory is not present
+## Architecture
+
+- **packages/server/**: Mastraベースのサーバーコンポーネント。AIコンパニオンの実行環境
+- **packages/firehose/**: WebSocketを使用したメッセージング用のP2Pファイアホースサーバー  
+- **packages/utils/**: ユーティリティとlibp2p関連の共通機能
+- **configs/**: 各AIコンパニオンの設定ファイル（aya、kyokoなど）
+- **scripts/**: companion.tsによるコンパニオン起動スクリプト
+- **apm_dependencies/**: APM関連の依存関係
+
+## Common Commands
+
+### Development Setup
+```bash
+# 依存関係のインストール
+pnpm i
+
+# 環境設定ファイルの作成
+cp .env.example .env
+```
+
+### Running the System
+```bash
+# 1. ファイアホースサーバーの起動 (localhost:8080)
+pnpm run firehose
+
+# 2. コンパニオンの起動（別ターミナルで）
+pnpm run companion <companion_name>
+# 例: pnpm run companion aya
+```
 
 ### Code Quality
+```bash
+# フォーマット（Biome使用）
+pnpm run format
+pnpm run format:fix
 
-- `npm run format` - Format code with Prettier
-- `npm run lint` - Lint code with oxlint
+# リント
+pnpm run lint
+pnpm run lint:fix
 
-### Environment Setup
+# チェック（フォーマット+リント）
+pnpm run check
+pnpm run check:fix
+```
 
-- Copy `.env.example` to `.env` and configure required environment variables:
-  - `ROUTER_PORT` - Port for routing service (default: 4000)
-  - `FIREHOSE_PORT` - Port for P2P bridge server (default: 8080)
-  - `ANTHROPIC_API_KEY` - Required for AI model integration
+### Release Management
+```bash
+# changesetの作成
+pnpm run changeset
 
-### Available Companion Configs
+# パッケージのパブリッシュ
+pnpm run release
+```
 
-The system supports multiple pre-configured companions in the `configs/` directory:
+## Environment Configuration
 
-- `polka` - 高橋ポルカ character
-- `china` - China character configuration
-- `hanabi` - Hanabi character configuration
-- `mai` - Mai character configuration
+`.env`ファイルで以下のAPI キーを設定する必要があります:
+- `OPENROUTER_API_KEY`: OpenRouter API
+- `ANTHROPIC_API_KEY`: Anthropic Claude API
 
-## Architecture Overview
+## Package Dependencies
 
-aikyo is a framework for creating interconnected AI companions that communicate over P2P networks.
+- **Mastra**: AI integrationフレームワーク (ai-v5版)
+- **libp2p**: P2Pネットワーク通信
+- **CEL**: ツール使用ルールの定義  
+- **Biome**: コードフォーマッター・リンター
+- **Zod**: スキーマバリデーション
 
-### Core Components
+## Companion Configuration
 
-1. **Companion Server** (`server/`) - Core server library for running AI companions
-   - `CompanionAgent` - Main agent class that handles AI model integration
-   - `CompanionServer` - HTTP server for companion interactions
-   - Exports agents, server, and schema modules
+`configs/`ディレクトリ内に各コンパニオンの設定があります。新しいコンパニオンを追加する場合は：
+1. `configs/<name>/`ディレクトリを作成
+2. `companion.ts`ファイルを実装
+3. `pnpm run companion <name>`で起動
 
-2. **Firehose** (`firehose/index.ts`) - P2P to WebSocket bridge
-   - Creates libp2p node with GossipSub for P2P messaging
-   - Runs WebSocket server to bridge P2P network to web clients
-   - Subscribes to topics: `messages`, `actions`, `contexts`
-   - Default port: 8080 (configurable via `FIREHOSE_PORT`)
+## Testing
 
-3. **Companion Configurations** (`configs/`) - Character definitions
-   - Each config defines a `CompanionCard` with personality, actions, and knowledge
-   - Uses OpenRouter for AI model integration (Gemini 2.0 Flash)
-   - Includes event-driven behavior with CEL expressions
-
-### P2P Network Architecture
-
-The system uses libp2p with the following stack:
-
-- **Transport**: TCP
-- **Peer Discovery**: mDNS for local network discovery
-- **Encryption**: Noise protocol
-- **Multiplexing**: Yamux
-- **Pub/Sub**: GossipSub with three main topics:
-  - `messages` - Inter-companion communication
-  - `actions` - Physical movement/gesture data
-  - `contexts` - Shared situational awareness
-
-### Message Types
-
-1. **message** - Communication between companions or humans
-2. **action** - Physical movements/gestures (broadcast only)
-3. **context** - Shared situational information
-
-### Companion Card Structure
-
-Each companion is defined by a `CompanionCard` containing:
-
-- **metadata**: ID, URL, name, personality, story, sample dialogue
-- **role**: System prompt defining the companion's behavior
-- **actions**: Available tools for the companion (e.g., gestures, context sharing)
-- **knowledge**: Dynamic knowledge retrieval tools
-- **events**: Conditional logic using CEL expressions to trigger actions
-
-### Workspaces
-
-The project uses npm workspaces:
-
-- `server` - Core companion server library
-- `firehose` - P2P bridge service
-- `configs` - Companion configurations
-- `apm_tools` - Action and knowledge tools
-- `packages/utils` - Shared utilities
-- `docs` - Documentation site (Astro-based)
-
-### Key Dependencies
-
-- **Mastra** - Core AI framework (`@mastra/core`, `@mastra/mcp`, etc.)
-- **Hono** - Web framework for HTTP servers
-- **libp2p** - P2P networking stack with GossipSub for pub/sub messaging
-- **CEL-js** - Common Expression Language for event-driven logic
-- **Zod** - Schema validation and TypeScript type inference
-- **OpenRouter** - AI model API integration (Gemini 2.0 Flash)
-
-### Development Notes
-
-- The system requires Node.js >=20.9.0 (specified in server/package.json)
-- Uses TypeScript with `tsx` for development
-- Environment variables are loaded from `.env` file
-- All companions must have IDs starting with `companion_`
-- User IDs must start with `user_`
-- The system supports both local P2P networking and external API integrations
-- No test suite currently configured in the main project
+プロジェクトにはテストスクリプトが定義されていません。テストを追加する場合は適切なテストランナーを設定してください。

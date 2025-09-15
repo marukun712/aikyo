@@ -11,6 +11,6 @@
     "ollama-ai-provider": "catalog:",
     "zod": "catalog:",
     "@aikyo/server": "workspace:*",
-    "apm_tools": "workspace:*"
+    "apm_dependencies": "workspace:*"
   }
 }

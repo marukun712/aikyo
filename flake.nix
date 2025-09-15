@@ -63,7 +63,7 @@
 
                   if [ "$#" -eq 0 ]; then
                     echo "Usage: nix run .#dev -- <COMPANION> [<COMPANION> ...]"
-                    echo "Example: nix run .#dev -- hanabi polka"
+                    echo "Example: nix run .#dev -- kyoko aya"
                     exit 1
                   fi
 
