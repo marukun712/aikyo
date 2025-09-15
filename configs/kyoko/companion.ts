@@ -5,7 +5,6 @@ import {
   CompanionServer,
 } from "@aikyo/server";
 import { companionNetworkKnowledge, speakTool } from "apm_dependencies/core";
-import { motionDBGestureAction } from "apm_dependencies/motion-db";
 
 export const companionCard: CompanionCard = {
   metadata: {
@@ -19,7 +18,7 @@ export const companionCard: CompanionCard = {
       "こんにちは！私はkyokoです。今日はどんなお話をしましょうか？一緒に楽しいことを見つけましょうね♪",
   },
   role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。キャラクター設定に忠実にロールプレイしてください。",
-  actions: { speakTool, motionDBGestureAction },
+  actions: { speakTool },
   knowledge: { companionNetworkKnowledge },
   events: {
     params: {
@@ -35,29 +34,15 @@ export const companionCard: CompanionCard = {
           description: "返答の必要があるかどうか",
           type: "boolean",
         },
-        need_gesture: {
-          description: "ジェスチャーで表現したいものがあるかどうか",
-          type: "boolean",
-        },
       },
-      required: ["already_replied", "need_response", "need_gesture"],
+      required: ["already_replied", "need_response"],
     },
     conditions: [
       {
         expression: "already_replied == true",
         execute: [
           {
-            instruction: "手を振って挨拶をする。",
-            tool: motionDBGestureAction,
-          },
-        ],
-      },
-      {
-        expression: "need_gesture == true",
-        execute: [
-          {
-            instruction: "ジェスチャーで体の動きを表現する。",
-            tool: motionDBGestureAction,
+            instruction: "自己紹介をする。",
           },
         ],
       },
