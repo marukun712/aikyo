@@ -9,7 +9,8 @@
     "@mastra/core": "ai-v5",
     "ai": "^5.0.44",
     "libp2p": "2.9.0",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "@aikyo/server": "workspace:*"
   },
   "peerDependencies": {
     "typescript": "^5"

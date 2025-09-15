@@ -1,12 +1,13 @@
+import type { Query, QueryResult } from "@aikyo/server";
 import { createCompanionKnowledge } from "@aikyo/utils";
-import type { Query, QueryResult } from "@aikyo/utils/schema";
 import z from "zod";
 
 export const visionKnowledge = createCompanionKnowledge({
   id: "vision-knowledge",
   description: "視覚情報を取得します。",
   inputSchema: z.object({}),
-  knowledge: async ({ id, libp2p, pendingQueries }) => {
+  outputSchema: z.string(),
+  knowledge: async ({ id, libp2p, pendingQueries, companionAgent }) => {
     const queryId = crypto.randomUUID();
     const query: Query = {
       id: queryId,
@@ -31,33 +32,35 @@ export const visionKnowledge = createCompanionKnowledge({
     try {
       const result = await resultPromise;
       if (!result.success) {
-        return [
-          {
-            type: "text",
-            text: `視覚情報の取得に失敗しました: ${result.error || "不明なエラー"}`,
-          },
-        ];
+        return `視覚情報の取得に失敗しました: ${result.error || "不明なエラー"}`;
       }
       if (result.body) {
-        return [
-          { type: "text", text: "視覚情報を取得しました。" },
-          { type: "image", text: result.body },
-        ];
-      } else {
-        return [
+        const res = await companionAgent.agent.generate(
+          [
+            {
+              role: "user" as const,
+              content: [
+                {
+                  type: "image" as const,
+                  image: result.body,
+                },
+              ],
+            },
+          ],
           {
-            type: "text",
-            text: "視覚情報を取得しましたが、データが空でした。",
+            resourceId: "main",
+            threadId: "thread",
+            instructions:
+              "あなたは画像分析のプロです。与えられた画像の状況について、詳細に説明してください。",
+            toolChoice: "none",
           },
-        ];
+        );
+        return res.text;
+      } else {
+        return "視覚情報を取得しましたが、データが空でした。";
       }
     } catch (error) {
-      return [
-        {
-          type: "text",
-          text: `視覚情報の取得に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
-        },
-      ];
+      return `視覚情報の取得に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`;
     }
   },
 });

@@ -21,7 +21,8 @@
     "helia": "catalog:",
     "libp2p": "2.9.0",
     "zod": "catalog:",
-    "zod-from-json-schema": "catalog:"
+    "zod-from-json-schema": "catalog:",
+    "@aikyo/utils": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:",
