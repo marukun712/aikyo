@@ -5,6 +5,7 @@ import {
   CompanionServer,
 } from "@aikyo/server";
 import { companionNetworkKnowledge, speakTool } from "apm_dependencies/core";
+import { visionKnowledge } from "apm_dependencies/query-tool";
 
 export const companionCard: CompanionCard = {
   metadata: {
@@ -19,7 +20,7 @@ export const companionCard: CompanionCard = {
   },
   role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。キャラクター設定に忠実にロールプレイしてください。",
   actions: { speakTool },
-  knowledge: { companionNetworkKnowledge },
+  knowledge: { companionNetworkKnowledge, visionKnowledge },
   events: {
     params: {
       title: "あなたが判断すべきパラメータ",

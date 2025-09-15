@@ -1,3 +1,5 @@
+import { MessageSchema, QueryResultSchema } from "@aikyo/server";
+import type { Services } from "@aikyo/utils";
 import { gossipsub } from "@chainsafe/libp2p-gossipsub";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
@@ -8,26 +10,6 @@ import { createLibp2p, type Libp2p } from "libp2p";
 import type WebSocket from "ws";
 import { WebSocketServer } from "ws";
 import z from "zod";
-
-type Services = {
-  pubsub: ReturnType<ReturnType<typeof gossipsub>>;
-  identify: ReturnType<ReturnType<typeof identify>>;
-};
-
-const MessageSchema = z.object({
-  id: z.string(),
-  from: z.string(),
-  to: z.array(z.string()),
-  message: z.string(),
-  metadata: z.record(z.string(), z.any()).optional(),
-});
-
-export const QueryResultSchema = z.object({
-  id: z.string(),
-  success: z.boolean(),
-  body: z.string().optional(),
-  error: z.string().optional().describe("エラーメッセージ"),
-});
 
 const RequestSchema = z.object({
   topic: z.string(),
@@ -69,6 +51,7 @@ export class Firehose {
     this.libp2p.services.pubsub.subscribe("messages");
     this.libp2p.services.pubsub.subscribe("actions");
     this.libp2p.services.pubsub.subscribe("queries");
+    this.libp2p.services.pubsub.subscribe("query-results");
 
     this.wss = new WebSocketServer({ port: this.port });
 
@@ -129,12 +112,10 @@ export class Firehose {
   }
 }
 
-if (import.meta.main) {
-  const firehose = new Firehose(8080);
-  try {
-    await firehose.start();
-  } catch (err) {
-    console.error("Failed to start firehose:", err);
-    process.exit(1);
-  }
+const firehose = new Firehose(8080);
+try {
+  await firehose.start();
+} catch (err) {
+  console.error("Failed to start firehose:", err);
+  process.exit(1);
 }
