@@ -11,6 +11,7 @@ import type {
   Message as AikyoMessage,
   CompanionCard,
   Metadata,
+  QueryResult,
 } from "../../schema/index.ts";
 import type { CompanionAgent } from "../agents/index.ts";
 
@@ -42,6 +43,13 @@ export class CompanionServer implements ICompanionServer {
   companion: CompanionCard;
   libp2p!: Libp2p<Services>;
   companionList = new Map<string, Metadata>();
+  pendingQueries = new Map<
+    string,
+    {
+      resolve: (value: QueryResult) => void;
+      reject: (reason: string) => void;
+    }
+  >();
 
   constructor(companionAgent: CompanionAgent) {
     this.companionAgent = companionAgent;
@@ -74,6 +82,8 @@ export class CompanionServer implements ICompanionServer {
 
     this.libp2p.services.pubsub.subscribe("messages");
     this.libp2p.services.pubsub.subscribe("states");
+    this.libp2p.services.pubsub.subscribe("queries");
+    this.libp2p.services.pubsub.subscribe("query-results");
 
     this.libp2p.services.pubsub.addEventListener(
       "message",
@@ -94,6 +104,10 @@ export class CompanionServer implements ICompanionServer {
     );
     this.companionAgent.runtimeContext.set("libp2p", this.libp2p);
     this.companionAgent.runtimeContext.set("companions", this.companionList);
+    this.companionAgent.runtimeContext.set(
+      "pendingQueries",
+      this.pendingQueries,
+    );
   }
 
   async handleMessageReceived(message: AikyoMessage) {

@@ -2,6 +2,7 @@ import { createTool } from "@mastra/core/tools";
 import { isLibp2p, type Libp2p } from "libp2p";
 import type { ZodTypeAny, z } from "zod";
 import type { Services } from "../lib/services";
+import type { QueryResult } from "../schema";
 
 export interface CompanionKnowledgeConfig<T extends z.ZodSchema> {
   id: string;
@@ -9,10 +10,16 @@ export interface CompanionKnowledgeConfig<T extends z.ZodSchema> {
   inputSchema: T;
   knowledge: (props: {
     input: z.infer<T>;
-
     id: string;
     companions: Map<string, string>;
     libp2p: Libp2p<Services>;
+    pendingQueries: Map<
+      string,
+      {
+        resolve: (value: QueryResult) => void;
+        reject: (reason: string) => void;
+      }
+    >;
   }) =>
     | Promise<
         {
@@ -50,11 +57,16 @@ export function createCompanionKnowledge<T extends ZodTypeAny>({
         if (!(companions instanceof Map)) {
           throw new Error("Error:companionsの形式が不正です!");
         }
+        const pendingQueries = runtimeContext.get("pendingQueries");
+        if (!(pendingQueries instanceof Map)) {
+          throw new Error("Error:pendingQueriesの形式が不正です!");
+        }
         const data = await knowledge({
           input: context,
           id,
           companions,
           libp2p,
+          pendingQueries,
         });
         return data;
       } catch (e) {
