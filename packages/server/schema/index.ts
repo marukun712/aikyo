@@ -75,6 +75,18 @@ export const ActionSchema = z.object({
 });
 export type Action = z.infer<typeof ActionSchema>;
 
+export const QueryRequest = z.object({
+  id: z.string(),
+  from: z.string(),
+});
+export type QueryRequest = z.infer<typeof QueryRequest>;
+
+export const QueryResult = z.object({
+  id: z.string(),
+  body: z.string(),
+});
+export type QueryResult = z.infer<typeof QueryResult>;
+
 export const MemorySchema = z.object({
   messages: z.array(
     z.object({

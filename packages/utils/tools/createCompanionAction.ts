@@ -11,11 +11,13 @@ export interface CompanionActionConfig<T extends z.ZodSchema> {
   description: string;
   inputSchema: T;
   topic: "actions" | "messages";
-  publish: (
-    input: z.infer<T>,
-    id: string,
-    companions: Map<string, string>,
-  ) => Promise<Output> | Output;
+  publish: (props: {
+    input: z.infer<T>;
+
+    id: string;
+    companions: Map<string, string>;
+    libp2p: Libp2p<Services>;
+  }) => Promise<Output> | Output;
 }
 
 export function createCompanionAction<T extends ZodTypeAny>({
@@ -35,18 +37,15 @@ export function createCompanionAction<T extends ZodTypeAny>({
         if (!libp2p || !isLibp2p(libp2p)) {
           throw new Error("Error:libp2pが初期化されていません!");
         }
-
         const id = runtimeContext.get("id");
         if (!id || typeof id !== "string") {
           throw new Error("Error:コンパニオンのidが不正です!");
         }
-
         const companions = runtimeContext.get("companions");
         if (!(companions instanceof Map)) {
           throw new Error("Error:companionsの形式が不正です!");
         }
-
-        const data = await publish(context, id, companions);
+        const data = await publish({ input: context, id, companions, libp2p });
         libp2p.services.pubsub.publish(
           topic,
           new TextEncoder().encode(JSON.stringify(data)),
