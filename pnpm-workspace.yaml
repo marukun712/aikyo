@@ -4,7 +4,7 @@ packages:
   - packages/utils/
   - scripts/
   - configs/
-  - apm_tools/
+  - apm_dependencies/
   - docs/
 
 catalog:

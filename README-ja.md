@@ -1,11 +1,12 @@
 # aikyo
 [**日本語**](./README-ja.md) | [English](./README.md)
 
-aikyo は、相互接続された AI コンパニオンを構築するためのフレームワークです。
+aikyoは、相互につながるAIコンパニオンを作成するためのフレームワークです。 
 
 ## 特長
 
-- 発言権ベースのターンテイキングによる自然なコンパニオン同士の対話
+- ターンテイキング機能を標準搭載
+- 複数コンパニオンでの自然な会話
 - [CEL](https://cel.dev) で定義された柔軟なツール使用ルール
 - キャラクターの行動をパラメータで定義することによるフロントエンドの拡張性
 
@@ -20,15 +21,15 @@ $ pnpm i @aikyo/utils @aikyo/server @aikyo/firehose
 
 ## コントリビューション
 
-歓迎します～！
+歓迎します！
 
-### 前提条件
+### 前提ツール
 
-`pnpm` と `Node.js` (>= 22)
+`pnpm` , `Node.js` (>= 22)
 
-<details><summary>nix flakeを使う場合</summary>
+<details><summary>Nix Flakeを使う場合</summary>
 
-先に`devShell`に入ります。
+`devShell`に入ります。
 
 ```bash
 $ nix develop
@@ -50,23 +51,23 @@ $ mise install
 依存パッケージをインストールします。
 
 ```bash
-$ pnpm -w install
+$ pnpm i
 ```
 
-`.env` ファイルを用意します。
-必要な環境変数は、[ai-sdk](https://ai-sdk.dev/docs/foundations/providers-and-models) がサポートする各プロバイダの API キーです。
+`.env` ファイルを作成します。
+[ai-sdk](https://ai-sdk.dev/docs/foundations/providers-and-models) がサポートする各プロバイダの API キーを入力します。
 
 ```bash
 $ cp .env.example .env
 ```
 
 ### 実行 / 開発ワークフロー
-<details><summary>nix flakeを使う場合</summary>
+<details><summary>Nix Flakeを使う場合</summary>
 
-firehoseとcompanionを同時起動できます。
+firehoseとcompanionを起動します。
 ```bash
 # Usage: nix run .#dev -- <COMPANION> [<COMPANION> ...]
-# Example: nix run .#dev -- hanabi polka
+# Example: nix run .#dev -- kyoko aya
 $ nix run .#dev
 ```
 

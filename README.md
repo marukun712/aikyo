@@ -5,7 +5,8 @@ aikyo is a framework for building interconnected AI companions.
 
 ## Features
 
-- Natural companion-to-companion conversations via floor-control–based turn-taking
+- Turn-taking functionality included as standard
+- Natural conversations with multiple companions
 - Flexible tool-usage rules defined with [CEL](https://cel.dev)
 - Frontend extensibility by parameterizing character behaviors
 
@@ -22,11 +23,11 @@ $ pnpm i @aikyo/utils @aikyo/server @aikyo/firehose
 
 Contributions are welcome!
 
-### prerequisites
+### Requirements
 
-`pnpm` and `Node.js` (>= 22)
+`pnpm` , `Node.js` (>= 22)
 
-<details><summary>Using nix flake</summary>
+<details><summary>Using Nix Flake</summary>
 
 First, enter the devShell.
 ```bash
@@ -49,24 +50,24 @@ $ mise install
 Install the packages.
 
 ```bash
-$ pnpm install
+$ pnpm i
 ```
 
-Setup `.env` file.  
-Required environment variables are API keys for providers supported by [ai-sdk](https://ai-sdk.dev/docs/foundations/providers-and-models).
+Create `.env` file.  
+Enter an API key for each provider supported by the [ai-sdk](https://ai-sdk.dev/docs/foundations/providers-and-models).
 ```bash
 $ cp .env.example .env
 ```
 
 ### Run / Development Workflow
 
-<details><summary>Using nix flake</summary>
+<details><summary>Using Nix Flake</summary>
 
-Both firehose and companion can be launched simultaneously.
+Start the firehose and companion.
 ```bash
 # Usage: nix run .#dev -- <COMPANION> [<COMPANION> ...]
-# Example: nix run .#dev -- hanabi polka
-$ nix run .#dev
+# Example: nix run .#dev -- kyoko aya
+$ nix run .#dev <companion_name>
 ```
 
 </details>
