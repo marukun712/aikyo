@@ -1,5 +1,9 @@
 import type { Message } from "@libp2p/interface";
-import { MessageSchema, StateSchema } from "../../../schema/index.ts";
+import {
+  MessageSchema,
+  QueryResult,
+  StateSchema,
+} from "../../../schema/index.ts";
 import type { CompanionServer } from "../companionServer.ts";
 
 export const handlePubSubMessage = async (
@@ -32,6 +36,20 @@ export const handlePubSubMessage = async (
         console.log(parsed);
         const state = parsed.data;
         await self.turnTakingManager.handleStateReceived(state);
+        break;
+      }
+      case "query-results": {
+        const parsed = QueryResult.safeParse(data);
+        if (!parsed.success) return;
+        console.log("query result received.");
+        console.log(parsed);
+        const result = parsed.data;
+        const pendingQuery = self.pendingQueries.get(result.id);
+        if (pendingQuery) {
+          self.pendingQueries.delete(result.id);
+          pendingQuery.resolve(result);
+        }
+        break;
       }
     }
   } catch (e) {

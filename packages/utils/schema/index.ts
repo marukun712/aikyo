@@ -20,11 +20,14 @@ export type Action = z.infer<typeof ActionSchema>;
 export const QueryRequest = z.object({
   id: z.string(),
   from: z.string(),
+  type: z.string(),
 });
 export type QueryRequest = z.infer<typeof QueryRequest>;
 
 export const QueryResult = z.object({
   id: z.string(),
-  body: z.string(),
+  success: z.boolean(),
+  body: z.string().optional(),
+  error: z.string().optional().describe("エラーメッセージ"),
 });
 export type QueryResult = z.infer<typeof QueryResult>;
