@@ -1,5 +1,5 @@
 import { createCompanionKnowledge } from "@aikyo/utils";
-import type { QueryRequest, QueryResult } from "@aikyo/utils/schema";
+import type { Query, QueryResult } from "@aikyo/utils/schema";
 import z from "zod";
 
 export const visionKnowledge = createCompanionKnowledge({
@@ -8,7 +8,7 @@ export const visionKnowledge = createCompanionKnowledge({
   inputSchema: z.object({}),
   knowledge: async ({ id, libp2p, pendingQueries }) => {
     const queryId = crypto.randomUUID();
-    const query: QueryRequest = {
+    const query: Query = {
       id: queryId,
       from: id,
       type: "vision",
