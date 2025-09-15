@@ -23,7 +23,7 @@ $ pnpm i @aikyo/utils @aikyo/server @aikyo/firehose
 
 歓迎します！
 
-### Requirements
+### 前提ツール
 
 `pnpm` , `Node.js` (>= 22)
 
