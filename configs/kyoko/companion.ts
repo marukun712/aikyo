@@ -4,7 +4,7 @@ import {
   type CompanionCard,
   CompanionServer,
 } from "@aikyo/server";
-import { companionNetworkKnowledge, speakTool } from "apm_dependencies/index";
+import { companionNetworkKnowledge, speakTool } from "apm_dependencies/core";
 import { motionDBGestureAction } from "apm_dependencies/motion-db";
 
 export const companionCard: CompanionCard = {
@@ -44,7 +44,7 @@ export const companionCard: CompanionCard = {
     },
     conditions: [
       {
-        expression: "already_replied === true",
+        expression: "already_replied == true",
         execute: [
           {
             instruction: "手を振って挨拶をする。",
@@ -53,7 +53,7 @@ export const companionCard: CompanionCard = {
         ],
       },
       {
-        expression: "need_gesture === true",
+        expression: "need_gesture == true",
         execute: [
           {
             instruction: "ジェスチャーで体の動きを表現する。",
@@ -62,7 +62,7 @@ export const companionCard: CompanionCard = {
         ],
       },
       {
-        expression: "need_response === true",
+        expression: "need_response == true",
         execute: [
           {
             instruction: "ツールを使って返信する。",
