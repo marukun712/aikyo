@@ -43,6 +43,7 @@ export const companionCard: CompanionCard = {
         execute: [
           {
             instruction: "自己紹介をする。",
+            tool: speakTool,
           },
         ],
       },
