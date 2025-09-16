@@ -28,7 +28,7 @@ export const companionCard: CompanionCard = {
       type: "object",
       properties: {
         already_replied: {
-          description: "初めて話す人かどうか",
+          description: "すでに話したことのある人かどうか",
           type: "boolean",
         },
         need_response: {
@@ -40,7 +40,7 @@ export const companionCard: CompanionCard = {
     },
     conditions: [
       {
-        expression: "already_replied == true",
+        expression: "already_replied == false",
         execute: [
           {
             instruction: "自己紹介をする。",
