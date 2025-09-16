@@ -13,7 +13,9 @@
     "helia": "catalog:",
     "libp2p": "^2.9.0",
     "ws": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "@aikyo/server": "workspace:*",
+    "@aikyo/utils": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:",
