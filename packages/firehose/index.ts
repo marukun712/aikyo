@@ -63,24 +63,26 @@ export class Firehose {
         try {
           const data = JSON.parse(evt.toString());
           const parsed = RequestSchema.safeParse(data);
-          if (parsed.success) {
-            console.log(parsed.data);
-            switch (parsed.data.topic) {
-              case "messages":
-                this.libp2p.services.pubsub.publish(
-                  "messages",
-                  new TextEncoder().encode(JSON.stringify(parsed.data.body)),
-                );
-                break;
-              case "query-results":
-                this.libp2p.services.pubsub.publish(
-                  "query-results",
-                  new TextEncoder().encode(JSON.stringify(parsed.data.body)),
-                );
-                break;
-              default:
-                console.log("Unknown topic:", parsed.data.topic);
-            }
+          if (!parsed.success) {
+            ws.send(JSON.stringify({ error: parsed.error }));
+            return;
+          }
+          console.log(parsed.data);
+          switch (parsed.data.topic) {
+            case "messages":
+              this.libp2p.services.pubsub.publish(
+                "messages",
+                new TextEncoder().encode(JSON.stringify(parsed.data.body)),
+              );
+              break;
+            case "query-results":
+              this.libp2p.services.pubsub.publish(
+                "query-results",
+                new TextEncoder().encode(JSON.stringify(parsed.data.body)),
+              );
+              break;
+            default:
+              console.log("Unknown topic:", parsed.data.topic);
           }
         } catch (e) {
           console.log(e);
