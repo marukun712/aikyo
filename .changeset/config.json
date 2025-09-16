@@ -4,6 +4,13 @@
   "commit": false,
   "fixed": [],
   "linked": [],
+  "packages": [
+    "packages/*",
+    "configs",
+    "scripts",
+    "apm_dependencies",
+    "docs"
+  ],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
