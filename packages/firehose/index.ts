@@ -111,11 +111,12 @@ export class Firehose {
     console.log(`aikyo firehose server running on ws://localhost:${this.port}`);
   }
 }
-
-const firehose = new Firehose(8080);
-try {
-  await firehose.start();
-} catch (err) {
-  console.error("Failed to start firehose:", err);
-  process.exit(1);
+if (import.meta.main) {
+  const firehose = new Firehose(8080);
+  try {
+    await firehose.start();
+  } catch (err) {
+    console.error("Failed to start firehose:", err);
+    process.exit(1);
+  }
 }
