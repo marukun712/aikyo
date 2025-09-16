@@ -4,6 +4,7 @@
   inputs = {
     dream2nix.url = "github:nix-community/dream2nix";
     nixpkgs.follows = "dream2nix/nixpkgs";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
   };
 
@@ -14,6 +15,7 @@
       perSystem = { system, ... }:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        unstable = inputs.nixpkgs-unstable.legacyPackages.${system};
 
         readPkgJson = path:
           let p = builtins.fromJSON (builtins.readFile (path + "/package.json"));
@@ -56,7 +58,7 @@
             program =
               (pkgs.writeShellApplication {
                 name = "dev";
-                runtimeInputs = [ pkgs.nodejs_22 pkgs.pnpm pkgs.coreutils ];
+                runtimeInputs = [ unstable.nodejs_24 pkgs.pnpm pkgs.coreutils ];
                 text = ''
                   #!/usr/bin/env bash
                   set -euo pipefail
@@ -95,7 +97,7 @@
             program =
               (pkgs.writeShellApplication {
                 name = "docs";
-                runtimeInputs = [ pkgs.nodejs_22 pkgs.pnpm ];
+                runtimeInputs = [ unstable.nodejs_24 pkgs.pnpm ];
                 text = ''
                   cd docs
                   exec pnpm run dev "$@"
@@ -106,7 +108,7 @@
 
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
-            nodejs_22
+            unstable.nodejs_24
             pnpm
             git
             watchexec
