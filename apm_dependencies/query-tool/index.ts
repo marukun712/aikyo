@@ -4,7 +4,7 @@ import z from "zod";
 
 export const visionKnowledge = createCompanionKnowledge({
   id: "vision-knowledge",
-  description: "視覚情報を取得します。",
+  description: "目で周りを見ます。",
   inputSchema: z.object({}),
   outputSchema: z.string(),
   knowledge: async ({ id, libp2p, pendingQueries, companionAgent }) => {
@@ -51,7 +51,7 @@ export const visionKnowledge = createCompanionKnowledge({
             resourceId: "main",
             threadId: "thread",
             instructions:
-              "あなたは画像分析のプロです。与えられた画像の状況について、詳細に説明してください。",
+              "あなたは目で与えられた画像の光景を見ました。自分が見た光景を説明してください。",
             toolChoice: "none",
           },
         );

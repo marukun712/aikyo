@@ -46,10 +46,16 @@ export class CompanionServer implements ICompanionServer {
     }
   >();
 
-  constructor(companionAgent: CompanionAgent) {
+  constructor(
+    companionAgent: CompanionAgent,
+    config?: { timeoutDuration: number },
+  ) {
     this.companionAgent = companionAgent;
     this.companion = companionAgent.companion;
-    this.turnTakingManager = new TurnTakingManager(this.companionAgent);
+    this.turnTakingManager = new TurnTakingManager(
+      this.companionAgent,
+      config ? config.timeoutDuration : 5000,
+    );
     this.companionList.set(this.companion.metadata.id, this.companion.metadata);
   }
 

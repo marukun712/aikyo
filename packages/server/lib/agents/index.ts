@@ -127,7 +127,7 @@ export class CompanionAgent implements ICompanionAgent {
       - terminal: 最後の別れの挨拶
 
     重要:この判断は、キャラクターとしてではなく、あなたとして今までの会話の文脈を冷静に分析して判断してください。
-    最重要:あなたは積極的に会話をpre-closingにします。pre-closingにしたら、すぐにclosing,terminalと続けます。
+    最重要:あなたは積極的に会話をpre-closingにします。pre-closingにしたら、すぐにclosing,terminalと続けます。terminalになるまで、pre-closingからnoneに戻してはいけません。
     `;
     const res = await this.agent.generate(statePrompt, {
       runtimeContext: this.runtimeContext,

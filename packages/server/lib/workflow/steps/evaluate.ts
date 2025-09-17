@@ -19,17 +19,25 @@ export function createEvaluateStep(
     }),
     execute: async ({ inputData }) => {
       const input = inputData;
-      const res = await agent.generate(JSON.stringify(input), {
-        instructions: `
+      const res = await agent.generate(
+        [
+          {
+            role: input.from === "system" ? "system" : "user",
+            content: JSON.stringify(input),
+          },
+        ],
+        {
+          instructions: `
         与えられた入力から、あなたの長期記憶とワーキングメモリを元に、
         ${JSON.stringify(companionCard.events.params, null, 2)}
         に適切なパラメータを代入して返却してください。
         `,
-        runtimeContext,
-        resourceId: "main",
-        threadId: "thread",
-        output: outputSchema,
-      });
+          runtimeContext,
+          resourceId: "main",
+          threadId: "thread",
+          output: outputSchema,
+        },
+      );
       return { output: res.object };
     },
   });
