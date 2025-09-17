@@ -25,7 +25,7 @@ $ pnpm i @aikyo/utils @aikyo/server @aikyo/firehose
 
 ### 前提ツール
 
-`pnpm` , `Node.js` (>= 22)
+`pnpm` , `Node.js` (>= 24.2)
 
 <details><summary>Nix Flakeを使う場合</summary>
 

@@ -5,6 +5,7 @@ import {
   CompanionServer,
 } from "@aikyo/server";
 import { companionNetworkKnowledge, speakTool } from "apm_dependencies/core";
+import { visionKnowledge } from "apm_dependencies/query-tool";
 
 export const companionCard: CompanionCard = {
   metadata: {
@@ -19,7 +20,7 @@ export const companionCard: CompanionCard = {
   },
   role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。キャラクター設定に忠実にロールプレイしてください。",
   actions: { speakTool },
-  knowledge: { companionNetworkKnowledge },
+  knowledge: { companionNetworkKnowledge, visionKnowledge },
   events: {
     params: {
       title: "あなたが判断すべきパラメータ",
@@ -27,7 +28,7 @@ export const companionCard: CompanionCard = {
       type: "object",
       properties: {
         already_replied: {
-          description: "初めて話す人かどうか",
+          description: "すでに話したことのある人かどうか",
           type: "boolean",
         },
         need_response: {
@@ -39,7 +40,7 @@ export const companionCard: CompanionCard = {
     },
     conditions: [
       {
-        expression: "already_replied == true",
+        expression: "already_replied == false",
         execute: [
           {
             instruction: "自己紹介をする。",
@@ -64,5 +65,5 @@ const companion = new CompanionAgent(
   companionCard,
   anthropic("claude-3-5-haiku-latest"),
 );
-const server = new CompanionServer(companion);
+const server = new CompanionServer(companion, { timeoutDuration: 1000 });
 await server.start();

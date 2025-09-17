@@ -6,6 +6,7 @@
   "private": true,
   "dependencies": {
     "zod": "catalog:",
-    "@aikyo/utils": "workspace:*"
+    "@aikyo/utils": "workspace:*",
+    "@aikyo/server": "workspace:*"
   }
 }

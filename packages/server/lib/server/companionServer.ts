@@ -1,3 +1,4 @@
+import type { Services } from "@aikyo/utils";
 import { gossipsub } from "@chainsafe/libp2p-gossipsub";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
@@ -11,9 +12,9 @@ import type {
   Message as AikyoMessage,
   CompanionCard,
   Metadata,
+  QueryResult,
 } from "../../schema/index.ts";
 import type { CompanionAgent } from "../agents/index.ts";
-
 import { TurnTakingManager } from "../conversation/index.ts";
 import {
   handleMetadataProtocol,
@@ -21,11 +22,6 @@ import {
 } from "./handlers/metadata.ts";
 import { onPeerConnect, onPeerDisconnect } from "./handlers/peer.ts";
 import { handlePubSubMessage } from "./handlers/pubsub.ts";
-
-export type Services = {
-  pubsub: ReturnType<ReturnType<typeof gossipsub>>;
-  identify: ReturnType<ReturnType<typeof identify>>;
-};
 
 export interface ICompanionServer {
   companionAgent: CompanionAgent;
@@ -42,11 +38,24 @@ export class CompanionServer implements ICompanionServer {
   companion: CompanionCard;
   libp2p!: Libp2p<Services>;
   companionList = new Map<string, Metadata>();
+  pendingQueries = new Map<
+    string,
+    {
+      resolve: (value: QueryResult) => void;
+      reject: (reason: string) => void;
+    }
+  >();
 
-  constructor(companionAgent: CompanionAgent) {
+  constructor(
+    companionAgent: CompanionAgent,
+    config?: { timeoutDuration: number },
+  ) {
     this.companionAgent = companionAgent;
     this.companion = companionAgent.companion;
-    this.turnTakingManager = new TurnTakingManager(this.companionAgent);
+    this.turnTakingManager = new TurnTakingManager(
+      this.companionAgent,
+      config ? config.timeoutDuration : 5000,
+    );
     this.companionList.set(this.companion.metadata.id, this.companion.metadata);
   }
 
@@ -74,6 +83,8 @@ export class CompanionServer implements ICompanionServer {
 
     this.libp2p.services.pubsub.subscribe("messages");
     this.libp2p.services.pubsub.subscribe("states");
+    this.libp2p.services.pubsub.subscribe("queries");
+    this.libp2p.services.pubsub.subscribe("query-results");
 
     this.libp2p.services.pubsub.addEventListener(
       "message",
@@ -94,6 +105,11 @@ export class CompanionServer implements ICompanionServer {
     );
     this.companionAgent.runtimeContext.set("libp2p", this.libp2p);
     this.companionAgent.runtimeContext.set("companions", this.companionList);
+    this.companionAgent.runtimeContext.set(
+      "pendingQueries",
+      this.pendingQueries,
+    );
+    this.companionAgent.runtimeContext.set("agent", this.companionAgent);
   }
 
   async handleMessageReceived(message: AikyoMessage) {

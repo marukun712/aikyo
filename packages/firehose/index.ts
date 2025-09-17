@@ -1,3 +1,5 @@
+import { MessageSchema, QueryResultSchema } from "@aikyo/server";
+import type { Services } from "@aikyo/utils";
 import { gossipsub } from "@chainsafe/libp2p-gossipsub";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
@@ -9,17 +11,9 @@ import type WebSocket from "ws";
 import { WebSocketServer } from "ws";
 import z from "zod";
 
-type Services = {
-  pubsub: ReturnType<ReturnType<typeof gossipsub>>;
-  identify: ReturnType<ReturnType<typeof identify>>;
-};
-
-const MessageSchema = z.object({
-  id: z.string(),
-  from: z.string(),
-  to: z.array(z.string()),
-  message: z.string(),
-  metadata: z.record(z.string(), z.any()).optional(),
+const RequestSchema = z.object({
+  topic: z.string(),
+  body: z.union([QueryResultSchema, MessageSchema]),
 });
 
 export class Firehose {
@@ -56,6 +50,8 @@ export class Firehose {
 
     this.libp2p.services.pubsub.subscribe("messages");
     this.libp2p.services.pubsub.subscribe("actions");
+    this.libp2p.services.pubsub.subscribe("queries");
+    this.libp2p.services.pubsub.subscribe("query-results");
 
     this.wss = new WebSocketServer({ port: this.port });
 
@@ -66,13 +62,27 @@ export class Firehose {
       ws.on("message", (evt) => {
         try {
           const data = JSON.parse(evt.toString());
-          const parsed = MessageSchema.safeParse(data);
-          if (parsed.success) {
-            console.log(parsed.data);
-            this.libp2p.services.pubsub.publish(
-              "messages",
-              new TextEncoder().encode(evt.toString()),
-            );
+          const parsed = RequestSchema.safeParse(data);
+          if (!parsed.success) {
+            ws.send(JSON.stringify({ error: parsed.error }));
+            return;
+          }
+          console.log(parsed.data);
+          switch (parsed.data.topic) {
+            case "messages":
+              this.libp2p.services.pubsub.publish(
+                "messages",
+                new TextEncoder().encode(JSON.stringify(parsed.data.body)),
+              );
+              break;
+            case "query-results":
+              this.libp2p.services.pubsub.publish(
+                "query-results",
+                new TextEncoder().encode(JSON.stringify(parsed.data.body)),
+              );
+              break;
+            default:
+              console.log("Unknown topic:", parsed.data.topic);
           }
         } catch (e) {
           console.log(e);
@@ -103,7 +113,6 @@ export class Firehose {
     console.log(`aikyo firehose server running on ws://localhost:${this.port}`);
   }
 }
-
 if (import.meta.main) {
   const firehose = new Firehose(8080);
   try {
