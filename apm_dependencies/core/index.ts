@@ -9,7 +9,7 @@ export const speakTool = createCompanionAction({
     to: z
       .array(z.string())
       .describe(
-        "このメッセージの宛先。必ずコンパニオンのidを指定してください。特定のコンパニオンに個人的に話しかけたいとき以外は、必ず、会話に参加したことのある全員を含むようにしてください。",
+        "このメッセージの宛先。必ずコンパニオンのidを指定してください。特定のコンパニオンに個人的に話しかけたいとき以外は、必ず、会話に参加したことのある全員を含むようにしてください。また、積極的にuserに会話を振ってください。",
       ),
     emotion: z.enum(["happy", "sad", "angry", "neutral"]),
   }),
@@ -33,6 +33,6 @@ export const companionNetworkKnowledge = createCompanionKnowledge({
   outputSchema: z.string(),
   knowledge: async ({ companions }) =>
     Array.from(companions.entries())
-      .map((metadata) => metadata)
+      .map((metadata) => JSON.stringify(metadata, null, 2))
       .join("\n"),
 });

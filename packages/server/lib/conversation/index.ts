@@ -13,10 +13,12 @@ export class TurnTakingManager implements ITurnTakingManager {
     string,
     { participants: Set<string>; message: Message; states: State[] }
   >;
+  private timeoutDuration: number;
 
-  constructor(companionAgent: CompanionAgent) {
+  constructor(companionAgent: CompanionAgent, timeoutDuration: number) {
     this.companionAgent = companionAgent;
     this.pending = new Map();
+    this.timeoutDuration = timeoutDuration;
   }
 
   async addPending(message: Message) {
@@ -93,7 +95,7 @@ export class TurnTakingManager implements ITurnTakingManager {
           await new Promise<void>((resolve) => {
             setTimeout(() => {
               resolve();
-            }, 5000);
+            }, this.timeoutDuration);
           });
           await this.companionAgent.input(pending.message);
         } else {
