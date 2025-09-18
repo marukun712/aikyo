@@ -9,6 +9,13 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "aikyo",
+      locales: {
+        root: {
+          label: "日本語",
+          lang: "ja",
+        },
+      },
+      defaultLocale: "ja",
       social: [
         {
           icon: "github",
