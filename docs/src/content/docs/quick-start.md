@@ -290,7 +290,7 @@ await server.start();
 `kyoko`を起動します。
 
 ```bash
-$ tsx kyoko.ts
+$ pnpm tsx kyoko.ts
 ```
 
 `client.ts`を修正して、二人の会話を開始させます。
@@ -325,3 +325,11 @@ ws.on('message', (data) => {
 ```
 
 コンソールに、コンパニオン同士が会話しているメッセージが流れてきます。
+
+# Examples
+
+## kyoko
+
+https://github.com/marukun712/kyoko
+
+aikyoをバックエンドとしたAIコンパニオン実装、kyokoでは、Quick Startで実装したコンパニオンの対話以外にも、外部APIからのデータ取得、Queryを使ったクライアント側でのカメラキャプチャなどが実装されています。
