@@ -113,7 +113,7 @@ export const companionCard: CompanionCard = {
   },
   role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。キャラクター設定に忠実にロールプレイしてください。",
   actions: { speakTool },
-  knowledge: { companionNetworkKnowledge, visionKnowledge },
+  knowledge: { companionNetworkKnowledge },
   events: {
     params: {
       title: "あなたが判断すべきパラメータ",
@@ -222,7 +222,7 @@ import {
   type CompanionCard,
   CompanionServer,
 } from "@aikyo/server";
-import { companionNetworkKnowledge, speakTool } from "./tool.ts";
+import { companionNetworkKnowledge, speakTool } from "./tools.ts";
 
 export const companionCard: CompanionCard = {
   metadata: {

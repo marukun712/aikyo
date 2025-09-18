@@ -27,6 +27,11 @@ function createCompanionAction<T extends z.ZodSchema>(
 import type { Action, Message, CompanionAgent, QueryResult } from "@aikyo/server";
 import type { Libp2p } from "libp2p";
 
+type Services = {
+  pubsub: ReturnType<ReturnType<typeof gossipsub>>;
+  identify: ReturnType<ReturnType<typeof identify>>;
+};
+
 // publish関数が返す型
 type Output = Action | Message;
 
