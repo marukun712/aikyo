@@ -14,9 +14,6 @@ jobs:
     permissions:
       contents: write         # release PRのpushやタグ作成に必要
       pull-requests: write    # PRの作成・更新
-      checks: write
-      packages: write
-      deployments: write
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
