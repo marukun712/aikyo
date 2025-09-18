@@ -3,33 +3,51 @@ title: Action API
 description: Companion Action APIの詳細仕様
 ---
 
+`Action`は、コンパニオンがP2Pネットワークにデータを送信する「行動」を定義するためのツールです。
+
 ## createCompanionAction
 
-Mastraツールを作成するファクトリー関数です。
+`Action`ツールを作成するためのファクトリ関数です。
+
+- **インポート元**: `@aikyo/utils`
 
 ### 関数シグネチャ
 
 ```typescript
-function createCompanionAction<T extends z.ZodSchema>({
-  id,
-  description,
-  inputSchema,
-  topic,
-  publish,
-}: CompanionActionConfig<T>): Tool;
+import { createCompanionAction, type CompanionActionConfig } from "@aikyo/utils";
+
+function createCompanionAction<T extends z.ZodSchema>(
+  config: CompanionActionConfig<T>
+): Tool;
 ```
 
-### CompanionActionConfig
+### 設定オブジェクト (CompanionActionConfig)
 
 ```typescript
-type Output = Action | Context | Message;
+import type { Action, Message, CompanionAgent, QueryResult } from "@aikyo/server";
+import type { Libp2p } from "libp2p";
+
+type Services = {
+  pubsub: ReturnType<ReturnType<typeof gossipsub>>;
+  identify: ReturnType<ReturnType<typeof identify>>;
+};
+
+// publish関数が返す型
+type Output = Action | Message;
 
 interface CompanionActionConfig<T extends z.ZodSchema> {
   id: string;
   description: string;
   inputSchema: T;
-  topic: "messages" | "actions" | "contexts";
-  publish: (input: z.infer<T>) => Promise<Output> | Output;
+  topic: "actions" | "messages";
+  publish: (props: {
+    input: z.infer<T>;
+    id: string; // コンパニオン自身のID
+    companions: Map<string, string>; // ネットワーク上のコンパニオン一覧
+    libp2p: Libp2p<Services>; // libp2pインスタンス
+    pendingQueries: Map<string, { resolve, reject }>;
+    companionAgent: CompanionAgent;
+  }) => Promise<Output> | Output;
 }
 ```
 
@@ -38,29 +56,26 @@ interface CompanionActionConfig<T extends z.ZodSchema> {
 ##### `id: string`
 
 - **必須**: はい
-- **例**: `"speak"`, `"gesture"`, `"motion-db-gesture"`
-- **説明**: アクションの一意識別子
+- **説明**: アクションを識別するための一意なID文字列です。
 
 ##### `description: string`
 
 - **必須**: はい
-- **例**: `"メッセージを話す。感情も表現できます。"`
-- **説明**: LLMがアクションの目的を理解するための説明
+- **説明**: LLMがこのアクションの目的を理解し、いつ使用すべきかを判断するための説明文です。
 
 ##### `inputSchema: T`
 
 - **必須**: はい
 - **型**: Zodスキーマ
-- **説明**: LLMから受け取るパラメータの定義
+- **説明**: LLMに生成してほしいパラメータの構造を定義します。
 
 ##### `topic: string`
 
 - **必須**: はい
-- **値**: `"messages"` | `"actions"` | `"contexts"`
-- **説明**: P2P通信で使用するトピック
+- **値**: `"messages"` | `"actions"`
+- **説明**: `publish`関数が返したデータをどのP2Pトピックに送信するかを指定します。
 
 ##### `publish: Function`
 
 - **必須**: はい
-- **戻り値**: `Output` または `Promise<Output>`
-- **説明**: 返り値として戻されたデータをP2Pネットワークに送信する関数
+- **説明**: LLMが生成した`input`と実行時コンテキスト`props`を受け取り、P2Pネットワークに送信するデータオブジェクトを生成して返す関数です。非同期処理も可能です。
