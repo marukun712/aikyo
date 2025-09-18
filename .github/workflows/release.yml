@@ -12,7 +12,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     permissions:
-      contents: read          # PR作成に必要
+      contents: write         # release PRのpushやタグ作成に必要
       pull-requests: write    # PRの作成・更新
       checks: write
       packages: write
