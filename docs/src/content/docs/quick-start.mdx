@@ -3,6 +3,8 @@ title: クイックスタート
 description: aikyoを使ってAIコンパニオンを作成する最初のステップ
 ---
 
+import { Aside } from '@astrojs/starlight/components';
+
 `aikyo`は、P2Pで相互に作用するAIコンパニオンを構築するためのフレームワークです。このドキュメントでは、あなたのNode.js/TypeScriptプロジェクトに`aikyo`を導入し、最終的に複数体のコンパニオンを起動するまでの手順を段階的に解説します。
 
 ## 1. プロジェクトのセットアップ
@@ -24,6 +26,8 @@ pnpm add @aikyo/server @aikyo/utils @aikyo/firehose zod @ai-sdk/anthropic dotenv
 ## 2. 環境変数の設定
 
 プロジェクトのルートに`.env`ファイルを作成し、コンパニオンが使用するLLMのAPIキーを設定します。
+
+<Aside type="caution">aikyoは複数のLLMを同時に稼働させるため、通常よりもクレジットを消費します。必ず適切なリミットを設定してから使用してください。</Aside>
 
 ```: .env
 ANTHROPIC_API_KEY="sk-ant-xxxxxxxx"
