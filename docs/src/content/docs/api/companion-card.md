@@ -1,11 +1,14 @@
 ---
-title: コンパニオンカードスキーマ
-description: Companion Card APIの詳細仕様
+title: CompanionCard
+description: Companion Card のAPIスキーマ詳細仕様
 ---
 
-## CompanionCard
+## CompanionSchema
 
 ```typescript
+import { z } from "zod";
+import { Tool } from "@mastra/core";
+
 export const CompanionSchema = z.object({
   metadata: MetadataSchema,
   role: z.string(),
@@ -13,24 +16,18 @@ export const CompanionSchema = z.object({
   knowledge: z.record(z.instanceof(Tool)),
   events: z.object({
     params: z.record(z.string(), z.any()),
-    conditions: z.array(
-      z.object({
-        expression: z.string(),
-        execute: z.array(
-          z.object({
-            instruction: z.string(),
-            tool: z.instanceof(Tool),
-          }),
-        ),
-      }),
-    ),
+    conditions: z.array(EventCondition),
   }),
 });
 ```
 
-## CompanionMetadata
+---
+
+### `metadata`
 
 コンパニオンの基本情報を定義します。
+
+- **スキーマ**: `MetadataSchema`
 
 ```typescript
 export const MetadataSchema = z.object({
@@ -42,46 +39,68 @@ export const MetadataSchema = z.object({
 });
 ```
 
-### フィールド詳細
+- `id`: `companion_`から始まる一意のID。
+- `name`: コンパニオン名。
+- `personality`: LLMが性格を理解するための説明。
+- `story`: 背景設定。
+- `sample`: 話し方のサンプル。
 
-#### `id: string`
+### `role`
 
-- **必須**: はい
-- **形式**: `companion_` + UUID
-- **例**: `"companion_bebf00bb-8a43-488d-9c23-93c40b84d30e"`
-- **説明**: P2Pネットワーク内でコンパニオンを識別する一意のID
+コンパニオンの役割を文字列で定義します。
 
-#### `name: string`
+- **型**: `string`
+- **例**: `"あなたはフレンドリーなアシスタントです。"`
 
-- **必須**: はい
-- **例**: `"高橋ポルカ"`
-- **説明**: コンパニオンの表示名
+### `actions`
 
-#### `personality: string`
+コンパニオンが使用できる`Action`ツールをまとめたオブジェクトです。
 
-- **必須**: はい
-- **例**: `"元気で明るくて難しいことを考えるのが苦手な性格です。"`
-- **説明**: LLMがキャラクター性を理解するための性格設定
+- **型**: `Record<string, Tool>`
+- **キー**: アクション名
+- **値**: `createCompanionAction`で作成したツールインスタンス
 
-#### `story: string`
+### `knowledge`
 
-- **必須**: はい
-- **例**: `"L高 浅草サテライトの1年生。明るく元気な性格で..."`
-- **説明**: コンパニオンの背景ストーリー
+コンパニオンが使用できる`Knowledge`ツールをまとめたオブジェクトです。
 
-#### `sample: string`
+- **型**: `Record<string, Tool>`
+- **キー**: ナレッジ名
+- **値**: `createCompanionKnowledge`で作成したツールインスタンス
 
-- **必須**: はい
-- **例**: `"翔音ちゃんが見せてくれた昔のスクールアイドルの動画..."`
-- **説明**: 話し方や文体のサンプル
+### `events`
 
-## CompanionEvents
+コンパニオンの自律的な判断と行動のルールを定義します。
 
-コンパニオンの判断システムを定義します。
+#### `events.params`
+
+LLMに状況を判断させるための項目をJSON Schema形式で定義します。
+
+- **型**: `Record<string, any>` (JSON Schemaオブジェクト)
+- **例**:
+  ```json
+  {
+    "title": "状況判断パラメータ",
+    "type": "object",
+    "properties": {
+      "need_reply": {
+        "description": "相手の発言に返信が必要か",
+        "type": "boolean"
+      }
+    },
+    "required": ["need_reply"]
+  }
+  ```
+
+#### `events.conditions`
+
+`params`での判断結果に基づき、ツールを実行するための条件分岐を定義します。
+
+- **スキーマ**: `EventCondition[]`
 
 ```typescript
 export const EventCondition = z.object({
-  expression: z.string(),
+  expression: z.string(), // CEL式
   execute: z.array(
     z.object({
       instruction: z.string(),
@@ -89,54 +108,9 @@ export const EventCondition = z.object({
     }),
   ),
 });
-
-events: z.object({
-  params: z.record(z.string(), z.any()),
-  conditions: z.array(EventCondition),
-});
 ```
 
-### フィールド詳細
-
-#### `params: Record<string, any>`
-
-LLMが判断すべきパラメータをJSON Schemaで定義します。
-必ず、JSON、Schemaで記述する必要があることに注意してください。
-
-```typescript
-params: {
-  title: "判断パラメータ",
-  description: "状況に応じて適切な値を設定してください",
-  type: "object",
-  properties: {
-    interaction_type: {
-      description: "交流してきた人のタイプ",
-      enum: ["user", "companion"],
-      type: "string"
-    },
-    need_reply: {
-      description: "返事が必要かどうか",
-      type: "boolean"
-    }
-  },
-  required: ["interaction_type","need_reply"]
-}
-```
-
-#### `conditions: EventCondition[]`
-
-実行条件と対応するアクションを定義します。
-
-```typescript
-conditions: [
-  {
-    expression: 'interaction_type === "user" && need_reply === true',
-    execute: [
-      {
-        instruction: "ユーザーに適切に応答する",
-        tool: speakAction,
-      },
-    ],
-  },
-];
-```
+- `expression`: `params`の値を元にしたCEL式。
+- `execute`: `expression`がtrueの場合に実行されるツールの配列。
+  - `instruction`: LLMへの実行指示。
+  - `tool`: 実行するツールインスタンス。

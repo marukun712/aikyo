@@ -5,71 +5,75 @@ description: Companion Cardを使ったAIコンパニオンの設計方法
 
 ## Companion Cardとは
 
-Companion Card（コンパニオンカード）は、AIコンパニオンの設計書となるJSONベースの設定ファイルです。キャラクター設定だけでなく、コンパニオンが実行できるアクション、役割、アクションの実行基準などをユーザーが思い通りに設計することができます。
+Companion Card（コンパニオンカード）は、AIコンパニオンの設計書となる設定オブジェクトです。キャラクターの基本設定から、実行可能なツール（アクションやナレッジ）、さらには自律的な判断基準まで、コンパニオンのあらゆる側面を定義します。
 
 ## Companion Cardの構成要素
 
+`CompanionCard`オブジェクトは、主に5つの要素で構成されます。
+
 ### 1. メタデータ（metadata）
 
-コンパニオンの基本情報を定義します。
+コンパニオンの基本的なプロフィールを定義します。
 
 ```typescript
 metadata: {
-  id: "companion_bebf00bb-8a43-488d-9c23-93c40b84d30e",
-  name: "高橋ポルカ",
-  personality: "元気で明るくて難しいことを考えるのが苦手な性格です。",
-  story: "L高 浅草サテライトの1年生。明るく元気な性格で...",
-  sample: "翔音ちゃんが見せてくれた昔のスクールアイドルの動画..."
-}
+  id: "companion_aya",
+  name: "aya",
+  personality:
+    "落ち着いていてクールな雰囲気を持つが、時折ほんの少し抜けていて親しみやすい一面を見せる。プログラミングや分散システムの話になると饒舌になり、楽しそうに語る姿が可愛らしい。基本的には理知的で真面目だが、意外と感情表現が豊か。",
+  story:
+    "p2pネットワークや分散システムに強い関心を持ち、独自の研究や開発を続けている。自由なスタイルでプロジェクトをこなしながら、理想的な分散型の未来を夢見ている。普段はクールで冷静だが、技術の話になると目を輝かせる。",
+  sample:
+    "『分散システムって、みんなで支え合って動いてる感じが好きなんだ。…ちょっと可愛いと思わない？』",
+},
 ```
 
-- **id** - コンパニオンの一意識別子（`companion_`で始まる必要があります）
-- **name** - コンパニオンの名前
-- **personality** - 性格設定
-- **story** - 背景ストーリー
-- **sample** - 話し方のサンプル
+- `id`: コンパニオンの一意識別子（`companion_`で始まる必要があります）
+- `name`: コンパニオンの名前
+- `personality`: 性格設定。LLMがキャラクターを演じる上での指針となります。
+- `story`: コンパニオンの背景ストーリー
+- `sample`: 話し方のサンプル
 
 ### 2. 役割（role）
 
-コンパニオンの基本的な役割を定義します。
+コンパニオンが対話の中で担うべき、より具体的な役割を定義します。
 
 ```typescript
-role: "あなたは、展示会をサポートするAIコンパニオンです。積極的にお客さんを呼び込みます。";
+role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。キャラクター設定に忠実にロールプレイしてください。",
 ```
 
 ### 3. アクション（actions）
 
-コンパニオンが実行できる行動を定義します。
+コンパニオンが実行できる「行動」のセットを定義します。ここで登録したアクションが、LLMが利用可能なツールとなります。
 
 ```typescript
 actions: {
-  speakAction,
-  motionDBGestureAction,
-  contextAction,
+  speakAction,       // 会話するアクション
+  gestureAction,     // ジェスチャーをするアクション
 }
 ```
 
 ### 4. ナレッジ（knowledge）
 
-動的に取得する知識を定義します：
+コンパニオンが動的に取得できる「知識」のセットを定義します。これもLLMが利用可能なツールの一種です。
 
 ```typescript
 knowledge: {
-  environmentDBKnowledge;
+  companionNetworkKnowledge, // ネットワーク情報を取得するナレッジ
 }
 ```
 
 ### 5. イベント（events）
 
-コンパニオンの判断基準とアクション実行条件を定義します。
+コンパニオンが自律的に判断し、アクションを実行するためのルールを定義します。
 
 ## イベントシステム
 
-イベントシステムは、LLMが判断するパラメータと、それに基づく条件分岐から構成されます。
+イベントシステムは、LLMが状況を判断するためのパラメータ定義（`params`）と、その判断結果に基づいてツールを実行する条件分岐（`conditions`）から構成されます。
 
-### パラメータ定義
+### パラメータ定義 (`params`)
 
-LLMが各状況で判断すべきパラメータを定義します。
+対話の履歴などを受け、LLMが各状況で判断すべき項目をJSON Schema形式で定義します。
 
 ```typescript
 events: {
@@ -78,66 +82,54 @@ events: {
     description: "descriptionに従い、それぞれ適切に値を代入してください。",
     type: "object",
     properties: {
-      interaction_type: {
-        description: "交流してきた人がコンパニオンか、ユーザーか",
-        enum: ["user", "companion"],
-        type: "string"
-      },
       already_replied: {
-        description: "交流してきたコンパニオン/ユーザーに、返事をしたことがあるか",
-        type: "boolean"
+        description: "すでに話したことのある人かどうか",
+        type: "boolean",
       },
-      need_reply: {
-        description: "返事が必要かどうか",
-        type: "boolean"
-      }
+      need_response: {
+        description: "返答の必要があるかどうか",
+        type: "boolean",
+      },
     },
-    required: ["interaction_type", "already_seen"]
-  }
+    required: ["already_replied", "need_response"],
+  },
+  // ... conditionsが続く
 }
 ```
 
-### 条件分岐とアクション実行
+### 条件分岐とアクション実行 (`conditions`)
 
-CEL（Common Expression Language）式を使用して条件分岐を記述し、条件に応じてツールを実行します。
+`params`での判断結果を元に、CEL（Common Expression Language）式で条件を記述し、条件に一致した場合に実行するツールと指示（`instruction`）を定義します。
 
 ```typescript
 conditions: [
   {
-    expression: 'interaction_type === "user" && need_reply === true',
+    expression: "already_replied == false",
     execute: [
       {
-        instruction: "応答する。",
-        tool: speakAction,
+        instruction: "自己紹介をする。",
+        tool: speakTool,
       },
     ],
   },
   {
-    expression: 'interaction_type === "user" && already_seen === false',
+    expression: "need_response == true",
     execute: [
       {
-        instruction: "見たことのない人が交流してきたので、手を振る",
-        tool: motionDBGestureAction,
-      },
-      {
-        instruction: "見たことのない人に、挨拶をする",
-        tool: speakAction,
-      },
-      {
-        instruction: "他のコンパニオンに、初めて見る人の情報を共有する",
-        tool: contextAction,
+        instruction: "ツールを使って返信する。",
+        tool: speakTool,
       },
     ],
   },
-];
+],
 ```
 
-## CELの記述
+#### 実行順序
 
-CELの文法については、以下のドキュメントを参照してください。
+`conditions` 配列は**上から順に評価**され、最初に`expression`が真（true）と評価されたブロックの`execute`が実行されます。そのため、より具体的で優先度の高い条件を配列の上に配置することが重要です。
 
-https://github.com/google/cel-spec/blob/master/doc/langdef.md
+#### CELの文法
 
-## 実行順序
+CELの文法については、公式の言語定義を参照してください。
 
-条件分岐は**上から順に評価**され、条件に一致した場合にアクションが実行されます。より具体的な条件を上に配置し、一般的な条件を下に配置することが重要です。
+[CEL Language Definition](https://github.com/google/cel-spec/blob/master/doc/langdef.md)

@@ -5,86 +5,116 @@ description: aikyoを使ってAIコンパニオンを作成する最初のステ
 
 ## 必要な環境
 
-- Node.js 24 以上
+- Node.js 20 以上
+- pnpm
 
-## インストール
+## 1. インストール
 
-プロジェクトをクローンして依存関係をインストールします：
-
-```bash
-$ git clone https://github.com/marukun712/aikyo
-$ cd aikyo/
-$ npm install
-```
-
-APM(Aikyo Package Manager)を使用してblankテンプレートをクローンします：
+プロジェクトをクローンして、pnpmを使って依存関係をインストールします。
 
 ```bash
-$ brew install akazdayo/tap/apm
-$ cd configs/
-$ apm init --template basic
-$ ls
-> aikyo-basic-template
-> ...
+git clone https://github.com/marukun712/aikyo
+cd aikyo/
+pnpm install
 ```
 
-## 基本的な使い方
+## 2. コンパニオンの準備
 
-### 1. コンパニオンの起動
-
-`configs/` ディレクトリにある設定フォルダを指定してコンパニオンを起動します：
+まず、既存の設定をコピーして、あなただけのコンパニオン設定を作成します。ここでは例として `aya` の設定を `my-companion` という名前でコピーします。
 
 ```bash
-npm run companion --config=polka
+cp -r configs/aya configs/my-companion
 ```
 
-### 2. Firehoseサーバーの起動
+これで `configs/my-companion` ディレクトリが作成されました。この中の `companion.ts` ファイルを編集することで、コンパニオンの性格や能力をカスタマイズできます。
 
-別のターミナルでFirehoseサーバーを起動します：
+## 3. 起動
+
+aikyoを動かすには、「コンパニオン」と「Firehoseサーバー」の2つを起動する必要があります。それぞれ別のターミナルで実行してください。
+
+### ターミナル 1: コンパニオンの起動
+
+先ほど作成したコンパニオン設定を指定して起動します。
 
 ```bash
-npm run firehose
+pnpm companion my-companion
 ```
 
-Firehoseサーバーは、P2PネットワークとWebSocketクライアント間のブリッジとして機能します。
+起動すると、ターミナルにコンパニオンの情報が表示されます。この中の `id`（`companion_`から始まる文字列）を後で使うので、コピーしておいてください。
 
-### 3. コンパニオンとの対話
+```
+Companion started: Aya (id=companion_aya, peerId=...)
+```
 
-FirehoseサーバーにWebsocketでメッセージを送信することでP2Pネットワークにメッセージを送信することができます。
+### ターミナル 2: Firehoseサーバーの起動
+
+Firehoseは、P2Pネットワークとクライアントアプリケーション（あなたからのメッセージ）を繋ぐためのWebSocketサーバーです。
+
+```bash
+pnpm firehose
+```
+
+`aikyo firehose server running on ws://localhost:8080` と表示されれば成功です。
+
+## 4. コンパニオンとの対話
+
+FirehoseサーバーにWebSocketで接続し、メッセージを送ることでコンパニオンと対話できます。
+
+以下のサンプルコード（Node.js）を `test.ts` のような名前で保存し、実行してみてください。
 
 ```typescript
-const firehoseUrl = "ws://localhost:8080";
+import WebSocket from 'ws';
+
+const firehoseUrl = 'ws://localhost:8080';
 const ws = new WebSocket(firehoseUrl);
 
-ws.addEventListener("open", (event) => {
-  ws.send(
-    JSON.stringify({ from: "user", message: "こんにちは！", target: "companion_polka" }, null, 2),
-  );
+// 手順3でコピーしたあなたのコンパニオンIDに置き換えてください
+const companionId = 'companion_aya';
+const userId = 'user_yamada';
+
+ws.on('open', () => {
+  console.log('Connected to Firehose.');
+
+  const message = {
+    topic: 'messages',
+    body: {
+      id: crypto.randomUUID(),
+      from: userId,
+      to: [companionId],
+      message: 'こんにちは！はじめまして。',
+    },
+  };
+
+  // メッセージを送信
+  ws.send(JSON.stringify(message));
+  console.log('Message sent:', message);
+});
+
+// コンパニオンからの返信やネットワーク上のメッセージを受信
+ws.on('message', (data) => {
+  console.log('Received from Firehose:', JSON.parse(data.toString()));
+});
+
+ws.on('close', () => {
+  console.log('Disconnected from Firehose.');
+});
+
+ws.on('error', (error) => {
+  console.error('WebSocket error:', error);
 });
 ```
 
-### 4. コンテキストの共有
-
-特定のコンパニオンに状況情報を与えることもできます：
-
+実行する前に、`ws` パッケージをインストールしてください。
 ```bash
-curl -X POST http://localhost:3000/context \
-  -H "Content-Type: application/json" \
-  -d '{
-    "type": "text",
-    "context": "部屋の明かりが暗くなった"
-  }'
+pnpm add ws
 ```
 
-## 設定例の確認
+そして、スクリプトを実行します。
+```bash
+node test.js
+```
 
-`configs/basic_template/` ディレクトリには、ベーシックキャラクターの初期設定が含まれています：
-
-- `companion.ts` - コンパニオンカードの定義
-- `plugins/` - 外部連携プラグイン
-- `tools/` - 利用可能なツール
-
-これらのファイルを参考に、独自のコンパニオンを作成できます。
+コンパニオンからの返信がターミナルに表示されるはずです。
 
 ## 次のステップ
 
