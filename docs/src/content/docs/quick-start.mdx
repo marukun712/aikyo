@@ -17,10 +17,18 @@ cd my-aikyo-app
 pnpm init
 ```
 
+<Aside type="caution">生成された`package.json`には必ず`"type": "module"`を設定してください。ES Modulesとして実行されることを前提にしているため、この設定がないと`aikyo`の各パッケージが正しく動作しません。</Aside>
+
 次に、`aikyo`の主要なパッケージと、開発に必要なライブラリをインストールします。
 
 ```bash
 pnpm add @aikyo/server @aikyo/utils @aikyo/firehose zod @ai-sdk/anthropic dotenv ws
+```
+
+TypeScriptファイルをコンパイルなしで実行するために、ランタイムとして[`tsx`](https://github.com/privatenumber/tsx)を開発依存に追加します。
+
+```bash
+pnpm add -D tsx
 ```
 
 ## 2. 環境変数の設定
@@ -171,8 +179,8 @@ await server.start();
 2つのターミナルで、それぞれ`firehose`とコンパニオンを起動します。
 
 ```bash
-$ pnpm tsx firehose.ts
-$ pnpm tsx aya.ts
+$ pnpm exec tsx firehose.ts
+$ pnpm exec tsx aya.ts
 ```
 
 `aya`に話しかけるクライアント`client.ts`を作成して実行します。
@@ -207,7 +215,7 @@ ws.on('message', (data) => {
 
 クライアントを実行します。
 ```bash
-$ pnpm tsx client.ts
+$ pnpm exec tsx client.ts
 ```
 `aya`から返事が来ることを確認しましょう。
 
@@ -294,7 +302,7 @@ await server.start();
 `kyoko`を起動します。
 
 ```bash
-$ pnpm tsx kyoko.ts
+$ pnpm exec tsx kyoko.ts
 ```
 
 `client.ts`を修正して、二人の会話を開始させます。
