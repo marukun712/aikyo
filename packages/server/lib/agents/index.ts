@@ -1,3 +1,4 @@
+import { mkdirSync } from "node:fs";
 import type { LanguageModel, Run } from "@mastra/core";
 import { Agent } from "@mastra/core/agent";
 import { RuntimeContext } from "@mastra/core/runtime-context";
@@ -45,6 +46,9 @@ export class CompanionAgent implements ICompanionAgent {
   ) {
     // コンパニオンを初期化
     this.companion = companion;
+
+    // 永続化に使用するdbディレクトリが無い場合は作成
+    mkdirSync("db", { recursive: true });
 
     // 長期記憶記憶DBの設定
     this.memory = new Memory({
