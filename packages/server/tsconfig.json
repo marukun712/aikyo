@@ -7,9 +7,13 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
-    "noEmit": true,
+    "noEmit": false,
     "outDir": "dist",
-    "allowImportingTsExtensions": true
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "allowImportingTsExtensions": false
   },
-  "include": ["src/**/*", "config/tools", "lib/agents", "lib/server"]
+  "include": ["index.ts", "lib/**/*", "schema/**/*"],
+  "exclude": ["dist", "node_modules", "**/*.test.ts", "**/*.spec.ts"]
 }

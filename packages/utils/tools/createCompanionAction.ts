@@ -7,7 +7,7 @@ import {
 import { createTool } from "@mastra/core/tools";
 import { isLibp2p, type Libp2p } from "libp2p";
 import { type ZodTypeAny, z } from "zod";
-import type { Services } from "../lib/services.ts";
+import type { Services } from "../lib/services.js";
 
 type Output = Action | Message;
 

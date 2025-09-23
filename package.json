@@ -4,6 +4,8 @@
   "private": true,
   "packageManager": "pnpm@10.16.1",
   "scripts": {
+    "clean": "pnpm -r run clean",
+    "build": "pnpm -r run build",
     "companion": "tsx ./scripts/companion.ts",
     "firehose": "tsx packages/firehose/index.ts",
     "format": "biome format ./",
@@ -13,7 +15,7 @@
     "check": "biome check ./",
     "check:fix": "biome check --write ./",
     "changeset": "changeset",
-    "release": "changeset publish"
+    "release": "pnpm run build && changeset publish"
   },
   "overrides": {
     "ms": "3.0.0-canary.1"

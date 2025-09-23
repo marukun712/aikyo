@@ -6,7 +6,13 @@
     "useIgnoreFile": false
   },
   "files": {
-    "ignoreUnknown": false
+    "ignoreUnknown": false,
+    "ignore": [
+      "**/dist/**",
+      "**/node_modules/**",
+      "docs/.astro/**",
+      "docs/dist/**"
+    ]
   },
   "formatter": {
     "enabled": true,

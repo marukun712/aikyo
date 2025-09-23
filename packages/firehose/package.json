@@ -3,6 +3,16 @@
   "type": "module",
   "version": "1.1.1",
   "license": "MIT",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "pnpm run clean && tsc",
+    "prepublishOnly": "pnpm run build"
+  },
   "dependencies": {
     "@chainsafe/libp2p-gossipsub": "catalog:",
     "@chainsafe/libp2p-noise": "catalog:",
@@ -19,7 +29,8 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "@types/ws": "catalog:"
+    "@types/ws": "catalog:",
+    "typescript": "catalog:"
   },
   "peerDependencies": {
     "typescript": "^5"
