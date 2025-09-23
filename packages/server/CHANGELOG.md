@@ -1,5 +1,12 @@
 # @aikyo/server
 
+## 1.1.1
+
+### Patch Changes
+
+- 97b79c2: db フォルダが存在しない場合に自動的にフォルダを作成するようにした
+  - @aikyo/utils@1.1.1
+
 ## 1.1.0
 
 ### Minor Changes
