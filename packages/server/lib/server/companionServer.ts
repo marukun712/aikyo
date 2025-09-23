@@ -25,6 +25,7 @@ import { handlePubSubMessage } from "./handlers/pubsub.ts";
 
 export interface ICompanionServer {
   companionAgent: CompanionAgent;
+  history: AikyoMessage[];
   turnTakingManager: TurnTakingManager;
   companion: CompanionCard;
   libp2p: Libp2p<Services>;
@@ -34,6 +35,7 @@ export interface ICompanionServer {
 
 export class CompanionServer implements ICompanionServer {
   companionAgent: CompanionAgent;
+  history: AikyoMessage[];
   turnTakingManager: TurnTakingManager;
   companion: CompanionCard;
   libp2p!: Libp2p<Services>;
@@ -48,9 +50,11 @@ export class CompanionServer implements ICompanionServer {
 
   constructor(
     companionAgent: CompanionAgent,
+    history: AikyoMessage[],
     config?: { timeoutDuration: number },
   ) {
     this.companionAgent = companionAgent;
+    this.history = history;
     this.companion = companionAgent.companion;
     this.turnTakingManager = new TurnTakingManager(
       this.companionAgent,

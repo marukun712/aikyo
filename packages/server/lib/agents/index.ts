@@ -12,6 +12,7 @@ import {
   type State,
   StateSchema,
 } from "../../schema/index.ts";
+import { RepetitionJudge } from "../workflow/evals/index.ts";
 import { createToolInstructionWorkflow } from "../workflow/index.ts";
 
 config();
@@ -19,6 +20,7 @@ config();
 export interface ICompanionAgent {
   companion: CompanionCard;
   agent: Agent;
+  repetitionJudge: RepetitionJudge;
   memory: Memory;
   runtimeContext: RuntimeContext;
   run: Run;
@@ -33,6 +35,8 @@ export interface ICompanionAgent {
 export class CompanionAgent implements ICompanionAgent {
   companion: CompanionCard;
   agent: Agent;
+  repetitionJudge: RepetitionJudge;
+  history: Message[];
   memory: Memory;
   runtimeContext: RuntimeContext;
   run: Run;
@@ -42,10 +46,12 @@ export class CompanionAgent implements ICompanionAgent {
   constructor(
     companion: CompanionCard,
     model: LanguageModel,
+    history: Message[],
     config?: { maxTurn: number | null },
   ) {
     // コンパニオンを初期化
     this.companion = companion;
+    this.history = history;
 
     // 永続化に使用するdbディレクトリが無い場合は作成
     mkdirSync("db", { recursive: true });
@@ -89,6 +95,8 @@ export class CompanionAgent implements ICompanionAgent {
       tools: { ...companion.actions, ...companion.knowledge },
     });
 
+    this.repetitionJudge = new RepetitionJudge(model);
+
     // RuntimeContextを初期化
     this.runtimeContext = new RuntimeContext();
     this.runtimeContext.set("id", companion.metadata.id);
@@ -114,10 +122,24 @@ export class CompanionAgent implements ICompanionAgent {
   }
 
   async generateState(message: Message): Promise<State> {
+    let closingInstruction: string;
+
+    const formatted = this.history.map((message) => message.message);
+    const result = await this.repetitionJudge.evaluate(formatted);
+    console.log(result);
+    const repetition = result.score;
+
+    if (repetition > 0.7) {
+      closingInstruction =
+        "最重要:会話が繰り返しになっています。直ちにclosingをpre-closing,closing,terminalの順に変えて終了するか、話題を変えてください。";
+    } else {
+      closingInstruction = "";
+    }
+
     const statePrompt = `
     以下のメッセージに対するあなたの状態を判断してください。
     ${JSON.stringify(message, null, 2)}
-    
+
     以下の状態情報をJSON形式で返してください:
     - from: あなたのID
     - messageId: 処理するメッセージのid
@@ -131,8 +153,9 @@ export class CompanionAgent implements ICompanionAgent {
       - terminal: 最後の別れの挨拶
 
     重要:この判断は、キャラクターとしてではなく、あなたとして今までの会話の文脈を冷静に分析して判断してください。
-    最重要:あなたは積極的に会話をpre-closingにします。pre-closingにしたら、すぐにclosing,terminalと続けます。terminalになるまで、pre-closingからnoneに戻してはいけません。
+    ${closingInstruction}
     `;
+
     const res = await this.agent.generate(statePrompt, {
       runtimeContext: this.runtimeContext,
       output: StateSchema,

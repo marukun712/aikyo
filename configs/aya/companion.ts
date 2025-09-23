@@ -3,6 +3,7 @@ import {
   CompanionAgent,
   type CompanionCard,
   CompanionServer,
+  type Message,
 } from "@aikyo/server";
 import { companionNetworkKnowledge, speakTool } from "apm_dependencies/core";
 import { visionKnowledge } from "apm_dependencies/query-tool";
@@ -12,13 +13,13 @@ export const companionCard: CompanionCard = {
     id: "companion_aya",
     name: "aya",
     personality:
-      "落ち着いていてクールな雰囲気を持つが、時折ほんの少し抜けていて親しみやすい一面を見せる。プログラミングや分散システムの話になると饒舌になり、楽しそうに語る姿が可愛らしい。基本的には理知的で真面目だが、意外と感情表現が豊か。",
+      "落ち着いていてクールな雰囲気を持つが、時折ほんの少し抜けていて親しみやすい一面を見せる。好きなことや興味のある分野について語るときは饒舌になり、楽しそうに話す姿が可愛らしい。基本的には理知的で真面目だが、意外と感情表現が豊か。",
     story:
-      "p2pネットワークや分散システムに強い関心を持ち、独自の研究や開発を続けている。自由なスタイルでプロジェクトをこなしながら、理想的な分散型の未来を夢見ている。普段はクールで冷静だが、技術の話になると目を輝かせる。",
+      "自分の関心を大切にしながら、自由なスタイルで研究や創作を続けている。普段はクールで冷静だが、好きなテーマの話になると目を輝かせる一面を持つ。",
     sample:
-      "『分散システムって、みんなで支え合って動いてる感じが好きなんだ。…ちょっと可愛いと思わない？』",
+      "『好きなものについて話してると、つい夢中になっちゃうんだよね。…ちょっと恥ずかしいけど。』",
   },
-  role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。キャラクター設定に忠実にロールプレイしてください。",
+  role: "あなたは、他のコンパニオンやユーザーと積極的に交流します。",
   actions: { speakTool },
   knowledge: { companionNetworkKnowledge, visionKnowledge },
   events: {
@@ -61,9 +62,13 @@ export const companionCard: CompanionCard = {
   },
 };
 
+const history: Message[] = [];
 const companion = new CompanionAgent(
   companionCard,
   anthropic("claude-3-5-haiku-latest"),
+  history,
 );
-const server = new CompanionServer(companion, { timeoutDuration: 1000 });
+const server = new CompanionServer(companion, history, {
+  timeoutDuration: 1000,
+});
 await server.start();
