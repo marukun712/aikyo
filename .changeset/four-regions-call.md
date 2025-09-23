@@ -1,6 +1,6 @@
 ---
-"@aikyo/firehose": major
-"@aikyo/server": major
+"@aikyo/firehose": minor
+"@aikyo/server": minor
 ---
 
 JSON-RPCに準拠
