@@ -10,7 +10,7 @@ import {
   MemorySchema,
   type Message,
   type State,
-  StateSchema,
+  StateBody,
 } from "../../schema/index.ts";
 import { RepetitionJudge } from "../workflow/evals/index.ts";
 import { createToolInstructionWorkflow } from "../workflow/index.ts";
@@ -21,11 +21,12 @@ export interface ICompanionAgent {
   companion: CompanionCard;
   agent: Agent;
   repetitionJudge: RepetitionJudge;
+  history: Message[];
   memory: Memory;
   runtimeContext: RuntimeContext;
   run: Run;
   count: number;
-  maxTurn: number | null;
+  config: { maxTurn: number | null; enableRepetitionJudge: boolean };
 
   generateToolInstruction(input: Message): Promise<string>;
   generateState(message: Message): Promise<State>;
@@ -41,13 +42,13 @@ export class CompanionAgent implements ICompanionAgent {
   runtimeContext: RuntimeContext;
   run: Run;
   count: number;
-  maxTurn: number | null;
+  config: { maxTurn: number | null; enableRepetitionJudge: boolean };
 
   constructor(
     companion: CompanionCard,
     model: LanguageModel,
     history: Message[],
-    config?: { maxTurn: number | null },
+    config?: { maxTurn: number | null; enableRepetitionJudge: boolean },
   ) {
     // コンパニオンを初期化
     this.companion = companion;
@@ -113,7 +114,9 @@ export class CompanionAgent implements ICompanionAgent {
     this.memory.createThread({ resourceId: "main", threadId: "thread" });
 
     this.count = 0;
-    this.maxTurn = config ? config.maxTurn : null;
+    this.config = config
+      ? config
+      : { maxTurn: null, enableRepetitionJudge: true };
   }
 
   async generateToolInstruction(input: Message) {
@@ -122,18 +125,17 @@ export class CompanionAgent implements ICompanionAgent {
   }
 
   async generateState(message: Message): Promise<State> {
-    let closingInstruction: string;
+    let closingInstruction: string = "";
 
-    const formatted = this.history.map((message) => message.message);
-    const result = await this.repetitionJudge.evaluate(formatted);
-    console.log(result);
-    const repetition = result.score;
-
-    if (repetition > 0.7) {
-      closingInstruction =
-        "最重要:会話が繰り返しになっています。直ちにclosingをpre-closing,closing,terminalの順に変えて終了するか、話題を変えてください。";
-    } else {
-      closingInstruction = "";
+    if (this.config.enableRepetitionJudge) {
+      const formatted = this.history.map((message) => message.params.message);
+      const result = await this.repetitionJudge.evaluate(formatted);
+      console.log(result);
+      const repetition = result.score;
+      if (repetition > 0.7) {
+        closingInstruction =
+          "最重要:会話が繰り返しになっています。直ちにclosingをpre-closing,closing,terminalの順に変えて終了するか、話題を変えてください。";
+      }
     }
 
     const statePrompt = `
@@ -158,18 +160,18 @@ export class CompanionAgent implements ICompanionAgent {
 
     const res = await this.agent.generate(statePrompt, {
       runtimeContext: this.runtimeContext,
-      output: StateSchema,
+      output: StateBody,
       resourceId: "main",
       threadId: "thread",
     });
 
     //ターン上限が設けられている場合;
-    if (this.maxTurn) {
+    if (this.config.maxTurn) {
       //会話が終了したらターンカウントを0に
       if (res.object.closing === "terminal") {
         this.count = 0;
         //ターン上限を超えたら
-      } else if (this.count >= this.maxTurn) {
+      } else if (this.count >= this.config.maxTurn) {
         //強制的に会話終了の意思表示
         res.object.closing = "terminal";
         this.count = 0;
@@ -177,7 +179,7 @@ export class CompanionAgent implements ICompanionAgent {
         this.count++;
       }
     }
-    return res.object;
+    return { jsonrpc: "2.0", method: "state.send", params: res.object };
   }
 
   // メッセージ生成

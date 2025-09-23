@@ -37,7 +37,17 @@ export const CompanionSchema = z.object({
 });
 export type CompanionCard = z.infer<typeof CompanionSchema>;
 
-export const StateSchema = z.object({
+export const MemorySchema = z.object({
+  messages: z.array(
+    z.object({
+      from: z.string().describe("メッセージを送信したコンパニオンのid"),
+      content: z.string().describe("メッセージ内容を要約したもの"),
+    }),
+  ),
+});
+
+export const StateBody = z.object({
+  id: z.string(),
   from: z.string(),
   messageId: z.string().describe("このstateが対応する元のメッセージのID"),
   state: z
@@ -56,45 +66,57 @@ export const StateSchema = z.object({
     .default("none")
     .describe("会話の収束段階:なし/事前クロージング/クロージング/終端"),
 });
+
+export const StateSchema = z.object({
+  jsonrpc: z.literal("2.0"),
+  method: z.literal("state.send"),
+  params: StateBody,
+});
 export type State = z.infer<typeof StateSchema>;
 
 export const MessageSchema = z.object({
-  id: z.string(),
-  from: z.string(),
-  to: z.array(z.string()),
-  message: z.string(),
-  metadata: z.record(z.string(), z.any()).optional(),
+  jsonrpc: z.literal("2.0"),
+  method: z.literal("message.send"),
+  params: z.object({
+    id: z.string(),
+    from: z.string(),
+    to: z.array(z.string()),
+    message: z.string(),
+    metadata: z.record(z.string(), z.any()).optional(),
+  }),
 });
 export type Message = z.infer<typeof MessageSchema>;
 
 export const ActionSchema = z.object({
-  metadata: z.record(z.string(), z.any()).optional(),
-  from: z.string(),
-  name: z.string(),
-  params: z.record(z.string(), z.any()),
+  jsonrpc: z.literal("2.0"),
+  method: z.literal("action.send"),
+  params: z.object({
+    metadata: z.record(z.string(), z.any()).optional(),
+    from: z.string(),
+    name: z.string(),
+    params: z.record(z.string(), z.any()),
+  }),
 });
 export type Action = z.infer<typeof ActionSchema>;
 
 export const QuerySchema = z.object({
+  jsonrpc: z.literal("2.0"),
+  method: z.literal("query.send"),
   id: z.string(),
-  from: z.string(),
-  type: z.string(),
+  params: z.object({
+    from: z.string(),
+    type: z.string(),
+  }),
 });
 export type Query = z.infer<typeof QuerySchema>;
 
 export const QueryResultSchema = z.object({
+  jsonrpc: z.literal("2.0"),
   id: z.string(),
-  success: z.boolean(),
-  body: z.string().optional(),
-  error: z.string().optional().describe("エラーメッセージ"),
+  result: z.object({
+    success: z.boolean(),
+    body: z.string().optional(),
+    error: z.string().optional().describe("エラーメッセージ"),
+  }),
 });
 export type QueryResult = z.infer<typeof QueryResultSchema>;
-
-export const MemorySchema = z.object({
-  messages: z.array(
-    z.object({
-      from: z.string().describe("メッセージを送信したコンパニオンのid"),
-      content: z.string().describe("メッセージ内容を要約したもの"),
-    }),
-  ),
-});

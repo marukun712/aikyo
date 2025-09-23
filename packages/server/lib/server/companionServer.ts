@@ -88,7 +88,6 @@ export class CompanionServer implements ICompanionServer {
     this.libp2p.services.pubsub.subscribe("messages");
     this.libp2p.services.pubsub.subscribe("states");
     this.libp2p.services.pubsub.subscribe("queries");
-    this.libp2p.services.pubsub.subscribe("query-results");
 
     this.libp2p.services.pubsub.addEventListener(
       "message",
