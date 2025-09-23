@@ -1,8 +1,9 @@
-import { CompanionAgent, type QueryResult } from "@aikyo/server";
+import { CompanionAgent, type Query, type QueryResult } from "@aikyo/server";
 import { createTool } from "@mastra/core/tools";
 import { isLibp2p, type Libp2p } from "libp2p";
 import type { ZodTypeAny, z } from "zod";
 import type { Services } from "../lib/services";
+import { sendQuery } from "./createCompanionAction";
 
 export interface CompanionKnowledgeConfig<
   T extends ZodTypeAny,
@@ -16,14 +17,7 @@ export interface CompanionKnowledgeConfig<
     input: z.infer<T>;
     id: string;
     companions: Map<string, string>;
-    libp2p: Libp2p<Services>;
-    pendingQueries: Map<
-      string,
-      {
-        resolve: (value: QueryResult) => void;
-        reject: (reason: string) => void;
-      }
-    >;
+    sendQuery: (query: Query) => Promise<QueryResult>;
     companionAgent: CompanionAgent;
   }) => Promise<z.infer<U>> | z.infer<U>;
 }
@@ -68,8 +62,7 @@ export function createCompanionKnowledge<
         input: context,
         id,
         companions,
-        libp2p,
-        pendingQueries,
+        sendQuery: sendQuery(libp2p, pendingQueries),
         companionAgent: agent,
       });
     },

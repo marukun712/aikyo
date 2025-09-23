@@ -2,6 +2,7 @@ import {
   type Action,
   CompanionAgent,
   type Message,
+  type Query,
   type QueryResult,
 } from "@aikyo/server";
 import { createTool } from "@mastra/core/tools";
@@ -11,6 +12,36 @@ import type { Services } from "../lib/services.ts";
 
 type Output = Action | Message;
 
+export const sendQuery =
+  (
+    libp2p: Libp2p<Services>,
+    pendingQueries: Map<
+      string,
+      {
+        resolve: (value: QueryResult) => void;
+        reject: (reason: string) => void;
+      }
+    >,
+  ) =>
+  async (query: Query) => {
+    const queryId = crypto.randomUUID();
+    const resultPromise = new Promise<QueryResult>((resolve, reject) => {
+      setTimeout(() => {
+        pendingQueries.delete(queryId);
+        reject(new Error(`発話に失敗しました。`));
+      }, 10000);
+      pendingQueries.set(queryId, {
+        resolve,
+        reject,
+      });
+    });
+    libp2p.services.pubsub.publish(
+      "queries",
+      new TextEncoder().encode(JSON.stringify(query)),
+    );
+    return resultPromise;
+  };
+
 export interface CompanionActionConfig<T extends z.ZodSchema> {
   id: string;
   description: string;
@@ -18,17 +49,9 @@ export interface CompanionActionConfig<T extends z.ZodSchema> {
   topic: "actions" | "messages";
   publish: (props: {
     input: z.infer<T>;
-
     id: string;
     companions: Map<string, string>;
-    libp2p: Libp2p<Services>;
-    pendingQueries: Map<
-      string,
-      {
-        resolve: (value: QueryResult) => void;
-        reject: (reason: string) => void;
-      }
-    >;
+    sendQuery: (query: Query) => Promise<QueryResult>;
     companionAgent: CompanionAgent;
   }) => Promise<Output> | Output;
 }
@@ -71,8 +94,7 @@ export function createCompanionAction<T extends ZodTypeAny>({
           input: context,
           id,
           companions,
-          libp2p,
-          pendingQueries,
+          sendQuery: sendQuery(libp2p, pendingQueries),
           companionAgent: agent,
         });
         libp2p.services.pubsub.publish(
