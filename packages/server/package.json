@@ -4,6 +4,7 @@
   "version": "1.1.1",
   "license": "MIT",
   "dependencies": {
+    "@aikyo/utils": "workspace:*",
     "@chainsafe/libp2p-gossipsub": "catalog:",
     "@chainsafe/libp2p-noise": "catalog:",
     "@chainsafe/libp2p-yamux": "catalog:",
@@ -12,6 +13,7 @@
     "@libp2p/mdns": "^11.0.46",
     "@libp2p/tcp": "catalog:",
     "@mastra/core": "ai-v5",
+    "@mastra/evals": "^0.13.7",
     "@mastra/libsql": "ai-v5",
     "@mastra/loggers": "ai-v5",
     "@mastra/mcp": "ai-v5",
@@ -21,8 +23,7 @@
     "helia": "catalog:",
     "libp2p": "2.9.0",
     "zod": "catalog:",
-    "zod-from-json-schema": "catalog:",
-    "@aikyo/utils": "workspace:*"
+    "zod-from-json-schema": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
