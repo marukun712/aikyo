@@ -22,7 +22,7 @@ export function createEvaluateStep(
       const res = await agent.generate(
         [
           {
-            role: input.from === "system" ? "system" : "user",
+            role: input.params.from === "system" ? "system" : "user",
             content: JSON.stringify(input),
           },
         ],

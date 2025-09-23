@@ -10,16 +10,19 @@ export const visionKnowledge = createCompanionKnowledge({
   knowledge: async ({ id, libp2p, pendingQueries, companionAgent }) => {
     const queryId = crypto.randomUUID();
     const query: Query = {
+      jsonrpc: "2.0",
       id: queryId,
-      from: id,
-      type: "vision",
+      method: "query.send",
+      params: {
+        from: id,
+        type: "vision",
+      },
     };
     const resultPromise = new Promise<QueryResult>((resolve, reject) => {
       setTimeout(() => {
         pendingQueries.delete(queryId);
         reject(new Error(`クエリがタイムアウトしました`));
       }, 10000);
-
       pendingQueries.set(queryId, {
         resolve,
         reject,
@@ -31,10 +34,10 @@ export const visionKnowledge = createCompanionKnowledge({
     );
     try {
       const result = await resultPromise;
-      if (!result.success) {
-        return `視覚情報の取得に失敗しました: ${result.error || "不明なエラー"}`;
+      if (!result.result.success) {
+        return `視覚情報の取得に失敗しました: ${result.result.error || "不明なエラー"}`;
       }
-      if (result.body) {
+      if (result.result.body) {
         const res = await companionAgent.agent.generate(
           [
             {
@@ -42,7 +45,7 @@ export const visionKnowledge = createCompanionKnowledge({
               content: [
                 {
                   type: "image" as const,
-                  image: result.body,
+                  image: result.result.body,
                 },
               ],
             },

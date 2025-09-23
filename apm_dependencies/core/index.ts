@@ -16,11 +16,15 @@ export const speakTool = createCompanionAction({
   topic: "messages",
   publish: ({ input, id }) => {
     return {
-      id: crypto.randomUUID(),
-      from: id,
-      to: input.to,
-      message: input.message,
-      metadata: { emotion: input.emotion },
+      jsonrpc: "2.0",
+      method: "message.send",
+      params: {
+        id: crypto.randomUUID(),
+        from: id,
+        to: input.to,
+        message: input.message,
+        metadata: { emotion: input.emotion },
+      },
     };
   },
 });

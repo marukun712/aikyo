@@ -11,10 +11,7 @@ import type WebSocket from "ws";
 import { WebSocketServer } from "ws";
 import z from "zod";
 
-const RequestSchema = z.object({
-  topic: z.string(),
-  body: z.union([QueryResultSchema, MessageSchema]),
-});
+const RequestSchema = z.union([QueryResultSchema, MessageSchema]);
 
 export class Firehose {
   private libp2p!: Libp2p<Services>;
@@ -51,7 +48,6 @@ export class Firehose {
     this.libp2p.services.pubsub.subscribe("messages");
     this.libp2p.services.pubsub.subscribe("actions");
     this.libp2p.services.pubsub.subscribe("queries");
-    this.libp2p.services.pubsub.subscribe("query-results");
 
     this.wss = new WebSocketServer({ port: this.port });
 
@@ -68,21 +64,16 @@ export class Firehose {
             return;
           }
           console.log(parsed.data);
-          switch (parsed.data.topic) {
-            case "messages":
-              this.libp2p.services.pubsub.publish(
-                "messages",
-                new TextEncoder().encode(JSON.stringify(parsed.data.body)),
-              );
-              break;
-            case "query-results":
-              this.libp2p.services.pubsub.publish(
-                "query-results",
-                new TextEncoder().encode(JSON.stringify(parsed.data.body)),
-              );
-              break;
-            default:
-              console.log("Unknown topic:", parsed.data.topic);
+          if ("method" in parsed.data) {
+            this.libp2p.services.pubsub.publish(
+              "messages",
+              new TextEncoder().encode(JSON.stringify(parsed.data)),
+            );
+          } else {
+            this.libp2p.services.pubsub.publish(
+              "queries",
+              new TextEncoder().encode(JSON.stringify(parsed.data)),
+            );
           }
         } catch (e) {
           console.log(e);

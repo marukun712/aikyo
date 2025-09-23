@@ -23,7 +23,7 @@ export const handlePubSubMessage = async (
           self.history.shift();
         }
         if (
-          body.to.find((to) => {
+          body.params.to.find((to) => {
             return to === self.companion.metadata.id;
           })
         ) {
@@ -42,7 +42,7 @@ export const handlePubSubMessage = async (
         await self.turnTakingManager.handleStateReceived(state);
         break;
       }
-      case "query-results": {
+      case "queries": {
         const parsed = QueryResultSchema.safeParse(data);
         if (!parsed.success) return;
         console.log("query result received.");
