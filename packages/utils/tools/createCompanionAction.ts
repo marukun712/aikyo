@@ -23,13 +23,16 @@ export const sendQuery =
       }
     >,
   ) =>
-  async (query: Query) => {
+  async (query: Query, timeout?: number) => {
     const queryId = crypto.randomUUID();
     const resultPromise = new Promise<QueryResult>((resolve, reject) => {
-      setTimeout(() => {
-        pendingQueries.delete(queryId);
-        reject(new Error(`発話に失敗しました。`));
-      }, 10000);
+      setTimeout(
+        () => {
+          pendingQueries.delete(queryId);
+          reject(new Error(`Error:クエリがタイムアウトしました。`));
+        },
+        timeout ? timeout : 30000,
+      );
       pendingQueries.set(queryId, {
         resolve,
         reject,
@@ -84,11 +87,11 @@ export function createCompanionAction<T extends ZodTypeAny>({
         }
         const pendingQueries = runtimeContext.get("pendingQueries");
         if (!(pendingQueries instanceof Map)) {
-          throw new Error("Error: pendingQueriesの形式が不正です!");
+          throw new Error("Error:pendingQueriesの形式が不正です!");
         }
         const agent = runtimeContext.get("agent");
         if (!(agent instanceof CompanionAgent)) {
-          throw new Error("Error: agentの形式が不正です!");
+          throw new Error("Error:agentの形式が不正です!");
         }
         const data = await publish({
           input: context,
