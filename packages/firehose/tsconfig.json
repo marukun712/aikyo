@@ -10,6 +10,12 @@
 
     // Bundler mode
     "moduleResolution": "bundler",
+    "baseUrl": "./",
+    "paths": {
+      "@aikyo/server": ["../server/index.ts"],
+      "@aikyo/utils": ["../utils/index.ts"],
+      "@aikyo/firehose": ["./index.ts"]
+    },
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "noEmit": true,
@@ -24,5 +30,6 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
-  }
+  },
+  "exclude": ["dist"]
 }

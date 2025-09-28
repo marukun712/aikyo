@@ -3,6 +3,10 @@
     "target": "ES2022",
     "module": "ES2022",
     "moduleResolution": "bundler",
+    "baseUrl": "./",
+    "paths": {
+      "@aikyo/utils": ["../utils/index.ts"]
+    },
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
@@ -11,5 +15,6 @@
     "outDir": "dist",
     "allowImportingTsExtensions": true
   },
-  "include": ["src/**/*", "config/tools", "lib/agents", "lib/server"]
+  "include": ["src/**/*", "config/tools", "lib/agents", "lib/server"],
+  "exclude": ["dist"]
 }
