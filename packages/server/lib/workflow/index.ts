@@ -2,10 +2,10 @@ import type { RuntimeContext } from "@mastra/core/runtime-context";
 import { createWorkflow } from "@mastra/core/workflows";
 import { z } from "zod";
 import { convertJsonSchemaToZod } from "zod-from-json-schema";
-import { type CompanionCard, MessageSchema } from "../../schema/index.ts";
-import type { CompanionAgent } from "../agents/index.ts";
-import { createEvaluateStep } from "./steps/evaluate.ts";
-import { createRunStep } from "./steps/run.ts";
+import { type CompanionCard, MessageSchema } from "../../schema/index.js";
+import type { CompanionAgent } from "../agents/index.js";
+import { createEvaluateStep } from "./steps/evaluate.js";
+import { createRunStep } from "./steps/run.js";
 
 export type AgentType = InstanceType<typeof CompanionAgent>["agent"];
 
