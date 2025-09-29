@@ -1,6 +1,6 @@
 import type { Connection, PeerId, Stream } from "@libp2p/interface";
-import { MetadataSchema } from "../../../schema/index.ts";
-import type { CompanionServer } from "../companionServer.ts";
+import { MetadataSchema } from "../../../schema/index.js";
+import type { CompanionServer } from "../companionServer.js";
 
 export const METADATA_PROTOCOL = "/aikyo/metadata/1.0.0";
 

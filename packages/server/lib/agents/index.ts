@@ -11,8 +11,8 @@ import {
   type Message,
   type State,
   StateSchema,
-} from "../../schema/index.ts";
-import { createToolInstructionWorkflow } from "../workflow/index.ts";
+} from "../../schema/index.js";
+import { createToolInstructionWorkflow } from "../workflow/index.js";
 
 config();
 

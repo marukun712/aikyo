@@ -12,8 +12,7 @@
     "strict": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "outDir": "dist",
-    "allowImportingTsExtensions": true
+    "outDir": "dist"
   },
   "include": ["src/**/*", "config/tools", "lib/agents", "lib/server"],
   "exclude": ["dist"]

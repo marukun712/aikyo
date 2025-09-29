@@ -13,15 +13,15 @@ import type {
   CompanionCard,
   Metadata,
   QueryResult,
-} from "../../schema/index.ts";
-import type { CompanionAgent } from "../agents/index.ts";
-import { TurnTakingManager } from "../conversation/index.ts";
+} from "../../schema/index.js";
+import type { CompanionAgent } from "../agents/index.js";
+import { TurnTakingManager } from "../conversation/index.js";
 import {
   handleMetadataProtocol,
   METADATA_PROTOCOL,
-} from "./handlers/metadata.ts";
-import { onPeerConnect, onPeerDisconnect } from "./handlers/peer.ts";
-import { handlePubSubMessage } from "./handlers/pubsub.ts";
+} from "./handlers/metadata.js";
+import { onPeerConnect, onPeerDisconnect } from "./handlers/peer.js";
+import { handlePubSubMessage } from "./handlers/pubsub.js";
 
 export interface ICompanionServer {
   companionAgent: CompanionAgent;
