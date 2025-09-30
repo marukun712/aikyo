@@ -24,16 +24,15 @@ export const sendQuery =
     >,
   ) =>
   async (query: Query, timeout?: number) => {
-    const queryId = crypto.randomUUID();
     const resultPromise = new Promise<QueryResult>((resolve, reject) => {
       setTimeout(
         () => {
-          pendingQueries.delete(queryId);
+          pendingQueries.delete(query.id);
           reject(new Error(`Error:クエリがタイムアウトしました。`));
         },
         timeout ? timeout : 30000,
       );
-      pendingQueries.set(queryId, {
+      pendingQueries.set(query.id, {
         resolve,
         reject,
       });
