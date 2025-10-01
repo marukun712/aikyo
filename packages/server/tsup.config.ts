@@ -1,12 +1,7 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: [
-    "index.ts",
-    "lib/**/*.ts",
-    "schema/**/*.ts",
-    "utils/**/*.ts",
-  ],
+  entry: ["index.ts", "lib/**/*.ts", "schema/**/*.ts", "utils/**/*.ts"],
   format: ["esm"],
   target: "node22",
   outDir: "dist",
