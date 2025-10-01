@@ -27,7 +27,8 @@ export const speakTool = createCompanionAction({
         body: { message: input.message, emotion: input.emotion },
       },
     };
-    await sendQuery(query);
+    const res = await sendQuery(query);
+    console.log(res);
     return {
       jsonrpc: "2.0",
       method: "message.send",
