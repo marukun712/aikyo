@@ -46,8 +46,10 @@ export class Firehose {
     });
 
     this.libp2p.services.pubsub.subscribe("messages");
-    this.libp2p.services.pubsub.subscribe("actions");
     this.libp2p.services.pubsub.subscribe("queries");
+    
+    // Clientに対してアクションを流すために必要
+    this.libp2p.services.pubsub.subscribe("actions");
 
     this.wss = new WebSocketServer({ port: this.port });
 
