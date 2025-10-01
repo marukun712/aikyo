@@ -13,18 +13,19 @@ import type {
   CompanionCard,
   Metadata,
   QueryResult,
-} from "../../schema/index.ts";
-import type { CompanionAgent } from "../agents/index.ts";
-import { TurnTakingManager } from "../conversation/index.ts";
+} from "../../schema/index.js";
+import type { CompanionAgent } from "../agents/index.js";
+import { TurnTakingManager } from "../conversation/index.js";
 import {
   handleMetadataProtocol,
   METADATA_PROTOCOL,
-} from "./handlers/metadata.ts";
-import { onPeerConnect, onPeerDisconnect } from "./handlers/peer.ts";
-import { handlePubSubMessage } from "./handlers/pubsub.ts";
+} from "./handlers/metadata.js";
+import { onPeerConnect, onPeerDisconnect } from "./handlers/peer.js";
+import { handlePubSubMessage } from "./handlers/pubsub.js";
 
 export interface ICompanionServer {
   companionAgent: CompanionAgent;
+  history: AikyoMessage[];
   turnTakingManager: TurnTakingManager;
   companion: CompanionCard;
   libp2p: Libp2p<Services>;
@@ -34,6 +35,7 @@ export interface ICompanionServer {
 
 export class CompanionServer implements ICompanionServer {
   companionAgent: CompanionAgent;
+  history: AikyoMessage[];
   turnTakingManager: TurnTakingManager;
   companion: CompanionCard;
   libp2p!: Libp2p<Services>;
@@ -48,9 +50,11 @@ export class CompanionServer implements ICompanionServer {
 
   constructor(
     companionAgent: CompanionAgent,
+    history: AikyoMessage[],
     config?: { timeoutDuration: number },
   ) {
     this.companionAgent = companionAgent;
+    this.history = history;
     this.companion = companionAgent.companion;
     this.turnTakingManager = new TurnTakingManager(
       this.companionAgent,
@@ -84,7 +88,6 @@ export class CompanionServer implements ICompanionServer {
     this.libp2p.services.pubsub.subscribe("messages");
     this.libp2p.services.pubsub.subscribe("states");
     this.libp2p.services.pubsub.subscribe("queries");
-    this.libp2p.services.pubsub.subscribe("query-results");
 
     this.libp2p.services.pubsub.addEventListener(
       "message",

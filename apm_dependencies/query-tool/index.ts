@@ -1,4 +1,4 @@
-import type { Query, QueryResult } from "@aikyo/server";
+import type { Query } from "@aikyo/server";
 import { createCompanionKnowledge } from "@aikyo/utils";
 import z from "zod";
 
@@ -7,34 +7,23 @@ export const visionKnowledge = createCompanionKnowledge({
   description: "目で周りを見ます。",
   inputSchema: z.object({}),
   outputSchema: z.string(),
-  knowledge: async ({ id, libp2p, pendingQueries, companionAgent }) => {
+  knowledge: async ({ id, sendQuery, companionAgent }) => {
     const queryId = crypto.randomUUID();
     const query: Query = {
+      jsonrpc: "2.0",
       id: queryId,
-      from: id,
-      type: "vision",
+      method: "query.send",
+      params: {
+        from: id,
+        type: "vision",
+      },
     };
-    const resultPromise = new Promise<QueryResult>((resolve, reject) => {
-      setTimeout(() => {
-        pendingQueries.delete(queryId);
-        reject(new Error(`クエリがタイムアウトしました`));
-      }, 10000);
-
-      pendingQueries.set(queryId, {
-        resolve,
-        reject,
-      });
-    });
-    libp2p.services.pubsub.publish(
-      "queries",
-      new TextEncoder().encode(JSON.stringify(query)),
-    );
     try {
-      const result = await resultPromise;
-      if (!result.success) {
-        return `視覚情報の取得に失敗しました: ${result.error || "不明なエラー"}`;
+      const result = await sendQuery(query);
+      if (!result.result.success) {
+        return `視覚情報の取得に失敗しました: ${result.result.error || "不明なエラー"}`;
       }
-      if (result.body) {
+      if (result.result.body?.image) {
         const res = await companionAgent.agent.generate(
           [
             {
@@ -42,7 +31,7 @@ export const visionKnowledge = createCompanionKnowledge({
               content: [
                 {
                   type: "image" as const,
-                  image: result.body,
+                  image: result.result.body.image,
                 },
               ],
             },

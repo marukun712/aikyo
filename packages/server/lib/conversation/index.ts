@@ -1,6 +1,6 @@
-import type { Message, State } from "../../schema/index.ts";
-import { setsAreEqual } from "../../utils/array.ts";
-import type { CompanionAgent } from "../agents/index.ts";
+import type { Message, State } from "../../schema/index.js";
+import { setsAreEqual } from "../../utils/array.js";
+import type { CompanionAgent } from "../agents/index.js";
 
 export interface ITurnTakingManager {
   addPending(message: Message): Promise<void>;
@@ -22,9 +22,9 @@ export class TurnTakingManager implements ITurnTakingManager {
   }
 
   async addPending(message: Message) {
-    const participants = new Set(message.to);
+    const participants = new Set(message.params.to);
 
-    this.pending.set(message.id, {
+    this.pending.set(message.params.id, {
       participants,
       message,
       states: [],
@@ -32,7 +32,7 @@ export class TurnTakingManager implements ITurnTakingManager {
   }
 
   async handleStateReceived(state: State) {
-    const messageId = state.messageId;
+    const messageId = state.params.messageId;
     if (!this.pending.has(messageId)) {
       return;
     }
@@ -44,7 +44,7 @@ export class TurnTakingManager implements ITurnTakingManager {
     );
     const voted = new Set<string>();
     pending.states.forEach((state) => {
-      voted.add(state.from);
+      voted.add(state.params.from);
     });
     //参加者全員の投票が集まった場合
     if (setsAreEqual(voted, pending.participants)) {
@@ -56,18 +56,20 @@ export class TurnTakingManager implements ITurnTakingManager {
   }
 
   private async decideNextSpeaker(messageId: string, states: State[]) {
-    const selectedAgents = states.filter((state) => state.selected);
+    const selectedAgents = states.filter((state) => state.params.selected);
     if (selectedAgents.length > 0) {
       const speaker = selectedAgents.reduce((prev, current) =>
-        prev.importance > current.importance ? prev : current,
+        prev.params.importance > current.params.importance ? prev : current,
       );
       await this.executeSpeaker(messageId, speaker);
       return;
     }
-    const speakAgents = states.filter((state) => state.state === "speak");
+    const speakAgents = states.filter(
+      (state) => state.params.state === "speak",
+    );
     if (speakAgents.length > 0) {
       const speaker = speakAgents.reduce((prev, current) =>
-        prev.importance > current.importance ? prev : current,
+        prev.params.importance > current.params.importance ? prev : current,
       );
       await this.executeSpeaker(messageId, speaker);
       return;
@@ -78,17 +80,19 @@ export class TurnTakingManager implements ITurnTakingManager {
 
   private async executeSpeaker(messageId: string, speaker: State) {
     console.log(
-      `Speaker selected: ${speaker.from} (importance: ${speaker.importance})`,
+      `Speaker selected: ${speaker.params.from} (importance: ${speaker.params.importance})`,
     );
-    if (speaker.from === this.companionAgent.companion.metadata.id) {
+    if (speaker.params.from === this.companionAgent.companion.metadata.id) {
       try {
         console.log("I was selected to speak. Executing input logic...");
         const pending = this.pending.get(messageId);
         if (pending) {
           const myState = pending.states.find((state) => {
-            return state.from === this.companionAgent.companion.metadata.id;
+            return (
+              state.params.from === this.companionAgent.companion.metadata.id
+            );
           });
-          if (myState && myState.closing === "terminal") {
+          if (myState && myState.params.closing === "terminal") {
             console.log("The conversation is over.");
             return;
           }

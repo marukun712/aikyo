@@ -13,7 +13,8 @@
     "check": "biome check ./",
     "check:fix": "biome check --write ./",
     "changeset": "changeset",
-    "release": "changeset publish"
+    "bundle": "pnpm -r --filter './packages/*' run build",
+    "release": "pnpm run bundle && changeset publish"
   },
   "overrides": {
     "ms": "3.0.0-canary.1"
@@ -22,6 +23,7 @@
     "@biomejs/biome": "2.2.3",
     "@changesets/cli": "^2.29.7",
     "@types/node": "catalog:",
+    "tsup": "catalog:",
     "tsx": "^4.20.5"
   }
 }

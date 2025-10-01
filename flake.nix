@@ -104,6 +104,19 @@
                 '';
               }).outPath + "/bin/docs";
           };
+
+          bundle = {
+            type = "app";
+            program =
+              (pkgs.writeShellApplication {
+                name = "bundle";
+                runtimeInputs = [ unstable.nodejs_24 pkgs.pnpm ];
+                text = ''
+                  pnpm install
+                  pnpm run bundle
+                '';
+              }).outPath + "/bin/bundle";
+          };
         };
 
         devShells.default = pkgs.mkShell {

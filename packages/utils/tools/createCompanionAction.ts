@@ -2,6 +2,7 @@ import {
   type Action,
   CompanionAgent,
   type Message,
+  type Query,
   type QueryResult,
 } from "@aikyo/server";
 import { createTool } from "@mastra/core/tools";
@@ -11,6 +12,38 @@ import type { Services } from "../lib/services.ts";
 
 type Output = Action | Message;
 
+export const sendQuery =
+  (
+    libp2p: Libp2p<Services>,
+    pendingQueries: Map<
+      string,
+      {
+        resolve: (value: QueryResult) => void;
+        reject: (reason: string) => void;
+      }
+    >,
+  ) =>
+  async (query: Query, timeout?: number) => {
+    const resultPromise = new Promise<QueryResult>((resolve, reject) => {
+      setTimeout(
+        () => {
+          pendingQueries.delete(query.id);
+          reject(new Error(`Error:クエリがタイムアウトしました。`));
+        },
+        timeout ? timeout : 30000,
+      );
+      pendingQueries.set(query.id, {
+        resolve,
+        reject,
+      });
+    });
+    libp2p.services.pubsub.publish(
+      "queries",
+      new TextEncoder().encode(JSON.stringify(query)),
+    );
+    return resultPromise;
+  };
+
 export interface CompanionActionConfig<T extends z.ZodSchema> {
   id: string;
   description: string;
@@ -18,17 +51,9 @@ export interface CompanionActionConfig<T extends z.ZodSchema> {
   topic: "actions" | "messages";
   publish: (props: {
     input: z.infer<T>;
-
     id: string;
     companions: Map<string, string>;
-    libp2p: Libp2p<Services>;
-    pendingQueries: Map<
-      string,
-      {
-        resolve: (value: QueryResult) => void;
-        reject: (reason: string) => void;
-      }
-    >;
+    sendQuery: (query: Query) => Promise<QueryResult>;
     companionAgent: CompanionAgent;
   }) => Promise<Output> | Output;
 }
@@ -61,18 +86,17 @@ export function createCompanionAction<T extends ZodTypeAny>({
         }
         const pendingQueries = runtimeContext.get("pendingQueries");
         if (!(pendingQueries instanceof Map)) {
-          throw new Error("Error: pendingQueriesの形式が不正です!");
+          throw new Error("Error:pendingQueriesの形式が不正です!");
         }
         const agent = runtimeContext.get("agent");
         if (!(agent instanceof CompanionAgent)) {
-          throw new Error("Error: agentの形式が不正です!");
+          throw new Error("Error:agentの形式が不正です!");
         }
         const data = await publish({
           input: context,
           id,
           companions,
-          libp2p,
-          pendingQueries,
+          sendQuery: sendQuery(libp2p, pendingQueries),
           companionAgent: agent,
         });
         libp2p.services.pubsub.publish(

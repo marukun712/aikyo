@@ -1,2 +1,2 @@
-export type { ICompanionServer } from "./companionServer.ts";
-export { CompanionServer } from "./companionServer.ts";
+export type { ICompanionServer } from "./companionServer.js";
+export { CompanionServer } from "./companionServer.js";

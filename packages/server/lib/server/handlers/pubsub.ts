@@ -3,8 +3,8 @@ import {
   MessageSchema,
   QueryResultSchema,
   StateSchema,
-} from "../../../schema/index.ts";
-import type { CompanionServer } from "../companionServer.ts";
+} from "../../../schema/index.js";
+import type { CompanionServer } from "../companionServer.js";
 
 export const handlePubSubMessage = async (
   self: CompanionServer,
@@ -18,13 +18,17 @@ export const handlePubSubMessage = async (
         const parsed = MessageSchema.safeParse(data);
         if (!parsed.success) return;
         const body = parsed.data;
+        self.history.push(parsed.data);
+        if (self.history.length > 5) {
+          self.history.shift();
+        }
         if (
-          body.to.find((to) => {
+          body.params.to.find((to) => {
             return to === self.companion.metadata.id;
           })
         ) {
           console.log("message received.");
-          console.log(parsed);
+          console.log(parsed.data);
           await self.handleMessageReceived(body);
         }
         break;
@@ -33,16 +37,16 @@ export const handlePubSubMessage = async (
         const parsed = StateSchema.safeParse(data);
         if (!parsed.success) return;
         console.log("state received.");
-        console.log(parsed);
+        console.log(parsed.data);
         const state = parsed.data;
         await self.turnTakingManager.handleStateReceived(state);
         break;
       }
-      case "query-results": {
+      case "queries": {
         const parsed = QueryResultSchema.safeParse(data);
         if (!parsed.success) return;
         console.log("query result received.");
-        console.log(parsed);
+        console.log(parsed.data);
         const result = parsed.data;
         const pendingQuery = self.pendingQueries.get(result.id);
         if (pendingQuery) {
