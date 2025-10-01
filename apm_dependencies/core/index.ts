@@ -1,5 +1,6 @@
 import { createCompanionAction, createCompanionKnowledge } from "@aikyo/utils";
 import { z } from "zod";
+import type { Query } from "../../packages/server";
 
 export const speakTool = createCompanionAction({
   id: "speak",
@@ -14,7 +15,19 @@ export const speakTool = createCompanionAction({
     emotion: z.enum(["happy", "sad", "angry", "neutral"]),
   }),
   topic: "messages",
-  publish: ({ input, id }) => {
+  publish: async ({ input, id, sendQuery }) => {
+    const queryId = crypto.randomUUID();
+    const query: Query = {
+      jsonrpc: "2.0",
+      id: queryId,
+      method: "query.send",
+      params: {
+        from: id,
+        type: "speak",
+        body: { message: input.message, emotion: input.emotion },
+      },
+    };
+    await sendQuery(query);
     return {
       jsonrpc: "2.0",
       method: "message.send",

@@ -106,6 +106,7 @@ export const QuerySchema = z.object({
   params: z.object({
     from: z.string(),
     type: z.string(),
+    body: z.record(z.string(), z.any()).optional(),
   }),
 });
 export type Query = z.infer<typeof QuerySchema>;
@@ -115,7 +116,7 @@ export const QueryResultSchema = z.object({
   id: z.string(),
   result: z.object({
     success: z.boolean(),
-    body: z.string().optional(),
+    body: z.record(z.string(), z.any()).optional(),
     error: z.string().optional().describe("エラーメッセージ"),
   }),
 });
