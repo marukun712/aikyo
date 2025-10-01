@@ -1,5 +1,17 @@
 # @aikyo/utils
 
+## 1.2.0
+
+### Minor Changes
+
+- 2386875: Query の改善
+
+### Patch Changes
+
+- Updated dependencies [5105a9f]
+- Updated dependencies [5105a9f]
+  - @aikyo/server@1.2.0
+
 ## 1.1.1
 
 ### Patch Changes
