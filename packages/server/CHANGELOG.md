@@ -1,5 +1,17 @@
 # @aikyo/server
 
+## 1.2.0
+
+### Minor Changes
+
+- 5105a9f: JSON-RPC に準拠
+- 5105a9f: 会話の繰り返し検知機能を追加
+
+### Patch Changes
+
+- Updated dependencies [2386875]
+  - @aikyo/utils@1.2.0
+
 ## 1.1.1
 
 ### Patch Changes
