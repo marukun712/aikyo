@@ -1,6 +1,6 @@
-import type { Message, State } from "../../schema/index.ts";
-import { setsAreEqual } from "../../utils/array.ts";
-import type { CompanionAgent } from "../agents/index.ts";
+import type { Message, State } from "../../schema/index.js";
+import { setsAreEqual } from "../../utils/array.js";
+import type { CompanionAgent } from "../agents/index.js";
 
 export interface ITurnTakingManager {
   addPending(message: Message): Promise<void>;

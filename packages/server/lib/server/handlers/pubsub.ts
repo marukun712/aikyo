@@ -3,8 +3,8 @@ import {
   MessageSchema,
   QueryResultSchema,
   StateSchema,
-} from "../../../schema/index.ts";
-import type { CompanionServer } from "../companionServer.ts";
+} from "../../../schema/index.js";
+import type { CompanionServer } from "../companionServer.js";
 
 export const handlePubSubMessage = async (
   self: CompanionServer,

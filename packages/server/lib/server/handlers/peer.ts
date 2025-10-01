@@ -3,8 +3,8 @@ import {
   type PeerId,
   UnsupportedProtocolError,
 } from "@libp2p/interface";
-import type { CompanionServer } from "../companionServer.ts";
-import { requestMetadata } from "./metadata.ts";
+import type { CompanionServer } from "../companionServer.js";
+import { requestMetadata } from "./metadata.js";
 
 export const onPeerConnect = async (
   self: CompanionServer,

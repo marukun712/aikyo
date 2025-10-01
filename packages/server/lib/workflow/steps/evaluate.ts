@@ -1,8 +1,8 @@
 import type { RuntimeContext } from "@mastra/core/runtime-context";
 import { createStep } from "@mastra/core/workflows";
 import { type ZodTypeAny, z } from "zod";
-import { type CompanionCard, MessageSchema } from "../../../schema/index.ts";
-import type { AgentType } from "../index.ts";
+import { type CompanionCard, MessageSchema } from "../../../schema/index.js";
+import type { AgentType } from "../index.js";
 
 export function createEvaluateStep(
   agent: AgentType,

@@ -1,7 +1,7 @@
 import { createStep } from "@mastra/core/workflows";
 import { evaluate } from "cel-js";
 import { type ZodTypeAny, z } from "zod";
-import type { CompanionCard } from "../../../schema/index.ts";
+import type { CompanionCard } from "../../../schema/index.js";
 
 export function createRunStep(
   companionCard: CompanionCard,
