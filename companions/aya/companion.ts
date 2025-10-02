@@ -5,8 +5,8 @@ import {
   CompanionServer,
   type Message,
 } from "@aikyo/server";
-import { companionNetworkKnowledge, speakTool } from "apm_dependencies/core";
-import { visionKnowledge } from "apm_dependencies/query-tool";
+import { companionNetworkKnowledge, speakTool } from "../tools/core";
+import { visionKnowledge } from "../tools/query-tool";
 
 export const companionCard: CompanionCard = {
   metadata: {

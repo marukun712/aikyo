@@ -1,6 +1,6 @@
+import type { Query } from "@aikyo/server";
 import { createCompanionAction, createCompanionKnowledge } from "@aikyo/utils";
 import { z } from "zod";
-import type { Query } from "../../packages/server";
 
 export const speakTool = createCompanionAction({
   id: "speak",

@@ -24,7 +24,6 @@
     "build": "tsup --config tsup.config.ts"
   },
   "dependencies": {
-    "@aikyo/utils": "workspace:*",
     "@chainsafe/libp2p-gossipsub": "catalog:",
     "@chainsafe/libp2p-noise": "catalog:",
     "@chainsafe/libp2p-yamux": "catalog:",

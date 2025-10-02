@@ -1,4 +1,3 @@
-import type { Services } from "@aikyo/utils";
 import { gossipsub } from "@chainsafe/libp2p-gossipsub";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
@@ -22,6 +21,7 @@ import {
 } from "./handlers/metadata.js";
 import { onPeerConnect, onPeerDisconnect } from "./handlers/peer.js";
 import { handlePubSubMessage } from "./handlers/pubsub.js";
+import type { Services } from "./index";
 
 export interface ICompanionServer {
   companionAgent: CompanionAgent;

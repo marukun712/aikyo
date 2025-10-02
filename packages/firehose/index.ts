@@ -1,5 +1,4 @@
-import { MessageSchema, QueryResultSchema } from "@aikyo/server";
-import type { Services } from "@aikyo/utils";
+import { MessageSchema, QueryResultSchema, type Services } from "@aikyo/server";
 import { gossipsub } from "@chainsafe/libp2p-gossipsub";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";

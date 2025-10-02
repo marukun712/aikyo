@@ -8,7 +8,7 @@ if (!configName) {
   process.exit(1);
 }
 
-const configsDir = join(process.cwd(), "configs");
+const configsDir = join(process.cwd(), "companions");
 let availableConfigs: string[] = [];
 
 try {
@@ -16,7 +16,7 @@ try {
     .filter((d) => d.isDirectory())
     .map((d) => d.name);
 } catch {
-  console.error(`configs directory not found: ${configsDir}`);
+  console.error(`companions directory not found: ${configsDir}`);
   process.exit(1);
 }
 
@@ -30,7 +30,7 @@ if (!availableConfigs.includes(configName)) {
 console.log(`Starting companion: ${configName}`);
 
 try {
-  await import(`../configs/${configName}/companion.ts`);
+  await import(`../companions/${configName}/companion.ts`);
 } catch (error) {
   console.error(`Failed to start companion "${configName}":`, error);
   process.exit(1);

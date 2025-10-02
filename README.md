@@ -64,6 +64,12 @@ $ cp .env.example .env
 
 <details><summary>Using Nix Flake</summary>
 
+
+Bundle the package.
+```bash
+$ nix run .#bundle
+```
+
 Start the firehose and companion.
 ```bash
 # Usage: nix run .#dev -- <COMPANION> [<COMPANION> ...]
@@ -72,6 +78,11 @@ $ nix run .#dev <companion_name>
 ```
 
 </details>
+
+Bundle the package.
+```bash
+$ pnpm run bundle
+```
 
 ```bash
 # 1) Start the firehose server (default: http://localhost:8080)
