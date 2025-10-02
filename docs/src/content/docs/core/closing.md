@@ -153,7 +153,7 @@ if (this.config.maxTurn) {
     res.object.closing = "terminal";
     this.count = 0;
   } else {
-    self.count++;
+    this.count++;
   }
 }
 ```
