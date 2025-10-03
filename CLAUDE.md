@@ -16,7 +16,9 @@ aikyoは、相互接続されたAIコンパニオンを構築するためのフ�
   - `CompanionServer`: libp2pベースのP2Pサーバー、TurnTakingManager統合
 - **packages/firehose/**: WebSocketを使用したメッセージング用のP2Pファイアホースサーバー
   - libp2pのpubsubをWebSocketでブリッジ
-  - `messages`, `queries`, `actions`トピックをSubscribe
+  - 型安全なトピックハンドラー管理 (`TopicPayloads`)
+  - カスタマイズ可能なlibp2p設定
+  - `subscribe()`, `addHandler()`, `broadcastToClients()`メソッド
 - **packages/utils/**: ユーティリティとlibp2p関連の共通機能
   - `createCompanionAction`: Actionツールの作成ヘルパー
   - `createCompanionKnowledge`: Knowledgeツールの作成ヘルパー
@@ -76,12 +78,18 @@ cp .env.example .env
 ### Running the System
 ```bash
 # 1. ファイアホースサーバーの起動 (localhost:8080)
+# scripts/firehose.ts を実行（messages, queries, actions トピックをサブスクライブ）
 pnpm run firehose
 
 # 2. コンパニオンの起動（別ターミナルで）
 pnpm run companion <companion_name>
 # 例: pnpm run companion aya
 ```
+
+**Note:** `pnpm run firehose`は`scripts/firehose.ts`を実行します。このスクリプトは：
+- Firehoseサーバーを起動（ポート8080）
+- `messages`, `queries`, `actions`トピックをサブスクライブ
+- 各トピックのメッセージをWebSocketクライアントにブロードキャスト
 
 ### Code Quality
 ```bash
@@ -154,6 +162,89 @@ export const companionCard: CompanionCard = {
     ]
   }
 };
+```
+
+## Advanced Configuration
+
+### libp2p設定のカスタマイズ
+
+**Firehose**と**CompanionServer**の両方で、libp2pノードの設定をカスタマイズできます。
+
+**注意**: カスタム設定を使用する場合は、完全な設定を提供する必要があります（トランスポート、ピアディスカバリー、暗号化、ストリームマルチプレクサ、サービスなど）。
+
+#### Firehose
+
+```typescript
+import { Firehose } from "@aikyo/firehose";
+import { gossipsub } from "@chainsafe/libp2p-gossipsub";
+import { noise } from "@chainsafe/libp2p-noise";
+import { yamux } from "@chainsafe/libp2p-yamux";
+import { identify } from "@libp2p/identify";
+import { mdns } from "@libp2p/mdns";
+import { tcp } from "@libp2p/tcp";
+
+const firehose = new Firehose(8080, {
+  addresses: { listen: ["/ip4/0.0.0.0/tcp/9000"] },
+  transports: [tcp()],
+  peerDiscovery: [mdns()],
+  connectionEncrypters: [noise()],
+  streamMuxers: [yamux()],
+  services: {
+    pubsub: gossipsub({ allowPublishToZeroTopicPeers: true }),
+    identify: identify(),
+  },
+});
+await firehose.start();
+```
+
+#### CompanionServer
+
+```typescript
+import { CompanionServer } from "@aikyo/server";
+import { gossipsub } from "@chainsafe/libp2p-gossipsub";
+import { noise } from "@chainsafe/libp2p-noise";
+import { yamux } from "@chainsafe/libp2p-yamux";
+import { identify } from "@libp2p/identify";
+import { mdns } from "@libp2p/mdns";
+import { tcp } from "@libp2p/tcp";
+
+const server = new CompanionServer(
+  companionAgent,
+  history,
+  { timeoutDuration: 1000 },
+  {
+    addresses: { listen: ["/ip4/0.0.0.0/tcp/9001"] },
+    transports: [tcp()],
+    peerDiscovery: [mdns()],
+    connectionEncrypters: [noise()],
+    streamMuxers: [yamux()],
+    services: {
+      pubsub: gossipsub({
+        allowPublishToZeroTopicPeers: true,
+        emitSelf: true,
+      }),
+      identify: identify(),
+    },
+  }
+);
+await server.start();
+```
+
+### Firehoseのトピック管理
+
+Firehoseでは型安全なトピックハンドラーを登録できます：
+
+```typescript
+// トピックをサブスクライブしてハンドラーを登録
+await firehose.subscribe("messages", (data) => {
+  console.log("Message:", data);
+  firehose.broadcastToClients(data);
+});
+
+// 追加のハンドラーを登録
+firehose.addHandler("messages", (data) => {
+  // 追加の処理...
+});
 ```
 
 ## Development Guidelines

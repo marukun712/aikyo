@@ -17,7 +17,8 @@ import { CompanionServer } from "@aikyo/server";
 constructor(
   companionAgent: CompanionAgent,
   history: Message[],
-  config?: { timeoutDuration: number }
+  config?: { timeoutDuration: number },
+  libp2pConfig?: Libp2pOptions<Services>
 )
 ```
 
@@ -29,6 +30,7 @@ constructor(
 | `history` | `Message[]` | 会話履歴の配列（CompanionAgentと同じ参照を渡す） | - |
 | `config` | `object` | オプション設定 | `{ timeoutDuration: 5000 }` |
 | `config.timeoutDuration` | `number` | ターンテイキング後の発言待機時間（ミリ秒） | `5000` |
+| `libp2pConfig` | `Libp2pOptions<Services>` | オプション。libp2pノードのカスタム設定 | - |
 
 ### 使用例
 
@@ -49,6 +51,48 @@ const server = new CompanionServer(companion, history, {
 });
 
 await server.start();
+```
+
+カスタムlibp2p設定を使用する場合は、完全な設定を提供する必要があります：
+
+```typescript
+import { CompanionAgent, CompanionServer, type Message } from "@aikyo/server";
+import { anthropic } from "@ai-sdk/anthropic";
+import { gossipsub } from "@chainsafe/libp2p-gossipsub";
+import { noise } from "@chainsafe/libp2p-noise";
+import { yamux } from "@chainsafe/libp2p-yamux";
+import { identify } from "@libp2p/identify";
+import { mdns } from "@libp2p/mdns";
+import { tcp } from "@libp2p/tcp";
+
+const history: Message[] = [];
+const companion = new CompanionAgent(
+  companionCard,
+  anthropic("claude-3-5-haiku-latest"),
+  history
+);
+
+const customServer = new CompanionServer(
+  companion,
+  history,
+  { timeoutDuration: 1000 },
+  {
+    addresses: { listen: ["/ip4/0.0.0.0/tcp/9000"] },
+    transports: [tcp()],
+    peerDiscovery: [mdns()],
+    connectionEncrypters: [noise()],
+    streamMuxers: [yamux()],
+    services: {
+      pubsub: gossipsub({
+        allowPublishToZeroTopicPeers: true,
+        emitSelf: true,
+      }),
+      identify: identify(),
+    },
+  }
+);
+
+await customServer.start();
 ```
 
 ## プロパティ
@@ -152,6 +196,14 @@ pendingQueries = new Map<
 ```
 
 クライアントへのクエリ待機状態を管理するMap。詳細は[Query](../tools/query#pendingqueries管理)を参照。
+
+### libp2pConfig
+
+```typescript
+libp2pConfig?: Libp2pOptions<Services>
+```
+
+オプション。libp2pノードのカスタム設定。指定しない場合はデフォルト設定が使用されます。
 
 ## メソッド
 
