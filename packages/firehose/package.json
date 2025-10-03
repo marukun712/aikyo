@@ -34,8 +34,7 @@
     "libp2p": "^2.9.0",
     "ws": "catalog:",
     "zod": "catalog:",
-    "@aikyo/server": "workspace:*",
-    "@aikyo/utils": "workspace:*"
+    "@aikyo/server": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:",

@@ -1,14 +1,19 @@
 ---
 title: CompanionCard
-description: Companion Card のAPIスキーマ詳細仕様
+description: CompanionCard型の詳細仕様
 ---
 
-## CompanionSchema
+`CompanionCard`は、AIコンパニオンの設定を定義する型です。メタデータ、役割、ツール、イベント条件などをまとめて管理します。
+
+## インポート
 
 ```typescript
-import { z } from "zod";
-import { Tool } from "@mastra/core";
+import type { CompanionCard } from "@aikyo/server";
+```
 
+## 型定義
+
+```typescript
 export const CompanionSchema = z.object({
   metadata: MetadataSchema,
   role: z.string(),
@@ -19,15 +24,19 @@ export const CompanionSchema = z.object({
     conditions: z.array(EventCondition),
   }),
 });
+
+export type CompanionCard = z.infer<typeof CompanionSchema>;
 ```
 
----
+## フィールド
 
-### `metadata`
+### metadata
 
-コンパニオンの基本情報を定義します。
+```typescript
+metadata: Metadata
+```
 
-- **スキーマ**: `MetadataSchema`
+コンパニオンのメタデータ情報。
 
 ```typescript
 export const MetadataSchema = z.object({
@@ -37,70 +46,137 @@ export const MetadataSchema = z.object({
   story: z.string(),
   sample: z.string(),
 });
+
+export type Metadata = z.infer<typeof MetadataSchema>;
 ```
 
-- `id`: `companion_`から始まる一意のID。
-- `name`: コンパニオン名。
-- `personality`: LLMが性格を理解するための説明。
-- `story`: 背景設定。
-- `sample`: 話し方のサンプル。
+| フィールド | 型 | 説明 |
+|-----------|-----|------|
+| `id` | `string` | コンパニオンの一意なID（例: `"companion_aya"`） |
+| `name` | `string` | 表示名（例: `"aya"`） |
+| `personality` | `string` | 性格設定（LLMがロールプレイの参考にする） |
+| `story` | `string` | バックストーリー |
+| `sample` | `string` | サンプル発言（口調の参考） |
 
-### `role`
+**使用例:**
 
-コンパニオンの役割を文字列で定義します。
+```typescript
+metadata: {
+  id: "companion_aya",
+  name: "aya",
+  personality:
+    "落ち着いていてクールな雰囲気を持つが、時折ほんの少し抜けていて親しみやすい一面を見せる。",
+  story:
+    "自分の関心を大切にしながら、自由なスタイルで研究や創作を続けている。",
+  sample:
+    "『好きなものについて話してると、つい夢中になっちゃうんだよね。…ちょっと恥ずかしいけど。』",
+}
+```
 
-- **型**: `string`
-- **例**: `"あなたはフレンドリーなアシスタントです。"`
+### role
 
-### `actions`
+```typescript
+role: string
+```
 
-コンパニオンが使用できる`Action`ツールをまとめたオブジェクトです。
+コンパニオンの役割を記述する文字列。
 
-- **型**: `Record<string, Tool>`
-- **キー**: アクション名
-- **値**: `createCompanionAction`で作成したツールインスタンス
+**使用例:**
 
-### `knowledge`
+```typescript
+role: "あなたは、他のコンパニオンやユーザーと積極的に交流します。"
+```
 
-コンパニオンが使用できる`Knowledge`ツールをまとめたオブジェクトです。
+### actions
 
-- **型**: `Record<string, Tool>`
-- **キー**: ナレッジ名
-- **値**: `createCompanionKnowledge`で作成したツールインスタンス
+```typescript
+actions: Record<string, Tool>
+```
 
-### `events`
+コンパニオンが使用できるActionツールのレコード。
 
-コンパニオンの自律的な判断と行動のルールを定義します。
+**使用例:**
 
-#### `events.params`
+```typescript
+actions: {
+  speakTool,
+  lightControlAction
+}
+```
 
-LLMに状況を判断させるための項目をJSON Schema形式で定義します。
+Actionツールの作成方法は[Action](../tools/action)を参照。
 
-- **型**: `Record<string, any>` (JSON Schemaオブジェクト)
-- **例**:
-  ```json
-  {
-    "title": "状況判断パラメータ",
-    "type": "object",
-    "properties": {
-      "need_reply": {
-        "description": "相手の発言に返信が必要か",
-        "type": "boolean"
-      }
+### knowledge
+
+```typescript
+knowledge: Record<string, Tool>
+```
+
+コンパニオンが使用できるKnowledgeツールのレコード。
+
+**使用例:**
+
+```typescript
+knowledge: {
+  companionNetworkKnowledge,
+  visionKnowledge,
+  weatherKnowledge
+}
+```
+
+Knowledgeツールの作成方法は[Knowledge](../tools/knowledge)を参照。
+
+### events
+
+```typescript
+events: {
+  params: JSONSchema;
+  conditions: EventCondition[];
+}
+```
+
+イベント駆動のツール実行設定。
+
+#### events.params
+
+```typescript
+params: JSONSchema
+```
+
+LLMが評価すべきパラメータのJSONスキーマ。
+
+**使用例:**
+
+```typescript
+params: {
+  title: "あなたが判断すべきパラメータ",
+  description: "descriptionに従い、それぞれ適切に値を代入してください。",
+  type: "object",
+  properties: {
+    already_replied: {
+      description: "すでに話したことのある人かどうか",
+      type: "boolean",
     },
-    "required": ["need_reply"]
-  }
-  ```
+    need_response: {
+      description: "返答の必要があるかどうか",
+      type: "boolean",
+    },
+  },
+  required: ["already_replied", "need_response"],
+}
+```
 
-#### `events.conditions`
+#### events.conditions
 
-`params`での判断結果に基づき、ツールを実行するための条件分岐を定義します。
+```typescript
+conditions: EventCondition[]
+```
 
-- **スキーマ**: `EventCondition[]`
+CEL式による条件とツール実行の配列。
 
 ```typescript
 export const EventCondition = z.object({
-  expression: z.string(), // CEL式
+  expression: z.string(),
   execute: z.array(
     z.object({
       instruction: z.string(),
@@ -110,7 +186,34 @@ export const EventCondition = z.object({
 });
 ```
 
-- `expression`: `params`の値を元にしたCEL式。
-- `execute`: `expression`がtrueの場合に実行されるツールの配列。
-  - `instruction`: LLMへの実行指示。
-  - `tool`: 実行するツールインスタンス。
+| フィールド | 型 | 説明 |
+|-----------|-----|------|
+| `expression` | `string` | CEL式（例: `"need_response == true"`） |
+| `execute` | `array` | マッチ時に実行する指示とツールの配列 |
+| `execute[].instruction` | `string` | LLMへの指示文 |
+| `execute[].tool` | `Tool` | 使用するツール |
+
+**使用例:**
+
+```typescript
+conditions: [
+  {
+    expression: "already_replied == false",
+    execute: [
+      {
+        instruction: "自己紹介をする。",
+        tool: speakTool,
+      },
+    ],
+  },
+  {
+    expression: "need_response == true",
+    execute: [
+      {
+        instruction: "ツールを使って返信する。",
+        tool: speakTool,
+      },
+    ],
+  },
+]
+```

@@ -3,8 +3,7 @@ packages:
   - packages/firehose/
   - packages/utils/
   - scripts/
-  - configs/
-  - apm_dependencies/
+  - companions/
   - docs/
 
 catalog:

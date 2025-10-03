@@ -4,11 +4,11 @@ import {
   type Message,
   type Query,
   type QueryResult,
+  type Services,
 } from "@aikyo/server";
 import { createTool } from "@mastra/core/tools";
 import { isLibp2p, type Libp2p } from "libp2p";
 import { type ZodTypeAny, z } from "zod";
-import type { Services } from "../lib/services.ts";
 
 type Output = Action | Message;
 

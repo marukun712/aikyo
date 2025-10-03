@@ -65,6 +65,11 @@ $ cp .env.example .env
 ### 実行 / 開発ワークフロー
 <details><summary>Nix Flakeを使う場合</summary>
 
+パッケージをバンドルします。
+```bash
+$ nix run .#bundle
+```
+
 firehoseとcompanionを起動します。
 ```bash
 # Usage: nix run .#dev -- <COMPANION> [<COMPANION> ...]
@@ -73,6 +78,11 @@ $ nix run .#dev
 ```
 
 </details>
+
+パッケージをバンドルします。
+```bash
+$ pnpm run bundle
+```
 
 ```bash
 # 1) firehose サーバーを起動（デフォルト: http://localhost:8080）

@@ -5,7 +5,7 @@ description: aikyoを使ってAIコンパニオンを作成する最初のステ
 
 import { Aside } from '@astrojs/starlight/components';
 
-`aikyo`は、P2Pで相互に作用するAIコンパニオンを構築するためのフレームワークです。このドキュメントでは、あなたのNode.js/TypeScriptプロジェクトに`aikyo`を導入し、最終的に複数体のコンパニオンを起動するまでの手順を段階的に解説します。
+`aikyo`は、P2Pで相互に作用するAIコンパニオンを構築するためのフレームワークです。このガイドでは、あなたのNode.js/TypeScriptプロジェクトに`aikyo`を導入し、最終的に複数体のコンパニオンを起動するまでの手順を学びます。
 
 ## 1. プロジェクトのセットアップ
 
@@ -17,12 +17,10 @@ cd my-aikyo-app
 pnpm init
 ```
 
-<Aside type="caution">生成された`package.json`には必ず`"type": "module"`を設定してください。ES Modulesとして実行されることを前提にしているため、この設定がないと`aikyo`の各パッケージが正しく動作しません。</Aside>
-
 次に、`aikyo`の主要なパッケージと、開発に必要なライブラリをインストールします。
 
 ```bash
-pnpm add @aikyo/server @aikyo/utils @aikyo/firehose zod @ai-sdk/anthropic dotenv ws
+pnpm add @aikyo/server @aikyo/utils @aikyo/firehose zod@3.25.76 @ai-sdk/anthropic dotenv ws
 ```
 
 TypeScriptファイルをコンパイルなしで実行するために、ランタイムとして[`tsx`](https://github.com/privatenumber/tsx)を開発依存に追加します。
@@ -68,11 +66,15 @@ export const speakTool = createCompanionAction({
   topic: "messages",
   publish: ({ input, id }) => {
     return {
-      id: crypto.randomUUID(),
-      from: id,
-      to: input.to,
-      message: input.message,
-      metadata: { emotion: input.emotion },
+      jsonrpc: "2.0",
+      method: "message.send",
+      params: {
+        id: crypto.randomUUID(),
+        from: id,
+        to: input.to,
+        message: input.message,
+        metadata: { emotion: input.emotion },
+      },
     };
   },
 });
@@ -88,7 +90,6 @@ export const companionNetworkKnowledge = createCompanionKnowledge({
       .map((metadata) => JSON.stringify(metadata, null, 2))
       .join("\n"),
 });
-
 ```
 
 ### ステップ2: サーバーとコンパニオンの実装
@@ -107,6 +108,7 @@ import {
   CompanionAgent,
   type CompanionCard,
   CompanionServer,
+  type Message,
 } from "@aikyo/server";
 import { anthropic } from "@ai-sdk/anthropic";
 import "dotenv/config";
@@ -166,11 +168,15 @@ export const companionCard: CompanionCard = {
   },
 };
 
+const history: Message[] = [];
 const companion = new CompanionAgent(
   companionCard,
   anthropic("claude-3-5-haiku-latest"),
+  history,
 );
-const server = new CompanionServer(companion, { timeoutDuration: 1000 });
+const server = new CompanionServer(companion, history, {
+  timeoutDuration: 1000,
+});
 await server.start();
 ```
 
@@ -179,8 +185,8 @@ await server.start();
 2つのターミナルで、それぞれ`firehose`とコンパニオンを起動します。
 
 ```bash
-$ pnpm exec tsx firehose.ts
-$ pnpm exec tsx aya.ts
+$ npx tsx firehose.ts
+$ npx tsx aya.ts
 ```
 
 `aya`に話しかけるクライアント`client.ts`を作成して実行します。
@@ -196,13 +202,14 @@ const userId = `user_yamada`; // ユーザーの名前を指定
 
 ws.on('open', () => {
   const message = {
-    topic: 'messages',
-    body: {
+    jsonrpc: '2.0',
+    method: 'message.send',
+    params: {
       id: crypto.randomUUID(),
       from: userId,
       to: [companionId],
       message: 'こんにちは、ayaさん！',
-    },
+    }
   };
 
   ws.send(JSON.stringify(message));
@@ -215,7 +222,7 @@ ws.on('message', (data) => {
 
 クライアントを実行します。
 ```bash
-$ pnpm exec tsx client.ts
+$ npx tsx client.ts
 ```
 `aya`から返事が来ることを確認しましょう。
 
@@ -233,6 +240,7 @@ import {
   CompanionAgent,
   type CompanionCard,
   CompanionServer,
+  type Message,
 } from "@aikyo/server";
 import { companionNetworkKnowledge, speakTool } from "./tools.ts";
 
@@ -290,11 +298,13 @@ export const companionCard: CompanionCard = {
   },
 };
 
+const history: Message[] = [];
 const companion = new CompanionAgent(
   companionCard,
   anthropic("claude-3-5-haiku-latest"),
+  history,
 );
-const server = new CompanionServer(companion, { timeoutDuration: 1000 });
+const server = new CompanionServer(companion, history, { timeoutDuration: 1000 });
 await server.start();
 ```
 
@@ -302,7 +312,7 @@ await server.start();
 `kyoko`を起動します。
 
 ```bash
-$ pnpm exec tsx kyoko.ts
+$ npx tsx kyoko.ts
 ```
 
 `client.ts`を修正して、二人の会話を開始させます。
@@ -319,13 +329,14 @@ const userId = `user_yamada`;
 
 ws.on('open', () => {
   const message = {
-    topic: 'messages',
-    body: {
+    jsonrpc: '2.0',
+    method: 'message.send',
+    params: {
       id: crypto.randomUUID(),
       from: userId,
       to: [ayaId],
       message: 'kyokoちゃんに話しかけてみて',
-    },
+    }
   };
 
   ws.send(JSON.stringify(message));

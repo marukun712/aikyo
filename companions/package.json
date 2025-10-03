@@ -1,10 +1,14 @@
 {
-  "name": "apm_dependencies",
+  "name": "companions",
   "type": "module",
   "version": "1.0.0",
   "license": "MIT",
   "private": true,
   "dependencies": {
+    "@ai-sdk/anthropic": "catalog:",
+    "@ai-sdk/google": "catalog:",
+    "@openrouter/ai-sdk-provider": "catalog:",
+    "ollama-ai-provider": "catalog:",
     "zod": "catalog:",
     "@aikyo/utils": "workspace:*",
     "@aikyo/server": "workspace:*"

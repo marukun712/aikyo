@@ -1,4 +1,3 @@
-export type { Services } from "./lib/services.js";
 export {
   type CompanionActionConfig,
   createCompanionAction,

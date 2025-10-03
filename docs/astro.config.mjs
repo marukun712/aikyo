@@ -3,7 +3,6 @@
 import starlight from "@astrojs/starlight";
 import catppuccin from "@catppuccin/starlight";
 import { defineConfig } from "astro/config";
-
 // https://astro.build/config
 export default defineConfig({
   integrations: [
@@ -25,28 +24,41 @@ export default defineConfig({
       ],
       sidebar: [
         {
-          label: "はじめに",
+          label: "はじめる",
           items: [
             { label: "コンセプト", slug: "concept" },
             { label: "クイックスタート", slug: "quick-start" },
-            { label: "フレームワーク概要", slug: "overview" },
           ],
         },
         {
-          label: "コア概念",
+          label: "学ぶ",
           items: [
-            { label: "Companion Card", slug: "companion-cards" },
-            { label: "P2P通信", slug: "p2p-communication" },
-            { label: "Action & Knowledge", slug: "actions-knowledge" },
+            {
+              label: "会話制御",
+              items: [
+                { label: "ターンテイキング", slug: "core/turn-taking" },
+                { label: "会話クロージング", slug: "core/closing" },
+                { label: "重複検出", slug: "core/repetition" },
+                { label: "P2P通信", slug: "core/p2p" },
+              ],
+            },
+            {
+              label: "ツール",
+              items: [
+                { label: "Knowledge（知識ツール）", slug: "tools/knowledge" },
+                { label: "Action（行動ツール）", slug: "tools/action" },
+                { label: "Query（クエリシステム）", slug: "tools/query" },
+              ],
+            },
           ],
         },
         {
-          label: "APIリファレンス",
+          label: "API",
           items: [
-            { label: "Companion Card Schema", slug: "api/companion-card" },
-            { label: "Action API", slug: "api/actions" },
-            { label: "Knowledge API", slug: "api/knowledge" },
-            { label: "メッセージタイプ", slug: "api/messages" },
+            { label: "CompanionCard", slug: "api/companion-card" },
+            { label: "CompanionAgent", slug: "api/companion-agent" },
+            { label: "CompanionServer", slug: "api/companion-server" },
+            { label: "Firehose", slug: "api/firehose" },
           ],
         },
       ],
