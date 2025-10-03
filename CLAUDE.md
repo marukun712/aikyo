@@ -22,11 +22,13 @@ aikyoは、相互接続されたAIコンパニオンを構築するためのフ�
 - **packages/utils/**: ユーティリティとlibp2p関連の共通機能
   - `createCompanionAction`: Actionツールの作成ヘルパー
   - `createCompanionKnowledge`: Knowledgeツールの作成ヘルパー
-- **configs/**: 各AIコンパニオンの設定ファイル（aya、kyokoなど）
-- **scripts/**: companion.tsによるコンパニオン起動スクリプト
-- **apm_dependencies/**: カスタムのAction・Knowledgeツール定義
-  - `core/`: speakToolやcompanionNetworkKnowledgeなど基本ツール
-  - `query-tool/`: visionKnowledgeなど拡張ツール
+- **companions/**: 各AIコンパニオンの設定ファイル（aya、kyokoなど）
+  - 各コンパニオンは `companions/<name>/companion.ts` に定義
+  - `tools/core/`: speakToolやcompanionNetworkKnowledgeなど基本ツール
+  - `tools/query-tool/`: visionKnowledgeなど拡張ツール
+- **scripts/**: 起動スクリプト
+  - `companion.ts`: コンパニオンを名前指定で起動（`companions/`から読み込み）
+  - `firehose.ts`: Firehoseサーバーを起動し、messages/queries/actionsトピックをサブスクライブ
 
 ### Core Concepts
 
@@ -131,9 +133,9 @@ pnpm run release
 
 ## Companion Configuration
 
-`configs/`ディレクトリ内に各コンパニオンの設定があります。新しいコンパニオンを追加する場合は：
+`companions/`ディレクトリ内に各コンパニオンの設定があります。新しいコンパニオンを追加する場合は：
 
-1. `configs/<name>/`ディレクトリを作成
+1. `companions/<name>/`ディレクトリを作成
 2. `companion.ts`ファイルで`CompanionCard`を実装：
    - `metadata`: id、name、personality、story、sample
    - `role`: コンパニオンの役割記述
@@ -250,7 +252,7 @@ firehose.addHandler("messages", (data) => {
 ## Development Guidelines
 
 ### カスタムツールの作成
-`apm_dependencies/`ディレクトリにツールを追加：
+`companions/tools/`ディレクトリにツールを追加：
 - **Action**: `createCompanionAction`でネットワークへの送信機能を実装
 - **Knowledge**: `createCompanionKnowledge`で情報取得機能を実装
 
