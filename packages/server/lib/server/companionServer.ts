@@ -15,6 +15,7 @@ import type {
 } from "../../schema/index.js";
 import type { CompanionAgent } from "../agents/index.js";
 import { TurnTakingManager } from "../conversation/index.js";
+import { logger } from "../logger.js";
 import {
   handleMetadataProtocol,
   METADATA_PROTOCOL,
@@ -99,7 +100,10 @@ export class CompanionServer implements ICompanionServer {
 
     this.libp2p.addEventListener("peer:discovery", (evt) => {
       this.libp2p.dial(evt.detail.multiaddrs).catch((error) => {
-        console.error(`ピアへの接続に失敗しました: ${evt.detail.id}`, error);
+        logger.error(
+          { error, peerId: evt.detail.id.toString() },
+          "ピアへの接続に失敗しました",
+        );
       });
     });
 
@@ -144,9 +148,13 @@ export class CompanionServer implements ICompanionServer {
 
   async start() {
     await this.setupLibp2p();
-    console.log(
-      `Companion started: ${this.companion.metadata.name} ` +
-        `(id=${this.companion.metadata.id}, peerId=${this.libp2p.peerId.toString()})`,
+    logger.info(
+      {
+        name: this.companion.metadata.name,
+        id: this.companion.metadata.id,
+        peerId: this.libp2p.peerId.toString(),
+      },
+      "Companion started",
     );
   }
 }

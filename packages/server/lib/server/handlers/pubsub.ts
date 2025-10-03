@@ -4,6 +4,7 @@ import {
   QueryResultSchema,
   StateSchema,
 } from "../../../schema/index.js";
+import { logger } from "../../logger.js";
 import type { CompanionServer } from "../companionServer.js";
 
 export const handlePubSubMessage = async (
@@ -51,6 +52,6 @@ export const handlePubSubMessage = async (
       }
     }
   } catch (e) {
-    console.error(e);
+    logger.error({ err: e }, "Error handling pubsub message");
   }
 };

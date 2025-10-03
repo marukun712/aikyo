@@ -1,5 +1,6 @@
 import type { Connection, PeerId, Stream } from "@libp2p/interface";
 import { MetadataSchema } from "../../../schema/index.js";
+import { logger } from "../../logger.js";
 import type { CompanionServer } from "../companionServer.js";
 
 export const METADATA_PROTOCOL = "/aikyo/metadata/1.0.0";
@@ -25,7 +26,7 @@ export async function requestMetadata(self: CompanionServer, peerId: PeerId) {
   if (chunks.length) {
     const msg = JSON.parse(new TextDecoder().decode(chunks[0]));
     const parsed = MetadataSchema.safeParse(msg);
-    console.log(parsed);
+    logger.debug({ parsed }, "Received metadata from peer");
     if (parsed.success) self.companionList.set(id, parsed.data);
   }
   stream.close();

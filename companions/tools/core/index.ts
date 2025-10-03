@@ -1,4 +1,3 @@
-import type { Query } from "@aikyo/server";
 import { createCompanionAction, createCompanionKnowledge } from "@aikyo/utils";
 import { z } from "zod";
 
