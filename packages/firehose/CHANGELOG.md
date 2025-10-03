@@ -1,5 +1,13 @@
 # @aikyo/firehose
 
+## 1.2.1
+
+### Patch Changes
+
+- 58894e7: 循環依存の解決
+- Updated dependencies [58894e7]
+  - @aikyo/server@1.2.1
+
 ## 1.2.0
 
 ### Minor Changes
