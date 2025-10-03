@@ -16,19 +16,6 @@ export const speakTool = createCompanionAction({
   }),
   topic: "messages",
   publish: async ({ input, id, sendQuery }) => {
-    const queryId = crypto.randomUUID();
-    const query: Query = {
-      jsonrpc: "2.0",
-      id: queryId,
-      method: "query.send",
-      params: {
-        from: id,
-        type: "speak",
-        body: { message: input.message, emotion: input.emotion },
-      },
-    };
-    const res = await sendQuery(query);
-    console.log(res);
     return {
       jsonrpc: "2.0",
       method: "message.send",

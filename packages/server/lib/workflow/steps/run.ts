@@ -16,7 +16,6 @@ export function createRunStep(
     outputSchema: z.string(),
     execute: async ({ inputData }) => {
       const { output } = inputData;
-      console.log(inputData);
       const tools = new Map<string, string>();
       // 上に書かれた条件を優先
       companionCard.events.conditions.forEach((condition) => {

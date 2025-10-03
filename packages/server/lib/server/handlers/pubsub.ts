@@ -27,8 +27,6 @@ export const handlePubSubMessage = async (
             return to === self.companion.metadata.id;
           })
         ) {
-          console.log("message received.");
-          console.log(parsed.data);
           await self.handleMessageReceived(body);
         }
         break;
@@ -36,8 +34,6 @@ export const handlePubSubMessage = async (
       case "states": {
         const parsed = StateSchema.safeParse(data);
         if (!parsed.success) return;
-        console.log("state received.");
-        console.log(parsed.data);
         const state = parsed.data;
         await self.turnTakingManager.handleStateReceived(state);
         break;
@@ -45,8 +41,6 @@ export const handlePubSubMessage = async (
       case "queries": {
         const parsed = QueryResultSchema.safeParse(data);
         if (!parsed.success) return;
-        console.log("query result received.");
-        console.log(parsed.data);
         const result = parsed.data;
         const pendingQuery = self.pendingQueries.get(result.id);
         if (pendingQuery) {

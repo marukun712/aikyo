@@ -114,10 +114,12 @@ export type Query = z.infer<typeof QuerySchema>;
 export const QueryResultSchema = z.object({
   jsonrpc: z.literal("2.0"),
   id: z.string(),
-  result: z.object({
-    success: z.boolean(),
-    body: z.record(z.string(), z.any()).optional(),
-    error: z.string().optional().describe("エラーメッセージ"),
-  }),
+  result: z
+    .object({
+      success: z.boolean(),
+      body: z.record(z.string(), z.any()),
+    })
+    .optional(),
+  error: z.string().optional().describe("エラーメッセージ"),
 });
 export type QueryResult = z.infer<typeof QueryResultSchema>;

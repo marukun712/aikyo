@@ -5,7 +5,7 @@ import { identify } from "@libp2p/identify";
 import type { IdentifyResult, Message, PeerId } from "@libp2p/interface";
 import { mdns } from "@libp2p/mdns";
 import { tcp } from "@libp2p/tcp";
-import type { Libp2p } from "libp2p";
+import type { Libp2p, Libp2pOptions } from "libp2p";
 import { createLibp2p } from "libp2p";
 import type {
   Message as AikyoMessage,
@@ -21,7 +21,11 @@ import {
 } from "./handlers/metadata.js";
 import { onPeerConnect, onPeerDisconnect } from "./handlers/peer.js";
 import { handlePubSubMessage } from "./handlers/pubsub.js";
-import type { Services } from "./index";
+
+export type Services = {
+  pubsub: ReturnType<ReturnType<typeof gossipsub>>;
+  identify: ReturnType<ReturnType<typeof identify>>;
+};
 
 export interface ICompanionServer {
   companionAgent: CompanionAgent;
@@ -30,6 +34,15 @@ export interface ICompanionServer {
   companion: CompanionCard;
   libp2p: Libp2p<Services>;
   companionList: Map<string, Metadata>;
+  pendingQueries: Map<
+    string,
+    {
+      resolve: (value: QueryResult) => void;
+      reject: (reason: string) => void;
+    }
+  >;
+  libp2pConfig?: Libp2pOptions<Services>;
+
   start(): Promise<void>;
 }
 
@@ -47,11 +60,13 @@ export class CompanionServer implements ICompanionServer {
       reject: (reason: string) => void;
     }
   >();
+  libp2pConfig?: Libp2pOptions<Services>;
 
   constructor(
     companionAgent: CompanionAgent,
     history: AikyoMessage[],
     config?: { timeoutDuration: number },
+    libp2pConfig?: Libp2pOptions<Services>,
   ) {
     this.companionAgent = companionAgent;
     this.history = history;
@@ -61,23 +76,26 @@ export class CompanionServer implements ICompanionServer {
       config ? config.timeoutDuration : 5000,
     );
     this.companionList.set(this.companion.metadata.id, this.companion.metadata);
+    this.libp2pConfig = libp2pConfig;
   }
 
   private async setupLibp2p() {
-    this.libp2p = await createLibp2p({
-      addresses: { listen: ["/ip4/0.0.0.0/tcp/0"] },
-      transports: [tcp()],
-      peerDiscovery: [mdns()],
-      connectionEncrypters: [noise()],
-      streamMuxers: [yamux()],
-      services: {
-        pubsub: gossipsub({
-          allowPublishToZeroTopicPeers: true,
-          emitSelf: true,
-        }),
-        identify: identify(),
+    this.libp2p = await createLibp2p(
+      this.libp2pConfig || {
+        addresses: { listen: ["/ip4/0.0.0.0/tcp/0"] },
+        transports: [tcp()],
+        peerDiscovery: [mdns()],
+        connectionEncrypters: [noise()],
+        streamMuxers: [yamux()],
+        services: {
+          pubsub: gossipsub({
+            allowPublishToZeroTopicPeers: true,
+            emitSelf: true,
+          }),
+          identify: identify(),
+        },
       },
-    });
+    );
 
     this.libp2p.addEventListener("peer:discovery", (evt) => {
       this.libp2p.dial(evt.detail.multiaddrs).catch((error) => {

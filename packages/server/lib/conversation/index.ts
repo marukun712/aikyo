@@ -39,18 +39,12 @@ export class TurnTakingManager implements ITurnTakingManager {
     const pending = this.pending.get(messageId);
     if (!pending) return;
     pending.states.push(state);
-    console.log(
-      `State received for message ${messageId}. Total states: ${pending.states.length}`,
-    );
     const voted = new Set<string>();
     pending.states.forEach((state) => {
       voted.add(state.params.from);
     });
     //参加者全員の投票が集まった場合
     if (setsAreEqual(voted, pending.participants)) {
-      console.log(
-        `All states collected for message ${messageId}. Deciding next speaker.`,
-      );
       await this.decideNextSpeaker(messageId, pending.states);
     }
   }
@@ -75,7 +69,6 @@ export class TurnTakingManager implements ITurnTakingManager {
       return;
     }
     this.pending.delete(messageId);
-    console.log(`No speaker found for message ${messageId}. Cleaning up.`);
   }
 
   private async executeSpeaker(messageId: string, speaker: State) {
@@ -84,7 +77,6 @@ export class TurnTakingManager implements ITurnTakingManager {
     );
     if (speaker.params.from === this.companionAgent.companion.metadata.id) {
       try {
-        console.log("I was selected to speak. Executing input logic...");
         const pending = this.pending.get(messageId);
         if (pending) {
           const myState = pending.states.find((state) => {
