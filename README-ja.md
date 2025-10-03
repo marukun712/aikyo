@@ -4,7 +4,7 @@
 
 aikyoは、相互につながるAIコンパニオンを作成するためのフレームワークです。 
 
-## 特長
+## 特徴
 
 - ターンテイキング機能を標準搭載
 - 複数コンパニオンでの自然な会話
@@ -92,3 +92,13 @@ $ pnpm run firehose
 # 2) コンパニオンを名前指定で起動（利用可能な名前は configs/ ディレクトリを参照）
 $ pnpm run companion <companion_name>
 ```
+
+## 謝辞
+
+aikyoは以下の論文にインスパイアされました:
+
+> **"Who Speaks Next? Multi-party AI Discussion Leveraging the Systematics of Turn-taking in Murder Mystery Games"**  
+by Ryota Nonomura and Hiroki Mori (2024)  
+📄 [arXiv:2412.04937](https://arxiv.org/abs/2412.04937)
+
+マルチエージェントの対話制御に関する素晴らしい研究に感謝します！
