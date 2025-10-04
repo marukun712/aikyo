@@ -80,22 +80,46 @@ export class CompanionServer implements ICompanionServer {
   }
 
   private async setupLibp2p() {
-    this.libp2p = await createLibp2p(
-      this.libp2pConfig || {
-        addresses: { listen: ["/ip4/0.0.0.0/tcp/0"] },
-        transports: [tcp()],
-        peerDiscovery: [mdns()],
-        connectionEncrypters: [noise()],
-        streamMuxers: [yamux()],
-        services: {
-          pubsub: gossipsub({
-            allowPublishToZeroTopicPeers: true,
-            emitSelf: true,
-          }),
-          identify: identify(),
-        },
+    const defaultConfig: Libp2pOptions<Services> = {
+      addresses: { listen: ["/ip4/0.0.0.0/tcp/0"] },
+      transports: [tcp()],
+      peerDiscovery: [mdns()],
+      connectionEncrypters: [noise()],
+      streamMuxers: [yamux()],
+      services: {
+        pubsub: gossipsub({
+          allowPublishToZeroTopicPeers: true,
+          emitSelf: true,
+        }),
+        identify: identify(),
       },
-    );
+    };
+
+    if (!defaultConfig.services)
+      throw new Error("Error: Gossipsubの設定が構成されていません！");
+
+    const mergedConfig: Libp2pOptions<Services> = {
+      ...defaultConfig,
+      ...this.libp2pConfig,
+      addresses: {
+        ...defaultConfig.addresses,
+        ...this.libp2pConfig?.addresses,
+      },
+      transports: this.libp2pConfig?.transports ?? defaultConfig.transports,
+      peerDiscovery:
+        this.libp2pConfig?.peerDiscovery ?? defaultConfig.peerDiscovery,
+      connectionEncrypters:
+        this.libp2pConfig?.connectionEncrypters ??
+        defaultConfig.connectionEncrypters,
+      streamMuxers:
+        this.libp2pConfig?.streamMuxers ?? defaultConfig.streamMuxers,
+      services: {
+        ...defaultConfig.services,
+        ...this.libp2pConfig?.services,
+      },
+    };
+
+    this.libp2p = await createLibp2p(mergedConfig);
 
     this.libp2p.addEventListener("peer:discovery", (evt) => {
       this.libp2p.dial(evt.detail.multiaddrs).catch((error) => {
