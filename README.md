@@ -92,3 +92,13 @@ $ pnpm run firehose
 # 2) Launch a companion by name (see configs/ directory for available names)
 $ pnpm run companion <companion_name>
 ```
+
+## Acknowledgments
+
+This project is inspired by the research paper:
+
+> **"Who Speaks Next? Multi-party AI Discussion Leveraging the Systematics of Turn-taking in Murder Mystery Games"**  
+by Ryota Nonomura and Hiroki Mori (2024)  
+📄 [arXiv:2412.04937](https://arxiv.org/abs/2412.04937)
+
+We appreciate their groundbreaking work on multi-agent dialogue systems and turn-taking mechanisms.
