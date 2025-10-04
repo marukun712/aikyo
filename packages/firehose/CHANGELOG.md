@@ -1,5 +1,16 @@
 # @aikyo/firehose
 
+## 1.4.0
+
+### Minor Changes
+
+- 4ef84f4: logger を pino にする
+
+### Patch Changes
+
+- Updated dependencies [4ef84f4]
+  - @aikyo/server@1.3.0
+
 ## 1.3.0
 
 ### Minor Changes
