@@ -1,5 +1,13 @@
 # @aikyo/utils
 
+## 1.2.2
+
+### Patch Changes
+
+- bea9cdf: log の数を減らす/libp2p の設定を外部からできるように
+- Updated dependencies [bea9cdf]
+  - @aikyo/server@1.2.2
+
 ## 1.2.1
 
 ### Patch Changes
