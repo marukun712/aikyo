@@ -44,19 +44,21 @@ export function createCompanionKnowledge<
       }
       const id = runtimeContext.get("id");
       if (!id || typeof id !== "string") {
-        throw new Error("Error: コンパニオンのidが不正です!");
+        throw new Error("Error: runtimeContextのコンパニオンのidが不正です!");
       }
       const companions = runtimeContext.get("companions");
       if (!(companions instanceof Map)) {
-        throw new Error("Error: companionsの形式が不正です!");
+        throw new Error("Error: runtimeContextのcompanionsの形式が不正です!");
       }
       const pendingQueries = runtimeContext.get("pendingQueries");
       if (!(pendingQueries instanceof Map)) {
-        throw new Error("Error: pendingQueriesの形式が不正です!");
+        throw new Error(
+          "Error: runtimeContextのpendingQueriesの形式が不正です!",
+        );
       }
       const agent = runtimeContext.get("agent");
       if (!(agent instanceof CompanionAgent)) {
-        throw new Error("Error: agentの形式が不正です!");
+        throw new Error("Error: runtimeContextのAgentの形式が不正です");
       }
       return await knowledge({
         input: context,
