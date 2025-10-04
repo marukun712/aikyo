@@ -1,5 +1,11 @@
 # @aikyo/server
 
+## 1.3.0
+
+### Minor Changes
+
+- 4ef84f4: logger を pino にする
+
 ## 1.2.2
 
 ### Patch Changes
