@@ -74,23 +74,25 @@ export function createCompanionAction<T extends ZodTypeAny>({
       try {
         const libp2p: Libp2p<Services> = runtimeContext.get("libp2p");
         if (!libp2p || !isLibp2p(libp2p)) {
-          throw new Error("Error:libp2pが初期化されていません!");
+          throw new Error("Error: libp2pが初期化されていません!");
         }
         const id = runtimeContext.get("id");
         if (!id || typeof id !== "string") {
-          throw new Error("Error:コンパニオンのidが不正です!");
+          throw new Error("Error: runtimeContextのコンパニオンのidが不正です!");
         }
         const companions = runtimeContext.get("companions");
         if (!(companions instanceof Map)) {
-          throw new Error("Error:companionsの形式が不正です!");
+          throw new Error("Error: runtimeContextのcompanionsの形式が不正です!");
         }
         const pendingQueries = runtimeContext.get("pendingQueries");
         if (!(pendingQueries instanceof Map)) {
-          throw new Error("Error:pendingQueriesの形式が不正です!");
+          throw new Error(
+            "Error: runtimeContextのpendingQueriesの形式が不正です!",
+          );
         }
         const agent = runtimeContext.get("agent");
         if (!(agent instanceof CompanionAgent)) {
-          throw new Error("Error:agentの形式が不正です!");
+          throw new Error("Error: runtimeContextのAgentの形式が不正です");
         }
         const data = await publish({
           input: context,

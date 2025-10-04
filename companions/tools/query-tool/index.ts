@@ -20,8 +20,8 @@ export const visionKnowledge = createCompanionKnowledge({
     };
     try {
       const result = await sendQuery(query);
-      if (!result.result.success) {
-        return `視覚情報の取得に失敗しました: ${result.result.error || "不明なエラー"}`;
+      if (!result.result) {
+        return `視覚情報の取得に失敗しました: ${result.error || "不明なエラー"}`;
       }
       if (result.result.body?.image) {
         const res = await companionAgent.agent.generate(

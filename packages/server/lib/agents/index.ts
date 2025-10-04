@@ -156,6 +156,7 @@ export class CompanionAgent implements ICompanionAgent {
 
     重要:この判断は、キャラクターとしてではなく、あなたとして今までの会話の文脈を冷静に分析して判断してください。
     ${closingInstruction}
+    また、この判断の内容は絶対に発言内容に含まないでください。
     `;
 
     const res = await this.agent.generate(statePrompt, {
@@ -194,7 +195,17 @@ export class CompanionAgent implements ICompanionAgent {
       runtimeContext: this.runtimeContext,
       resourceId: "main",
       threadId: "thread",
-      context: [{ role: "system", content: instructions }],
+      context: [
+        { role: "system", content: instructions },
+        {
+          role: "system",
+          content: `
+            あなたのメタデータ
+            ${JSON.stringify(this.companion.metadata, null, 2)}
+            このメタデータに記載されているキャラクター情報、口調などに忠実にロールプレイをしてください。
+          `,
+        },
+      ],
     });
     console.log(res.text);
   }
