@@ -45,11 +45,13 @@ export type Query = z.infer<typeof QuerySchema>;
 export const QueryResultSchema = z.object({
   jsonrpc: z.literal("2.0"),
   id: z.string(),
-  result: z.object({
-    success: z.boolean(),
-    body: z.record(z.string(), z.any()).optional(),
-    error: z.string().optional().describe("エラーメッセージ"),
-  }),
+  result: z
+    .object({
+      success: z.boolean(),
+      body: z.record(z.string(), z.any()),
+    })
+    .optional(),
+  error: z.string().optional().describe("エラーメッセージ"),
 });
 export type QueryResult = z.infer<typeof QueryResultSchema>;
 ```
@@ -58,9 +60,10 @@ export type QueryResult = z.infer<typeof QueryResultSchema>;
 |-----------|-----|------|
 | `jsonrpc` | `"2.0"` | JSON-RPCバージョン |
 | `id` | `string` | クエリのID（Queryと一致） |
-| `result.success` | `boolean` | 成功/失敗 |
-| `result.body` | `object` | レスポンスデータ（オプション） |
-| `result.error` | `string` | エラーメッセージ（オプション） |
+| `result` | `object` | 成功時のレスポンス（オプション） |
+| `result.success` | `boolean` | 成功/失敗フラグ |
+| `result.body` | `object` | レスポンスデータ |
+| `error` | `string` | エラー時のメッセージ（オプション） |
 
 ## sendQuery関数
 
@@ -185,8 +188,8 @@ export const visionKnowledge = createCompanionKnowledge({
     };
     try {
       const result = await sendQuery(query);
-      if (!result.result.success) {
-        return `視覚情報の取得に失敗しました: ${result.result.error || "不明なエラー"}`;
+      if (!result.result) {
+        return `視覚情報の取得に失敗しました: ${result.error || "不明なエラー"}`;
       }
       if (result.result.body?.image) {
         const res = await companionAgent.agent.generate(
@@ -312,22 +315,20 @@ ws.on('message', (data) => {
       };
     } else if (query.params.type === 'speak') {
       // 音声合成
-      const tts = synthesizeSpeech(query.params.body.message); 
+      const tts = synthesizeSpeech(query.params.body.message);
       result = {
         jsonrpc: '2.0',
         id: query.id,
         result: {
           success: true,
+          body: {}
         }
       };
     } else {
       result = {
         jsonrpc: '2.0',
         id: query.id,
-        result: {
-          success: false,
-          error: `未対応のクエリタイプ: ${query.params.type}`
-        }
+        error: `未対応のクエリタイプ: ${query.params.type}`
       };
     }
     ws.send(JSON.stringify(result));
@@ -339,4 +340,5 @@ ws.on('message', (data) => {
 
 - `query.id`を使ってQueryResultに同じIDを設定
 - `type`フィールドで処理を振り分け
-- エラー時は`success: false`と`error`を返す
+- 成功時は`result: { success: true, body: {...} }`を返す
+- エラー時は`result`を省略し、`error`フィールドにメッセージを設定
