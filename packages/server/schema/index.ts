@@ -46,7 +46,7 @@ export const MemorySchema = z.object({
   ),
 });
 
-export const StateBody = z.object({
+export const StateBodySchema = z.object({
   id: z.string(),
   from: z.string(),
   messageId: z.string().describe("このstateが対応する元のメッセージのID"),
@@ -66,11 +66,12 @@ export const StateBody = z.object({
     .default("none")
     .describe("会話の収束段階:なし/事前クロージング/クロージング/終端"),
 });
+export type StateBody = z.infer<typeof StateBodySchema>;
 
 export const StateSchema = z.object({
   jsonrpc: z.literal("2.0"),
   method: z.literal("state.send"),
-  params: StateBody,
+  params: StateBodySchema,
 });
 export type State = z.infer<typeof StateSchema>;
 

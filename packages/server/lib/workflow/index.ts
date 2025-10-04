@@ -26,7 +26,10 @@ export function createToolInstructionWorkflow(
 
   return createWorkflow({
     id: "get-tool-instruction",
-    inputSchema: MessageSchema,
+    inputSchema: z.object({
+      message: MessageSchema,
+      history: z.array(MessageSchema),
+    }),
     outputSchema: z.string(),
   })
     .then(evaluateStep)
