@@ -3,6 +3,7 @@ import {
   type PeerId,
   UnsupportedProtocolError,
 } from "@libp2p/interface";
+import { logger } from "../../logger.js";
 import type { CompanionServer } from "../companionServer.js";
 import { requestMetadata } from "./metadata.js";
 
@@ -12,11 +13,11 @@ export const onPeerConnect = async (
 ) => {
   try {
     const peerId = evt.detail.peerId;
-    console.log(`Peer connected: ${peerId.toString()}`);
+    logger.info({ peerId: peerId.toString() }, "Peer connected");
     await requestMetadata(self, peerId);
   } catch (e) {
     if (!(e instanceof UnsupportedProtocolError)) {
-      console.error("Error during peer connection:", e);
+      logger.error({ err: e }, "Error during peer connection");
     }
   }
 };
@@ -29,9 +30,9 @@ export const onPeerDisconnect = async (
     const peerIdStr = evt.detail.toString();
     const metadata = self.companionList.get(peerIdStr);
     if (!self.companionList.has(peerIdStr)) return;
-    console.log(`Peer disconnected: ${peerIdStr}, metadata was:`, metadata);
+    logger.info({ peerId: peerIdStr, metadata }, "Peer disconnected");
     self.companionList.delete(peerIdStr);
   } catch (e) {
-    console.error(e);
+    logger.error({ err: e }, "Error during peer disconnection");
   }
 };

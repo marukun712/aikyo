@@ -12,6 +12,7 @@ import {
   type State,
   StateBody,
 } from "../../schema/index.js";
+import { logger } from "../logger.js";
 import { RepetitionJudge } from "../workflow/evals/index.js";
 import { createToolInstructionWorkflow } from "../workflow/index.js";
 
@@ -130,7 +131,7 @@ export class CompanionAgent implements ICompanionAgent {
     if (this.config.enableRepetitionJudge) {
       const formatted = this.history.map((message) => message.params.message);
       const result = await this.repetitionJudge.evaluate(formatted);
-      console.log(result);
+      logger.info({ result }, "Repetition judge evaluation");
       const repetition = result.score;
       if (repetition > 0.7) {
         closingInstruction =
@@ -190,7 +191,7 @@ export class CompanionAgent implements ICompanionAgent {
     if (typeof instructions !== "string" || instructions === "failed") {
       throw new Error("イベント実行に失敗しました。");
     }
-    console.log("Instructions:", instructions);
+    logger.info({ instructions }, "Generated tool instructions");
     const res = await this.agent.generate(JSON.stringify(message, null, 2), {
       runtimeContext: this.runtimeContext,
       resourceId: "main",
@@ -207,6 +208,6 @@ export class CompanionAgent implements ICompanionAgent {
         },
       ],
     });
-    console.log(res.text);
+    logger.info({ text: res.text }, "Agent response generated");
   }
 }

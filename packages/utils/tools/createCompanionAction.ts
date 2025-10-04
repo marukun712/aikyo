@@ -9,6 +9,7 @@ import {
 import { createTool } from "@mastra/core/tools";
 import { isLibp2p, type Libp2p } from "libp2p";
 import { type ZodTypeAny, z } from "zod";
+import { logger } from "../lib/logger.js";
 
 type Output = Action | Message;
 
@@ -107,7 +108,7 @@ export function createCompanionAction<T extends ZodTypeAny>({
         );
         return "ツールが正常に実行されました。";
       } catch (e) {
-        console.error(e);
+        logger.error({ err: e }, "ツールの実行に失敗しました");
         return `ツールの実行に失敗しました${e}`;
       }
     },

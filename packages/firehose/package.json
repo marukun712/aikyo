@@ -24,6 +24,7 @@
     "build": "tsup --config tsup.config.ts"
   },
   "dependencies": {
+    "@aikyo/server": "workspace:*",
     "@chainsafe/libp2p-gossipsub": "catalog:",
     "@chainsafe/libp2p-noise": "catalog:",
     "@chainsafe/libp2p-yamux": "catalog:",
@@ -32,9 +33,9 @@
     "@libp2p/tcp": "catalog:",
     "helia": "catalog:",
     "libp2p": "^2.9.0",
+    "pino": "^10.0.0",
     "ws": "catalog:",
-    "zod": "catalog:",
-    "@aikyo/server": "workspace:*"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",

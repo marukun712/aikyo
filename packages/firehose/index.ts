@@ -10,6 +10,7 @@ import { createLibp2p, type Libp2p, type Libp2pOptions } from "libp2p";
 import type WebSocket from "ws";
 import { WebSocketServer } from "ws";
 import z from "zod";
+import { logger } from "./lib/logger.js";
 
 const RequestSchema = z.union([QueryResultSchema, MessageSchema]);
 
@@ -60,7 +61,7 @@ export class Firehose {
 
     this.libp2p.addEventListener("peer:discovery", (evt) => {
       this.libp2p.dial(evt.detail.multiaddrs).catch((err) => {
-        console.error("Dial error:", err);
+        logger.error({ err }, "Dial error");
       });
     });
 
@@ -84,7 +85,7 @@ export class Firehose {
             new TextEncoder().encode(JSON.stringify(parsed.data)),
           );
         } catch (e) {
-          console.log(e);
+          logger.error({ err: e }, "Error handling WebSocket message");
         }
       });
 
@@ -103,11 +104,11 @@ export class Firehose {
           handler(data);
         }
       } catch (e) {
-        console.log(e);
+        logger.error({ err: e }, "Error handling pubsub message");
       }
     });
 
-    console.log(`aikyo firehose server running on ws://localhost:${this.port}`);
+    logger.info(`aikyo firehose server running on ws://localhost:${this.port}`);
   }
 
   async subscribe<K extends keyof TopicPayloads>(

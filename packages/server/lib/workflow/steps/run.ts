@@ -2,6 +2,7 @@ import { createStep } from "@mastra/core/workflows";
 import { evaluate } from "cel-js";
 import { type ZodTypeAny, z } from "zod";
 import type { CompanionCard } from "../../../schema/index.js";
+import { logger } from "../../logger.js";
 
 export function createRunStep(
   companionCard: CompanionCard,
@@ -21,7 +22,10 @@ export function createRunStep(
       companionCard.events.conditions.forEach((condition) => {
         // expression を評価する
         if (evaluate(condition.expression, output)) {
-          console.log(condition.expression, "is true");
+          logger.info(
+            { expression: condition.expression },
+            "Condition evaluated to true",
+          );
           condition.execute.forEach((tool) => {
             // すでに tool の実行条件が決まっていれば代入しない
             if (!tools.has(tool.tool.id)) {

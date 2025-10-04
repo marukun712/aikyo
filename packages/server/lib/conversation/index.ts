@@ -1,6 +1,7 @@
 import type { Message, State } from "../../schema/index.js";
 import { setsAreEqual } from "../../utils/array.js";
 import type { CompanionAgent } from "../agents/index.js";
+import { logger } from "../logger.js";
 
 export interface ITurnTakingManager {
   addPending(message: Message): Promise<void>;
@@ -72,8 +73,12 @@ export class TurnTakingManager implements ITurnTakingManager {
   }
 
   private async executeSpeaker(messageId: string, speaker: State) {
-    console.log(
-      `Speaker selected: ${speaker.params.from} (importance: ${speaker.params.importance})`,
+    logger.info(
+      {
+        from: speaker.params.from,
+        importance: speaker.params.importance,
+      },
+      "Speaker selected",
     );
     if (speaker.params.from === this.companionAgent.companion.metadata.id) {
       try {
@@ -85,7 +90,7 @@ export class TurnTakingManager implements ITurnTakingManager {
             );
           });
           if (myState && myState.params.closing === "terminal") {
-            console.log("The conversation is over.");
+            logger.info("The conversation is over");
             return;
           }
           await new Promise<void>((resolve) => {
@@ -95,12 +100,13 @@ export class TurnTakingManager implements ITurnTakingManager {
           });
           await this.companionAgent.input(pending.message);
         } else {
-          console.warn(
-            `Original message not found for messageId: ${messageId}`,
+          logger.warn(
+            { messageId },
+            "Original message not found for messageId",
           );
         }
       } catch (error) {
-        console.error("Failed to execute speaker logic:", error);
+        logger.error({ error }, "Failed to execute speaker logic");
       }
     }
     this.pending.delete(messageId);
