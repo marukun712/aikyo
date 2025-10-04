@@ -6,7 +6,7 @@ import {
   StateBodySchema,
 } from "../../../schema/index.js";
 
-const INSTRUCTIONS = ``;
+const INSTRUCTIONS = `You are an expert in state generation. Based on the given conversation history and your own role, you will reliably determine the next action.`;
 
 const generatePrompt = (
   id: string,
