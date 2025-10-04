@@ -1,5 +1,16 @@
 # @aikyo/firehose
 
+## 1.3.0
+
+### Minor Changes
+
+- bea9cdf: firehose を拡張
+
+### Patch Changes
+
+- Updated dependencies [bea9cdf]
+  - @aikyo/server@1.2.2
+
 ## 1.2.1
 
 ### Patch Changes
