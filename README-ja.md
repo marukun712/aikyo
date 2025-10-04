@@ -2,7 +2,11 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/marukun712/aikyo)  
 [**日本語**](./README-ja.md) | [English](./README.md)
 
-aikyoは、相互につながるAIコンパニオンを作成するためのフレームワークです。 
+**aikyoは、相互につながるAIコンパニオンを作成するためのフレームワークです。**
+
+aikyoのDiscordサーバーに参加してください！
+
+https://discord.gg/JxAVZkQdDX
 
 ## 特徴
 
