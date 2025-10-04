@@ -53,7 +53,7 @@ const server = new CompanionServer(companion, history, {
 await server.start();
 ```
 
-カスタムlibp2p設定を使用する場合は、完全な設定を提供する必要があります：
+カスタムlibp2p設定を使用する場合は、完全な設定を提供する必要があります。
 
 ```typescript
 import { CompanionAgent, CompanionServer, type Message } from "@aikyo/server";
@@ -223,11 +223,15 @@ async start(): Promise<void>
 
 ```typescript
 async start() {
-  await this.setupLibp2p();
-  console.log(
-    `Companion started: ${this.companion.metadata.name} ` +
-      `(id=${this.companion.metadata.id}, peerId=${this.libp2p.peerId.toString()})`,
-  );
+ await this.setupLibp2p();
+ logger.info(
+   {
+     name: this.companion.metadata.name,
+     id: this.companion.metadata.id,
+     peerId: this.libp2p.peerId.toString(),
+   },
+   "Companion started",
+ );
 }
 ```
 

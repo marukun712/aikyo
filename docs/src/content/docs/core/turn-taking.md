@@ -103,18 +103,12 @@ async handleStateReceived(state: State) {
   const pending = this.pending.get(messageId);
   if (!pending) return;
   pending.states.push(state);
-  console.log(
-    `State received for message ${messageId}. Total states: ${pending.states.length}`,
-  );
   const voted = new Set<string>();
   pending.states.forEach((state) => {
     voted.add(state.params.from);
   });
   //参加者全員の投票が集まった場合
   if (setsAreEqual(voted, pending.participants)) {
-    console.log(
-      `All states collected for message ${messageId}. Deciding next speaker.`,
-    );
     await this.decideNextSpeaker(messageId, pending.states);
   }
 }
@@ -143,7 +137,6 @@ private async decideNextSpeaker(messageId: string, states: State[]) {
     return;
   }
   this.pending.delete(messageId);
-  console.log(`No speaker found for message ${messageId}. Cleaning up.`);
 }
 ```
 
@@ -159,12 +152,15 @@ private async decideNextSpeaker(messageId: string, states: State[]) {
 
 ```typescript
 private async executeSpeaker(messageId: string, speaker: State) {
- console.log(
-   `Speaker selected: ${speaker.params.from} (importance: ${speaker.params.importance})`,
+ logger.info(
+   {
+     from: speaker.params.from,
+     importance: speaker.params.importance,
+   },
+   "Speaker selected",
  );
  if (speaker.params.from === this.companionAgent.companion.metadata.id) {
    try {
-     console.log("I was selected to speak. Executing input logic...");
      const pending = this.pending.get(messageId);
      if (pending) {
        const myState = pending.states.find((state) => {
@@ -173,7 +169,7 @@ private async executeSpeaker(messageId: string, speaker: State) {
          );
        });
        if (myState && myState.params.closing === "terminal") {
-         console.log("The conversation is over.");
+         logger.info("The conversation is over");
          return;
        }
        await new Promise<void>((resolve) => {
@@ -183,12 +179,13 @@ private async executeSpeaker(messageId: string, speaker: State) {
        });
        await this.companionAgent.input(pending.message);
      } else {
-       console.warn(
-         `Original message not found for messageId: ${messageId}`,
+       logger.warn(
+         { messageId },
+         "Original message not found for messageId",
        );
      }
    } catch (error) {
-     console.error("Failed to execute speaker logic:", error);
+     logger.error({ error }, "Failed to execute speaker logic");
    }
  }
  this.pending.delete(messageId);

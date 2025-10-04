@@ -97,7 +97,7 @@ async generateState(message: Message): Promise<State> {
   if (this.config.enableRepetitionJudge) {
     const formatted = this.history.map((message) => message.params.message);
     const result = await this.repetitionJudge.evaluate(formatted);
-    console.log(result);
+    logger.info({ result }, "Repetition judge evaluation");
     const repetition = result.score;
     if (repetition > 0.7) {
       closingInstruction =

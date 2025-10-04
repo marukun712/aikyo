@@ -29,12 +29,24 @@ constructor(port: number, libp2pConfig?: Libp2pOptions<Services>)
 ```typescript
 import { Firehose } from "@aikyo/firehose";
 
-// 基本的な使用（デフォルト設定）
 const firehose = new Firehose(8080);
 await firehose.start();
+
+//各トピックをサブスクライブ
+await firehose.subscribe("messages", (data) => {
+  firehose.broadcastToClients(data);
+});
+
+await firehose.subscribe("queries", (data) => {
+  firehose.broadcastToClients(data);
+});
+
+await firehose.subscribe("actions", (data) => {
+  firehose.broadcastToClients(data);
+});
 ```
 
-カスタムlibp2p設定を使用する場合は、完全な設定を提供する必要があります：
+カスタムlibp2p設定を使用する場合は、完全な設定を提供する必要があります。
 
 ```typescript
 import { Firehose } from "@aikyo/firehose";
@@ -240,38 +252,3 @@ broadcastToClients(data: unknown): void
 | パラメータ | 型 | 説明 |
 |-----------|-----|------|
 | `data` | `unknown` | ブロードキャストするデータ（JSON.stringifyされます） |
-
-**使用例:**
-
-```typescript
-firehose.broadcastToClients({
-  type: "notification",
-  message: "Hello, clients!"
-});
-```
-
-## 完全な使用例
-
-`scripts/firehose.ts`の実装例：
-
-```typescript
-import { Firehose } from "@aikyo/firehose";
-
-const firehose = new Firehose(8080);
-await firehose.start();
-
-// messagesトピックをサブスクライブし、クライアントにブロードキャスト
-await firehose.subscribe("messages", (data) => {
-  firehose.broadcastToClients(data);
-});
-
-// queriesトピックをサブスクライブし、クライアントにブロードキャスト
-await firehose.subscribe("queries", (data) => {
-  firehose.broadcastToClients(data);
-});
-
-// actionsトピックをサブスクライブし、クライアントにブロードキャスト
-await firehose.subscribe("actions", (data) => {
-  firehose.broadcastToClients(data);
-});
-```

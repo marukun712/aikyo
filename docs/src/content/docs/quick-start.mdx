@@ -17,16 +17,31 @@ cd my-aikyo-app
 pnpm init
 ```
 
-次に、`aikyo`の主要なパッケージと、開発に必要なライブラリをインストールします。
+package.jsonを以下のように書き換えます。
 
-```bash
-pnpm add @aikyo/server @aikyo/utils @aikyo/firehose zod@3.25.76 @ai-sdk/anthropic dotenv ws
+```json
+{
+  "name": "aikyo-quickstart",
+  "version": "1.0.0",
+  "type":"module",
+  "dependencies": {
+    "@ai-sdk/anthropic": "^2.0.23",
+    "@aikyo/firehose": "^1.3.0",
+    "@aikyo/server": "^1.2.2",
+    "@aikyo/utils": "^1.2.2",
+    "dotenv": "^17.2.3",
+    "ws": "^8.18.3",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.6"
+  }
+}
 ```
 
-TypeScriptファイルをコンパイルなしで実行するために、ランタイムとして[`tsx`](https://github.com/privatenumber/tsx)を開発依存に追加します。
-
+パッケージをインストールします。
 ```bash
-pnpm add -D tsx
+pnpm i
 ```
 
 ## 2. 環境変数の設定
@@ -101,6 +116,19 @@ import { Firehose } from "@aikyo/firehose";
 
 const firehose = new Firehose(8080);
 await firehose.start();
+
+//各トピックをサブスクライブ
+await firehose.subscribe("messages", (data) => {
+  firehose.broadcastToClients(data);
+});
+
+await firehose.subscribe("queries", (data) => {
+  firehose.broadcastToClients(data);
+});
+
+await firehose.subscribe("actions", (data) => {
+  firehose.broadcastToClients(data);
+});
 ```
 
 ```typescript
