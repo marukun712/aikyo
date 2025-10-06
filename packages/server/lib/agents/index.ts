@@ -10,10 +10,10 @@ import {
   MemorySchema,
   type Message,
   type State,
-  StateBody,
 } from "../../schema/index.js";
 import { logger } from "../logger.js";
-import { RepetitionJudge } from "../workflow/evals/index.js";
+import { RepetitionJudge } from "../workflow/evals/repetition.js";
+import { StateJudge } from "../workflow/evals/state.js";
 import { createToolInstructionWorkflow } from "../workflow/index.js";
 
 config();
@@ -38,6 +38,7 @@ export class CompanionAgent implements ICompanionAgent {
   companion: CompanionCard;
   agent: Agent;
   repetitionJudge: RepetitionJudge;
+  stateJudge: StateJudge;
   history: Message[];
   memory: Memory;
   runtimeContext: RuntimeContext;
@@ -98,6 +99,7 @@ export class CompanionAgent implements ICompanionAgent {
     });
 
     this.repetitionJudge = new RepetitionJudge(model);
+    this.stateJudge = new StateJudge(model);
 
     // RuntimeContextを初期化
     this.runtimeContext = new RuntimeContext();
@@ -121,11 +123,13 @@ export class CompanionAgent implements ICompanionAgent {
   }
 
   async generateToolInstruction(input: Message) {
-    const res = await this.run.start({ inputData: input });
+    const res = await this.run.start({
+      inputData: { message: input, history: this.history },
+    });
     return res.status === "success" ? res.result : res.status;
   }
 
-  async generateState(message: Message): Promise<State> {
+  async generateState(): Promise<State> {
     let closingInstruction: string = "";
 
     if (this.config.enableRepetitionJudge) {
@@ -135,53 +139,31 @@ export class CompanionAgent implements ICompanionAgent {
       const repetition = result.score;
       if (repetition > 0.7) {
         closingInstruction =
-          "最重要:会話が繰り返しになっています。直ちにclosingをpre-closing,closing,terminalの順に変えて終了するか、話題を変えてください。";
+          'Most important: the conversation is becoming repetitive. Immediately either shift the closing status through "pre-closing", "closing", and "terminal" in order to end the conversation, or change the topic.';
       }
     }
 
-    const statePrompt = `
-    以下のメッセージに対するあなたの状態を判断してください。
-    ${JSON.stringify(message, null, 2)}
-
-    以下の状態情報をJSON形式で返してください:
-    - from: あなたのID
-    - messageId: 処理するメッセージのid
-    - state: "speak" または "listen" (次に発言したいか、聞く姿勢に入りたいか)
-    - importance: 0-10の数値 (会話の文脈におけるあなたが次にしたい発言の重要度)
-    - selected: boolean (前回の発言者の発言で、あなたに発言を求められているかどうか)
-    - closing ("none", "pre-closing", "closing", "terminal")
-      - none: 会話継続
-      - pre-closing: 会話を終わりに向ける布石
-      - closing: クロージング表現（感謝・挨拶など）
-      - terminal: 最後の別れの挨拶
-
-    重要:この判断は、キャラクターとしてではなく、あなたとして今までの会話の文脈を冷静に分析して判断してください。
-    ${closingInstruction}
-    また、この判断の内容は絶対に発言内容に含まないでください。
-    `;
-
-    const res = await this.agent.generate(statePrompt, {
-      runtimeContext: this.runtimeContext,
-      output: StateBody,
-      resourceId: "main",
-      threadId: "thread",
-    });
+    const state = await this.stateJudge.evaluate(
+      this.companion.metadata.id,
+      this.history,
+      closingInstruction,
+    );
 
     //ターン上限が設けられている場合;
     if (this.config.maxTurn) {
       //会話が終了したらターンカウントを0に
-      if (res.object.closing === "terminal") {
+      if (state.closing === "terminal") {
         this.count = 0;
         //ターン上限を超えたら
       } else if (this.count >= this.config.maxTurn) {
         //強制的に会話終了の意思表示
-        res.object.closing = "terminal";
+        state.closing = "terminal";
         this.count = 0;
       } else {
         this.count++;
       }
     }
-    return { jsonrpc: "2.0", method: "state.send", params: res.object };
+    return { jsonrpc: "2.0", method: "state.send", params: state };
   }
 
   // メッセージ生成
