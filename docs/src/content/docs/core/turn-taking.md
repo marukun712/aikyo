@@ -183,4 +183,3 @@ private async executeSpeaker(messageId: string, speaker: State) {
  this.pending.delete(messageId);
 }
 ```
-

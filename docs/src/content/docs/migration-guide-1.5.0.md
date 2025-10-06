@@ -14,9 +14,11 @@ v1.5.0では、State生成の仕組みが大幅に改善され、より客観的
 #### 変更内容
 
 **以前（v1.4.x）:**
+
 - `CompanionAgent.generateState(message: Message)`が受信したメッセージのみを元に状態を判断
 
 **現在（v1.5.0）:**
+
 - State生成ロジックが`StateJudge`クラスに分離
 - 会話履歴全体を参照して状態を判断
 - `CompanionAgent.generateState()`は引数なし
@@ -62,11 +64,13 @@ stateJudge: StateJudge
 `generateToolInstruction`のWorkflow入力が会話履歴を含むようになりました。
 
 **以前（v1.4.x）:**
+
 ```typescript
 const res = await this.run.start({ inputData: input });
 ```
 
 **現在（v1.5.0）:**
+
 ```typescript
 const res = await this.run.start({
   inputData: { message: input, history: this.history }
@@ -103,6 +107,7 @@ createWorkflow({
 `speakTool`が発言前にクライアントへQueryを送信するようになりました。
 
 **以前（v1.4.x）:**
+
 ```typescript
 publish: ({ input, id }) => {
   return {
@@ -114,6 +119,7 @@ publish: ({ input, id }) => {
 ```
 
 **現在（v1.5.0）:**
+
 ```typescript
 publish: async ({ input, id, sendQuery }) => {
   // クライアントへQuery送信（音声合成など）
@@ -171,6 +177,7 @@ ws.on('message', (data) => {
 すべてのZodスキーマに`.strict()`が適用され、未定義のフィールドを許容しなくなりました。
 
 **影響を受けるスキーマ:**
+
 - `StateBodySchema`
 - `MessageSchema`
 - `QuerySchema`
@@ -183,6 +190,7 @@ ws.on('message', (data) => {
 `id`フィールドが削除されました。
 
 **以前（v1.4.x）:**
+
 ```typescript
 export const StateBody = z.object({
   id: z.string(),
@@ -193,6 +201,7 @@ export const StateBody = z.object({
 ```
 
 **現在（v1.5.0）:**
+
 ```typescript
 export const StateBodySchema = z.object({
   from: z.string(),
