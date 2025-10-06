@@ -177,11 +177,7 @@ companionList = new Map<string, Metadata>();
 
 **初期化時:**
 
-```typescript
-this.companionList.set(this.companion.metadata.id, this.companion.metadata);
-```
-
-自分自身をまず登録し、ピア接続時に相手のメタデータを追加します（`packages/server/lib/server/handlers/peer.ts:12-30`）。
+自分自身をまず登録し、ピア接続時に相手のメタデータを追加します。
 
 ### pendingQueries
 
@@ -219,27 +215,6 @@ async start(): Promise<void>
 
 1. libp2pノードを初期化（`setupLibp2p()`）
 2. イベントリスナーを登録
-3. コンソールにログを出力
-
-```typescript
-async start() {
- await this.setupLibp2p();
- logger.info(
-   {
-     name: this.companion.metadata.name,
-     id: this.companion.metadata.id,
-     peerId: this.libp2p.peerId.toString(),
-   },
-   "Companion started",
- );
-}
-```
-
-**出力例:**
-
-```
-Companion started: aya (id=companion_aya, peerId=12D3KooW...)
-```
 
 ### handleMessageReceived()
 
@@ -258,16 +233,5 @@ async handleMessageReceived(message: Message): Promise<void>
 1. `TurnTakingManager`にメッセージを登録
 2. 自分の`State`を生成
 3. `states`トピックにStateをパブリッシュ
-
-```typescript
-async handleMessageReceived(message: AikyoMessage) {
-  this.turnTakingManager.addPending(message);
-  const state = await this.companionAgent.generateState(message);
-  this.libp2p.services.pubsub.publish(
-    "states",
-    new TextEncoder().encode(JSON.stringify(state)),
-  );
-}
-```
 
 このメソッドは`handlePubSubMessage`から呼び出されます。
