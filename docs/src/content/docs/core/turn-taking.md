@@ -17,50 +17,41 @@ aikyoでは、複数のAIコンパニオンが自然に会話を進めるため�
 
 ## State（状態）の生成
 
-各コンパニオンは受信したメッセージに対して、自分の状態を判断します。
+各コンパニオンは会話履歴全体を元に、自分の状態を判断します。
 
 ```typescript
-async generateState(message: Message): Promise<State> {
- ...
+async generateState(): Promise<State> {
+  let closingInstruction: string = "";
 
- const statePrompt = `
- 以下のメッセージに対するあなたの状態を判断してください。
- ${JSON.stringify(message, null, 2)}
+  if (this.config.enableRepetitionJudge) {
+    // 重複検出の実行
+    const formatted = this.history.map((message) => message.params.message);
+    const result = await this.repetitionJudge.evaluate(formatted);
+    const repetition = result.score;
+    if (repetition > 0.7) {
+      closingInstruction =
+        'Most important: the conversation is becoming repetitive. Immediately either shift the closing status through "pre-closing", "closing", and "terminal" in order to end the conversation, or change the topic.';
+    }
+  }
 
- 以下の状態情報をJSON形式で返してください:
- - from: あなたのID
- - messageId: 処理するメッセージのid
- - state: "speak" または "listen" (次に発言したいか、聞く姿勢に入りたいか)
- - importance: 0-10の数値 (会話の文脈におけるあなたが次にしたい発言の重要度)
- - selected: boolean (前回の発言者の発言で、あなたに発言を求められているかどうか)
- - closing ("none", "pre-closing", "closing", "terminal")
-   - none: 会話継続
-   - pre-closing: 会話を終わりに向ける布石
-   - closing: クロージング表現（感謝・挨拶など）
-   - terminal: 最後の別れの挨拶
+  // StateJudgeを使用して状態を生成
+  const state = await this.stateJudge.evaluate(
+    this.companion.metadata.id,
+    this.history,
+    closingInstruction,
+  );
 
- 重要:この判断は、キャラクターとしてではなく、あなたとして今までの会話の文脈を冷静に分析して判断してください。
- ${closingInstruction}
- `;
+  // ターン上限チェック（省略）
+  // ...
 
- const res = await this.agent.generate(statePrompt, {
-   runtimeContext: this.runtimeContext,
-   output: StateBody,
-   resourceId: "main",
-   threadId: "thread",
- });
-
- ...
-
- return { jsonrpc: "2.0", method: "state.send", params: res.object };
+  return { jsonrpc: "2.0", method: "state.send", params: state };
 }
 ```
 
 ### Stateの構造
 
 ```typescript
-export const StateBody = z.object({
-  id: z.string(),
+export const StateBodySchema = z.object({
   from: z.string(),
   messageId: z.string().describe("このstateが対応する元のメッセージのID"),
   state: z
@@ -78,7 +69,8 @@ export const StateBody = z.object({
     .enum(["none", "pre-closing", "closing", "terminal"])
     .default("none")
     .describe("会話の収束段階:なし/事前クロージング/クロージング/終端"),
-});
+}).strict();
+export type StateBody = z.infer<typeof StateBodySchema>;
 ```
 
 **重要なフィールド:**
