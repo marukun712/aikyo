@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd docs && pnpm run build",
+  "outputDirectory": "docs/dist",
+  "ignoreCommand": "git diff HEAD^ HEAD --quiet ./docs ./package.json ./pnpm-lock.yaml"
+}
