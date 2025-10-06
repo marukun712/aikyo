@@ -239,18 +239,12 @@ const state: State = {
 pnpm update @aikyo/server @aikyo/firehose @aikyo/utils
 ```
 
-2. **型エラーの確認:**
-
-```bash
-pnpm run bundle
-```
-
-3. **カスタムコードの確認:**
+2. **カスタムコードの確認:**
    - `generateState(message)`呼び出しがあれば引数を削除
    - カスタムWorkflowの入力スキーマを更新
    - `StateBody`に`id`フィールドを含めている場合は削除
 
-4. **クライアント実装の更新（オプション）:**
+3. **クライアント実装の更新（オプション）:**
    - `type: "speak"`のQueryハンドラーを実装して音声合成機能を追加
 
 ## 互換性
