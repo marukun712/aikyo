@@ -138,3 +138,5 @@ export class Firehose {
     }
   }
 }
+
+export { logger } from "./lib/logger.js";
