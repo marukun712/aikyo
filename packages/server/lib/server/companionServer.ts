@@ -163,7 +163,7 @@ export class CompanionServer implements ICompanionServer {
 
   async handleMessageReceived(message: AikyoMessage) {
     this.turnTakingManager.addPending(message);
-    const state = await this.companionAgent.generateState(message);
+    const state = await this.companionAgent.generateState();
     this.libp2p.services.pubsub.publish(
       "states",
       new TextEncoder().encode(JSON.stringify(state)),

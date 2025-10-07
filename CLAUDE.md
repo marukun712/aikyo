@@ -11,6 +11,7 @@ aikyoは、相互接続されたAIコンパニオンを構築するためのフ�
 ## Architecture
 
 ### Package Structure
+
 - **packages/server/**: Mastraベースのサーバーコンポーネント。AIコンパニオンの実行環境
   - `CompanionAgent`: エージェントのコアロジック、Memory、Workflow管理
   - `CompanionServer`: libp2pベースのP2Pサーバー、TurnTakingManager統合
@@ -33,7 +34,9 @@ aikyoは、相互接続されたAIコンパニオンを構築するためのフ�
 ### Core Concepts
 
 #### JSON-RPC 2.0 Protocol
+
 システム全体でJSON-RPC 2.0形式のメッセージを使用：
+
 - **Message**: `message.send` - コンパニオン間の会話メッセージ
 - **State**: `state.send` - ターンテイキング用の状態通知
 - **Query**: `query.send` - クエリリクエスト（IDつき）
@@ -41,18 +44,23 @@ aikyoは、相互接続されたAIコンパニオンを構築するためのフ�
 - **Action**: `action.send` - クライアント向けアクション通知
 
 #### Turn-Taking System
+
 `TurnTakingManager`が会話の順番を制御：
+
 - 各コンパニオンが`State`を送信（speak/listen、importance、selected）
 - `closing`フィールドで会話終了を段階的に管理（none → pre-closing → closing → terminal）
 - `importance`スコアとtimeoutでスピーカーを選択
 
 #### Event-Driven Tool Execution
+
 コンパニオンの`events`設定でCEL式による条件付きツール実行：
+
 1. メッセージ受信時、Workflowが`params`スキーマに基づいてパラメータを評価
 2. CEL式（`conditions[].expression`）で条件をチェック
 3. マッチした条件の`execute`配列に従ってツールを実行
 
 #### Actions vs Knowledge
+
 - **Actions**: `createCompanionAction`で定義。P2Pネットワークへのメッセージ送信機能
   - `publish`関数でMessage/Queryを生成
   - 例：`speakTool`
@@ -61,7 +69,9 @@ aikyoは、相互接続されたAIコンパニオンを構築するためのフ�
   - 例：`companionNetworkKnowledge`, `visionKnowledge`
 
 #### Memory System
+
 `@mastra/memory`と`@mastra/libsql`を使用：
+
 - **Long-term memory**: LibSQLVectorで永続化
 - **Working memory**: `MemorySchema`で定義された作業記憶
 - 各コンパニオンが`db/<companion_id>.db`を使用
@@ -69,6 +79,7 @@ aikyoは、相互接続されたAIコンパニオンを構築するためのフ�
 ## Common Commands
 
 ### Development Setup
+
 ```bash
 # 依存関係のインストール
 pnpm i
@@ -78,6 +89,7 @@ cp .env.example .env
 ```
 
 ### Running the System
+
 ```bash
 # 1. ファイアホースサーバーの起動 (localhost:8080)
 # scripts/firehose.ts を実行（messages, queries, actions トピックをサブスクライブ）
@@ -89,11 +101,13 @@ pnpm run companion <companion_name>
 ```
 
 **Note:** `pnpm run firehose`は`scripts/firehose.ts`を実行します。このスクリプトは：
+
 - Firehoseサーバーを起動（ポート8080）
 - `messages`, `queries`, `actions`トピックをサブスクライブ
 - 各トピックのメッセージをWebSocketクライアントにブロードキャスト
 
 ### Code Quality
+
 ```bash
 # フォーマット（Biome使用）
 pnpm run format
@@ -109,6 +123,7 @@ pnpm run check:fix
 ```
 
 ### Release Management
+
 ```bash
 # changesetの作成
 pnpm run changeset
@@ -120,6 +135,7 @@ pnpm run release
 ## Environment Configuration
 
 `.env`ファイルで以下のAPI キーを設定する必要があります:
+
 - `OPENROUTER_API_KEY`: OpenRouter API
 - `ANTHROPIC_API_KEY`: Anthropic Claude API
 
@@ -146,6 +162,7 @@ pnpm run release
 4. `pnpm run companion <name>`で起動
 
 ### CompanionCardの例
+
 ```typescript
 export const companionCard: CompanionCard = {
   metadata: { id: "companion_x", name: "x", personality: "...", story: "...", sample: "..." },
@@ -252,11 +269,14 @@ firehose.addHandler("messages", (data) => {
 ## Development Guidelines
 
 ### カスタムツールの作成
+
 `companions/tools/`ディレクトリにツールを追加：
+
 - **Action**: `createCompanionAction`でネットワークへの送信機能を実装
 - **Knowledge**: `createCompanionKnowledge`で情報取得機能を実装
 
 ### パッケージビルド
+
 ```bash
 # 全パッケージをビルド
 pnpm run bundle
