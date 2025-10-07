@@ -1,7 +1,7 @@
 {
   "name": "@aikyo/firehose",
   "type": "module",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "license": "MIT",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
