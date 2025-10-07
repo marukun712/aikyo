@@ -11,36 +11,16 @@ aikyoは**libp2p**を基盤としたP2Pネットワーク上で動作します�
 
 各コンパニオンとFirehoseサーバーは、libp2pノードとしてP2Pネットワークに参加します。
 
-```typescript
-this.libp2p = await createLibp2p({
-  addresses: { listen: ["/ip4/0.0.0.0/tcp/0"] },
-  transports: [tcp()],
-  peerDiscovery: [mdns()],
-  connectionEncrypters: [noise()],
-  streamMuxers: [yamux()],
-  services: {
-    pubsub: gossipsub({
-      allowPublishToZeroTopicPeers: true,
-      emitSelf: true,
-    }),
-    identify: identify(),
-  },
-});
-```
+デフォルトでは、以下の機能が有効化されます：
+- TCP/IP通信
+- mDNSピア発見
+- Gossipsub Pubsubメッセージング
+- Noise暗号化
+- Yamuxストリームマルチプレクサ
 
 ### ピア発見と接続
 
-mDNSにより、同じローカルネットワーク上のコンパニオンを自動的に発見します。
-
-```typescript
-this.libp2p.addEventListener("peer:discovery", (evt) => {
-  this.libp2p.dial(evt.detail.multiaddrs).catch((error) => {
-    console.error(`ピアへの接続に失敗しました: ${evt.detail.id}`, error);
-  });
-});
-```
-
-発見されたピアに対して自動的に接続を試みます。
+mDNSにより、同じローカルネットワーク上のコンパニオンを自動的に発見し、接続を試みます。
 
 ### メタデータ交換
 

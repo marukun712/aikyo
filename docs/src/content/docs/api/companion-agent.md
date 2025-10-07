@@ -108,23 +108,10 @@ memory: Memory
 
 長期記憶とワーキングメモリを管理する`Memory`インスタンス。
 
-```typescript
-this.memory = new Memory({
-  storage: new LibSQLStore({
-    url: `file:db/${this.companion.metadata.id}.db`,
-  }),
-  vector: new LibSQLVector({
-    connectionUrl: `file:db/${this.companion.metadata.id}.db`,
-  }),
-  options: {
-    workingMemory: { enabled: true, schema: MemorySchema },
-  },
-});
-```
-
 **永続化:**
 
 - `db/<companion_id>.db`にLibSQLデータベースを作成
+- LibSQLStoreによるストレージとLibSQLVectorによるベクトルストアを使用
 - ベクトルストアによる類似検索が可能
 
 **ワーキングメモリスキーマ:**
@@ -147,15 +134,6 @@ runtimeContext: RuntimeContext
 ```
 
 ツール実行時に参照されるランタイムコンテキスト。以下の情報が格納されます:
-
-```typescript
-this.runtimeContext.set("id", companion.metadata.id);
-
-this.companionAgent.runtimeContext.set("libp2p", this.libp2p);
-this.companionAgent.runtimeContext.set("companions", this.companionList);
-this.companionAgent.runtimeContext.set("pendingQueries", this.pendingQueries);
-this.companionAgent.runtimeContext.set("agent", this.companionAgent);
-```
 
 | キー | 型 | 説明 |
 |------|-----|------|
@@ -214,15 +192,6 @@ async generateToolInstruction(input: Message): Promise<string>
 2. `runStep`でCEL式に基づいて条件をチェック
 3. マッチした条件の`instruction`を結合して返す
 
-```typescript
-async generateToolInstruction(input: Message) {
-  const res = await this.run.start({
-    inputData: { message: input, history: this.history }
-  });
-  return res.status === "success" ? res.result : res.status;
-}
-```
-
 ### generateState()
 
 会話履歴全体を元に、自分の状態（State）を生成します。
@@ -245,45 +214,6 @@ async generateState(): Promise<State>
 2. スコアが0.7以上ならクロージング指示を追加
 3. `StateJudge`を使用してStateを生成
 4. `maxTurn`チェック（設定時）
-
-```typescript
-async generateState(): Promise<State> {
-  let closingInstruction: string = "";
-
-  if (this.config.enableRepetitionJudge) {
-    const formatted = this.history.map((message) => message.params.message);
-    const result = await this.repetitionJudge.evaluate(formatted);
-    logger.info({ result }, "Repetition judge evaluation");
-    const repetition = result.score;
-    if (repetition > 0.7) {
-      closingInstruction =
-        'Most important: the conversation is becoming repetitive. Immediately either shift the closing status through "pre-closing", "closing", and "terminal" in order to end the conversation, or change the topic.';
-    }
-  }
-
-  const state = await this.stateJudge.evaluate(
-    this.companion.metadata.id,
-    this.history,
-    closingInstruction,
-  );
-
-  // ターン上限が設けられている場合
-  if (this.config.maxTurn) {
-    // 会話が終了したらターンカウントを0に
-    if (state.closing === "terminal") {
-      this.count = 0;
-      // ターン上限を超えたら
-    } else if (this.count >= this.config.maxTurn) {
-      // 強制的に会話終了の意思表示
-      state.closing = "terminal";
-      this.count = 0;
-    } else {
-      this.count++;
-    }
-  }
-  return { jsonrpc: "2.0", method: "state.send", params: state };
-}
-```
 
 詳細は[ターンテイキング](../core/turn-taking#state状態の生成)を参照。
 

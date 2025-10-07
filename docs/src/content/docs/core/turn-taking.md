@@ -19,35 +19,6 @@ aikyoでは、複数のAIコンパニオンが自然に会話を進めるため�
 
 各コンパニオンは会話履歴全体を元に、自分の状態を判断します。
 
-```typescript
-async generateState(): Promise<State> {
-  let closingInstruction: string = "";
-
-  if (this.config.enableRepetitionJudge) {
-    // 重複検出の実行
-    const formatted = this.history.map((message) => message.params.message);
-    const result = await this.repetitionJudge.evaluate(formatted);
-    const repetition = result.score;
-    if (repetition > 0.7) {
-      closingInstruction =
-        'Most important: the conversation is becoming repetitive. Immediately either shift the closing status through "pre-closing", "closing", and "terminal" in order to end the conversation, or change the topic.';
-    }
-  }
-
-  // StateJudgeを使用して状態を生成
-  const state = await this.stateJudge.evaluate(
-    this.companion.metadata.id,
-    this.history,
-    closingInstruction,
-  );
-
-  // ターン上限チェック（省略）
-  // ...
-
-  return { jsonrpc: "2.0", method: "state.send", params: state };
-}
-```
-
 ### Stateの構造
 
 ```typescript
@@ -86,51 +57,9 @@ export type StateBody = z.infer<typeof StateBodySchema>;
 
 ### State収集
 
-```typescript
-async handleStateReceived(state: State) {
-  const messageId = state.params.messageId;
-  if (!this.pending.has(messageId)) {
-    return;
-  }
-  const pending = this.pending.get(messageId);
-  if (!pending) return;
-  pending.states.push(state);
-  const voted = new Set<string>();
-  pending.states.forEach((state) => {
-    voted.add(state.params.from);
-  });
-  //参加者全員の投票が集まった場合
-  if (setsAreEqual(voted, pending.participants)) {
-    await this.decideNextSpeaker(messageId, pending.states);
-  }
-}
-```
+参加者全員の`State`が集まるまで待機し、全員の投票が揃った時点で次のステップに進みます。
 
 ### 発言者選出
-
-```typescript
-private async decideNextSpeaker(messageId: string, states: State[]) {
-  const selectedAgents = states.filter((state) => state.params.selected);
-  if (selectedAgents.length > 0) {
-    const speaker = selectedAgents.reduce((prev, current) =>
-      prev.params.importance > current.params.importance ? prev : current,
-    );
-    await this.executeSpeaker(messageId, speaker);
-    return;
-  }
-  const speakAgents = states.filter(
-    (state) => state.params.state === "speak",
-  );
-  if (speakAgents.length > 0) {
-    const speaker = speakAgents.reduce((prev, current) =>
-      prev.params.importance > current.params.importance ? prev : current,
-    );
-    await this.executeSpeaker(messageId, speaker);
-    return;
-  }
-  this.pending.delete(messageId);
-}
-```
 
 **優先順位:**
 
@@ -140,46 +69,4 @@ private async decideNextSpeaker(messageId: string, states: State[]) {
 
 ### 発言実行
 
-選出されたコンパニオンが自分である場合、発言を実行します。
-
-```typescript
-private async executeSpeaker(messageId: string, speaker: State) {
- logger.info(
-   {
-     from: speaker.params.from,
-     importance: speaker.params.importance,
-   },
-   "Speaker selected",
- );
- if (speaker.params.from === this.companionAgent.companion.metadata.id) {
-   try {
-     const pending = this.pending.get(messageId);
-     if (pending) {
-       const myState = pending.states.find((state) => {
-         return (
-           state.params.from === this.companionAgent.companion.metadata.id
-         );
-       });
-       if (myState && myState.params.closing === "terminal") {
-         logger.info("The conversation is over");
-         return;
-       }
-       await new Promise<void>((resolve) => {
-         setTimeout(() => {
-           resolve();
-         }, this.timeoutDuration);
-       });
-       await this.companionAgent.input(pending.message);
-     } else {
-       logger.warn(
-         { messageId },
-         "Original message not found for messageId",
-       );
-     }
-   } catch (error) {
-     logger.error({ error }, "Failed to execute speaker logic");
-   }
- }
- this.pending.delete(messageId);
-}
-```
+選出されたコンパニオンが自分である場合、設定された待機時間後に発言を実行します。`closing=terminal`の場合は発言を行わず、会話を終了します。
