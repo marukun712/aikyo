@@ -32,7 +32,7 @@
     "@libp2p/mdns": "^11.0.46",
     "@libp2p/tcp": "catalog:",
     "@mastra/core": "ai-v5",
-    "@mastra/evals": "^0.13.7",
+    "@mastra/evals": "ai-v5",
     "@mastra/libsql": "ai-v5",
     "@mastra/loggers": "ai-v5",
     "@mastra/mcp": "ai-v5",
