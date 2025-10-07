@@ -30,7 +30,7 @@ export interface ICompanionAgent {
   config: { maxTurn: number | null; enableRepetitionJudge: boolean };
 
   generateToolInstruction(input: Message): Promise<string>;
-  generateState(message: Message): Promise<State>;
+  generateState(): Promise<State>;
   input(message: Message): Promise<void>;
 }
 
