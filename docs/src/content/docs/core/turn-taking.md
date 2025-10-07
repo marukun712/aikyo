@@ -17,50 +17,12 @@ aikyoでは、複数のAIコンパニオンが自然に会話を進めるため�
 
 ## State（状態）の生成
 
-各コンパニオンは受信したメッセージに対して、自分の状態を判断します。
-
-```typescript
-async generateState(message: Message): Promise<State> {
- ...
-
- const statePrompt = `
- 以下のメッセージに対するあなたの状態を判断してください。
- ${JSON.stringify(message, null, 2)}
-
- 以下の状態情報をJSON形式で返してください:
- - from: あなたのID
- - messageId: 処理するメッセージのid
- - state: "speak" または "listen" (次に発言したいか、聞く姿勢に入りたいか)
- - importance: 0-10の数値 (会話の文脈におけるあなたが次にしたい発言の重要度)
- - selected: boolean (前回の発言者の発言で、あなたに発言を求められているかどうか)
- - closing ("none", "pre-closing", "closing", "terminal")
-   - none: 会話継続
-   - pre-closing: 会話を終わりに向ける布石
-   - closing: クロージング表現（感謝・挨拶など）
-   - terminal: 最後の別れの挨拶
-
- 重要:この判断は、キャラクターとしてではなく、あなたとして今までの会話の文脈を冷静に分析して判断してください。
- ${closingInstruction}
- `;
-
- const res = await this.agent.generate(statePrompt, {
-   runtimeContext: this.runtimeContext,
-   output: StateBody,
-   resourceId: "main",
-   threadId: "thread",
- });
-
- ...
-
- return { jsonrpc: "2.0", method: "state.send", params: res.object };
-}
-```
+各コンパニオンは会話履歴全体を元に、自分の状態を判断します。
 
 ### Stateの構造
 
 ```typescript
-export const StateBody = z.object({
-  id: z.string(),
+export const StateBodySchema = z.object({
   from: z.string(),
   messageId: z.string().describe("このstateが対応する元のメッセージのID"),
   state: z
@@ -78,7 +40,8 @@ export const StateBody = z.object({
     .enum(["none", "pre-closing", "closing", "terminal"])
     .default("none")
     .describe("会話の収束段階:なし/事前クロージング/クロージング/終端"),
-});
+}).strict();
+export type StateBody = z.infer<typeof StateBodySchema>;
 ```
 
 **重要なフィールド:**
@@ -94,51 +57,9 @@ export const StateBody = z.object({
 
 ### State収集
 
-```typescript
-async handleStateReceived(state: State) {
-  const messageId = state.params.messageId;
-  if (!this.pending.has(messageId)) {
-    return;
-  }
-  const pending = this.pending.get(messageId);
-  if (!pending) return;
-  pending.states.push(state);
-  const voted = new Set<string>();
-  pending.states.forEach((state) => {
-    voted.add(state.params.from);
-  });
-  //参加者全員の投票が集まった場合
-  if (setsAreEqual(voted, pending.participants)) {
-    await this.decideNextSpeaker(messageId, pending.states);
-  }
-}
-```
+参加者全員の`State`が集まるまで待機し、全員の投票が揃った時点で次のステップに進みます。
 
 ### 発言者選出
-
-```typescript
-private async decideNextSpeaker(messageId: string, states: State[]) {
-  const selectedAgents = states.filter((state) => state.params.selected);
-  if (selectedAgents.length > 0) {
-    const speaker = selectedAgents.reduce((prev, current) =>
-      prev.params.importance > current.params.importance ? prev : current,
-    );
-    await this.executeSpeaker(messageId, speaker);
-    return;
-  }
-  const speakAgents = states.filter(
-    (state) => state.params.state === "speak",
-  );
-  if (speakAgents.length > 0) {
-    const speaker = speakAgents.reduce((prev, current) =>
-      prev.params.importance > current.params.importance ? prev : current,
-    );
-    await this.executeSpeaker(messageId, speaker);
-    return;
-  }
-  this.pending.delete(messageId);
-}
-```
 
 **優先順位:**
 
@@ -148,47 +69,4 @@ private async decideNextSpeaker(messageId: string, states: State[]) {
 
 ### 発言実行
 
-選出されたコンパニオンが自分である場合、発言を実行します。
-
-```typescript
-private async executeSpeaker(messageId: string, speaker: State) {
- logger.info(
-   {
-     from: speaker.params.from,
-     importance: speaker.params.importance,
-   },
-   "Speaker selected",
- );
- if (speaker.params.from === this.companionAgent.companion.metadata.id) {
-   try {
-     const pending = this.pending.get(messageId);
-     if (pending) {
-       const myState = pending.states.find((state) => {
-         return (
-           state.params.from === this.companionAgent.companion.metadata.id
-         );
-       });
-       if (myState && myState.params.closing === "terminal") {
-         logger.info("The conversation is over");
-         return;
-       }
-       await new Promise<void>((resolve) => {
-         setTimeout(() => {
-           resolve();
-         }, this.timeoutDuration);
-       });
-       await this.companionAgent.input(pending.message);
-     } else {
-       logger.warn(
-         { messageId },
-         "Original message not found for messageId",
-       );
-     }
-   } catch (error) {
-     logger.error({ error }, "Failed to execute speaker logic");
-   }
- }
- this.pending.delete(messageId);
-}
-```
-
+選出されたコンパニオンが自分である場合、設定された待機時間後に発言を実行します。`closing=terminal`の場合は発言を行わず、会話を終了します。

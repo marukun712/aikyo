@@ -1,4 +1,5 @@
 # aikyo
+
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/marukun712/aikyo)  
 [**日本語**](./README-ja.md) | [English](./README.md)
 
@@ -6,7 +7,7 @@
 
 aikyoのDiscordサーバーに参加してください！
 
-https://discord.gg/JxAVZkQdDX
+<https://discord.gg/JxAVZkQdDX>
 
 ## 特徴
 
@@ -16,8 +17,9 @@ https://discord.gg/JxAVZkQdDX
 - キャラクターの行動をパラメータで定義することによるフロントエンドの拡張性
 
 ## インストール
+
 ```bash
-$ pnpm i @aikyo/utils @aikyo/server @aikyo/firehose
+pnpm i @aikyo/utils @aikyo/server @aikyo/firehose
 ```
 
 ## ライセンス
@@ -37,16 +39,15 @@ $ pnpm i @aikyo/utils @aikyo/server @aikyo/firehose
 `devShell`に入ります。
 
 ```bash
-$ nix develop
+nix develop
 ```
 
 </details>
 
 <details><summary>miseを使う場合</summary>
 
-
 ```bash
-$ mise install
+mise install
 ```
 
 </details>
@@ -56,25 +57,28 @@ $ mise install
 依存パッケージをインストールします。
 
 ```bash
-$ pnpm i
+pnpm i
 ```
 
 `.env` ファイルを作成します。
 [ai-sdk](https://ai-sdk.dev/docs/foundations/providers-and-models) がサポートする各プロバイダの API キーを入力します。
 
 ```bash
-$ cp .env.example .env
+cp .env.example .env
 ```
 
 ### 実行 / 開発ワークフロー
+
 <details><summary>Nix Flakeを使う場合</summary>
 
 パッケージをバンドルします。
+
 ```bash
-$ nix run .#bundle
+nix run .#bundle
 ```
 
 firehoseとcompanionを起動します。
+
 ```bash
 # Usage: nix run .#dev -- <COMPANION> [<COMPANION> ...]
 # Example: nix run .#dev -- kyoko aya
@@ -84,8 +88,9 @@ $ nix run .#dev
 </details>
 
 パッケージをバンドルします。
+
 ```bash
-$ pnpm run bundle
+pnpm run bundle
 ```
 
 ```bash

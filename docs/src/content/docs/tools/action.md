@@ -91,7 +91,19 @@ export const speakTool = createCompanionAction({
     emotion: z.enum(["happy", "sad", "angry", "neutral"]),
   }),
   topic: "messages",
-  publish: ({ input, id }) => {
+  publish: async ({ input, id, sendQuery }) => {
+    const queryId = crypto.randomUUID();
+    const query: Query = {
+      jsonrpc: "2.0",
+      id: queryId,
+      method: "query.send",
+      params: {
+        from: id,
+        type: "speak",
+        body: { message: input.message, emotion: input.emotion },
+      },
+    };
+    await sendQuery(query);
     return {
       jsonrpc: "2.0",
       method: "message.send",
@@ -110,8 +122,9 @@ export const speakTool = createCompanionAction({
 **動作:**
 
 1. 入力から`message`, `to`, `emotion`を取得
-2. `Message`型のデータを生成
-3. `messages`トピックにpublish
+2. `type: "speak"`のQueryを生成してクライアントに送信（音声合成などに使用）
+3. `Message`型のデータを生成
+4. `messages`トピックにpublish
 
 ## CompanionCardへの登録
 

@@ -148,6 +148,7 @@
             pnpm
             git
             watchexec
+            markdownlint-cli
           ];
           shellHook = ''
             export NODE_ENV=development
