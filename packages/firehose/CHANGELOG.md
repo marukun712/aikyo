@@ -1,5 +1,13 @@
 # @aikyo/firehose
 
+## 1.4.1
+
+### Patch Changes
+
+- 9f674e5: logger を bundle していない問題を修正
+- Updated dependencies [9f674e5]
+  - @aikyo/server@1.4.0
+
 ## 1.4.0
 
 ### Minor Changes

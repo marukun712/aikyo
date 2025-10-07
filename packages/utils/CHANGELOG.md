@@ -1,5 +1,12 @@
 # @aikyo/utils
 
+## 1.3.1
+
+### Patch Changes
+
+- Updated dependencies [9f674e5]
+  - @aikyo/server@1.4.0
+
 ## 1.3.0
 
 ### Minor Changes
