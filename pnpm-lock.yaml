@@ -42,6 +42,9 @@ catalogs:
     ollama-ai-provider:
       specifier: ^1.2.0
       version: 1.2.0
+    pino:
+      specifier: 10.0.0
+      version: 10.0.0
     tsup:
       specifier: ^8.5.0
       version: 8.5.0
@@ -147,7 +150,7 @@ importers:
         specifier: ^2.9.0
         version: 2.9.0
       pino:
-        specifier: ^10.0.0
+        specifier: 'catalog:'
         version: 10.0.0
       typescript:
         specifier: ^5
@@ -223,7 +226,7 @@ importers:
         specifier: 2.9.0
         version: 2.9.0
       pino:
-        specifier: ^10.0.0
+        specifier: 'catalog:'
         version: 10.0.0
       zod:
         specifier: 'catalog:'
@@ -266,7 +269,7 @@ importers:
         specifier: 2.9.0
         version: 2.9.0
       pino:
-        specifier: ^10.0.0
+        specifier: 'catalog:'
         version: 10.0.0
       typescript:
         specifier: ^5
