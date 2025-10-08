@@ -26,6 +26,8 @@ pnpm i @aikyo/utils @aikyo/server @aikyo/firehose
 
 [MIT License](./LICENSE)
 
+---
+
 ## コントリビューション
 
 歓迎します！
