@@ -25,7 +25,7 @@
               (pkgs.writeShellApplication {
                 name = "dev";
                 runtimeInputs = [
-                  pkgs.nodejs_24
+                  pkgs.nodejs_22
                   pkgs.pnpm
                   pkgs.coreutils
                 ];
@@ -69,7 +69,7 @@
               (pkgs.writeShellApplication {
                 name = "dev";
                 runtimeInputs = [
-                  pkgs.nodejs_24
+                  pkgs.nodejs_22
                   pkgs.pnpm
                   pkgs.coreutils
                 ];
@@ -113,7 +113,7 @@
               (pkgs.writeShellApplication {
                 name = "docs";
                 runtimeInputs = [
-                  pkgs.nodejs_24
+                  pkgs.nodejs_22
                   pkgs.pnpm
                 ];
                 text = ''
@@ -130,7 +130,7 @@
               (pkgs.writeShellApplication {
                 name = "bundle";
                 runtimeInputs = [
-                  pkgs.nodejs_24
+                  pkgs.nodejs_22
                   pkgs.pnpm
                 ];
                 text = ''
@@ -144,7 +144,7 @@
 
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
-            nodejs_24
+            nodejs_22
             pnpm
             git
             watchexec
