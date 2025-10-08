@@ -34,7 +34,7 @@ Contributions are welcome!
 
 ### Requirements
 
-`pnpm` , `Node.js` (>= 24.2)
+`pnpm` , `Node.js` (>= 22)
 
 <details><summary>Using Nix Flake</summary>
 
