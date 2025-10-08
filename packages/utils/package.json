@@ -30,7 +30,7 @@
     "@mastra/core": "ai-v5",
     "ai": "^5.0.44",
     "libp2p": "2.9.0",
-    "pino": "^10.0.0",
+    "pino": "catalog:",
     "zod": "catalog:"
   },
   "peerDependencies": {
