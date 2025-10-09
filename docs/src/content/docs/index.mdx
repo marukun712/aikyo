@@ -1,11 +1,11 @@
 ---
 title: aikyo
-description: 相互につながるAIコンパニオンを作成するためのフレームワーク
+description: A framework for creating mutually connected AI companions
 template: splash
 hero:
-  tagline: 相互につながるAIコンパニオンを作成するためのフレームワーク
+  tagline: A framework for creating mutually connected AI companions
   actions:
-    - text: クイックスタート
+    - text: Quick Start
       link: /quick-start/
       icon: right-arrow
     - text: GitHub
@@ -13,26 +13,25 @@ hero:
       icon: external
       variant: minimal
 ---
-
 import { Card, CardGrid } from "@astrojs/starlight/components";
 
 
 
-## aikyoとは
+## What is aikyo?
 
-aikyoは、相互につながるAIコンパニオンを作成するためのフレームワークです。
+aikyo is a framework designed for creating interconnected AI companions.
 
-Discordサーバー
+Discord Server:
 https://discord.gg/JxAVZkQdDX
 
 
 <CardGrid stagger>
-  <Card title="対話のためのA2A">コンパニオン同士がP2Pでつながり、リアルタイムで情報を共有します。さらに、自動ターンテイキングとクロージングにより、対話のためのA2Aを実現します。</Card>
+  <Card title="A2A for Conversations">Enables companion-to-companion P2P connections with real-time information sharing. Additionally, it implements automated turn-taking and conversation closure mechanisms to enable seamless dialogue between AI companions.</Card>
   <Card title="Companion Card">
-    JSONベースの設計書で、宣言的にコンパニオンの性格、行動、判断基準を定義できます。
+    A JSON-based specification document that allows you to declaratively define the personality, behaviors, and decision-making criteria of your companion.
   </Card>
-  <Card title="ツールシステム">外部APIとの連携や動的な知識取得が簡単に実装できます。</Card>
-  <Card title="CEL式による制御">
-    条件分岐をCEL式で記述し、柔軟なコンパニオンの行動を実現できます。
+  <Card title="Tool System">Easily integrates with external APIs and enables dynamic knowledge acquisition.</Card>
+  <Card title="Control via CEL Expressions">
+    Allows for flexible companion behavior through conditional logic expressed using Common Expression Language (CEL) expressions.
   </Card>
 </CardGrid>
