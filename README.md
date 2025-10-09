@@ -46,7 +46,7 @@ nix develop
 
 </details>
 
-<details><summary>using mise</summary>
+<details><summary>Using mise</summary>
 
 ```bash
 mise install
