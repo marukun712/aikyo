@@ -1,19 +1,18 @@
 ---
-title: Knowledge（知識ツール）
-description: aikyoのKnowledge（知識ツール）の詳細とAPI仕様
+title: Knowledge Tool
+description: Details and API specifications for aikyo's Knowledge (knowledge tool)
 ---
+**Knowledge** is a tool designed to dynamically equip your AI companion with knowledge. It enables the retrieval of information from external data sources and APIs, which can be then incorporated into conversations or actions.
 
-**Knowledge**は、AIコンパニオンに動的な知識を与えるためのツールです。外部データソースやAPIから情報を取得し、会話や行動に反映させることができます。
+## Key Features of Knowledge
 
-## Knowledgeの特徴
-
-- **取得のみ**: 情報の取得のみで、外部への送信や状態変更は行わない
-- **動的取得**: 事前学習済みの知識ではなく、実行時に最新の情報を取得
-- **柔軟な統合**: P2Pネットワークやクライアントクエリと連携可能
+- **Read-only operation**: Only retrieves information; does not transmit it externally or modify any states.
+- **Dynamic retrieval**: Fetches the most up-to-date information at runtime rather than relying on pre-trained knowledge.
+- **Flexible integration**: Can be integrated with P2P networks and client queries.
 
 ## createCompanionKnowledge API
 
-`createCompanionKnowledge`関数を使用してKnowledgeツールを作成します。
+Use the `createCompanionKnowledge` function to instantiate a Knowledge tool.
 
 ```typescript
 export function createCompanionKnowledge<
@@ -28,7 +27,7 @@ export function createCompanionKnowledge<
 }: CompanionKnowledgeConfig<T, U>)
 ```
 
-### パラメータ
+### Parameters
 
 #### CompanionKnowledgeConfig
 
@@ -51,35 +50,35 @@ export interface CompanionKnowledgeConfig<
 }
 ```
 
-| フィールド | 型 | 説明 |
-|-----------|-----|------|
-| `id` | `string` | ツールの一意なID |
-| `description` | `string` | ツールの説明（LLMがツール選択時に参照） |
-| `inputSchema` | `ZodTypeAny` | 入力スキーマ（Zodスキーマ） |
-| `outputSchema` | `ZodTypeAny` | 出力スキーマ（Zodスキーマ） |
-| `knowledge` | `function` | 知識取得関数 |
+| Field       | Type           | Description                                     |
+|-------------|----------------|-------------------------------------------------|
+| `id`        | `string`       | Unique identifier for the tool                  |
+| `description` | `string`       | Tool description (referenced by LLM during tool selection) |
+| `inputSchema` | `ZodTypeAny`     | Input schema defined using Zod schema             |
+| `outputSchema` | `ZodTypeAny`     | Output schema defined using Zod schema           |
+| `knowledge` | `function`      | Knowledge retrieval function                     |
 
-#### knowledge関数のprops
+#### props for the knowledge function
 
-| プロパティ | 型 | 説明 |
-|-----------|-----|------|
-| `input` | `z.infer<T>` | inputSchemaで定義された入力データ |
-| `id` | `string` | コンパニオンのID |
-| `companions` | `Map<string, string>` | 接続中のコンパニオンリスト |
-| `sendQuery` | `function` | クライアントへQueryを送信する関数 |
-| `companionAgent` | `CompanionAgent` | コンパニオンエージェントのインスタンス |
+| Property      | Type           | Description                                   |
+|---------------|----------------|-----------------------------------------------|
+| `input`       | `z.infer<T>`   | Input data as defined in inputSchema          |
+| `id`          | `string`       | ID of the companion                            |
+| `companions`  | `Map<string, string>` | List of currently connected companions     |
+| `sendQuery`   | `function`     | Function to send a Query to the client       |
+| `companionAgent` | `CompanionAgent` | Instance of the companion agent               |
 
-## 実装例
+## Implementation Example
 
 ### 1. companionNetworkKnowledge
 
-接続中のコンパニオン一覧を取得するKnowledgeツール。
+A Knowledge tool that retrieves a list of companions currently on the same network.
 
 ```typescript
 export const companionNetworkKnowledge = createCompanionKnowledge({
   id: "companions-network",
   description:
-    "同じネットワークに所属しているコンパニオンのリストを取得します。",
+    "Retrieves the list of companions belonging to the same network.",
   inputSchema: z.object({}),
   outputSchema: z.string(),
   knowledge: async ({ companions }) =>
@@ -89,15 +88,15 @@ export const companionNetworkKnowledge = createCompanionKnowledge({
 });
 ```
 
-**動作:**
+**Functionality:**
 
-1. `companions` Mapから全コンパニオンのメタデータを取得
-2. JSON形式の文字列に変換して返す
-3. LLMがこの情報を参照して会話に反映
+1. Fetches metadata for all connected companions from the `companions` Map.
+2. Converts the data into JSON-formatted strings and returns it.
+3. The LLM can reference this information when processing conversations.
 
-## CompanionCardへの登録
+## Registration with CompanionCard
 
-作成したKnowledgeツールは、`CompanionCard`の`knowledge`フィールドに登録します。
+The created Knowledge tool should be registered in the `knowledge` field of a `CompanionCard`.
 
 ```typescript
 export const companionCard: CompanionCard = {
@@ -112,4 +111,4 @@ export const companionCard: CompanionCard = {
 };
 ```
 
-LLMは登録されたKnowledgeツールを必要に応じて自動的に実行します。
+The LLM will automatically execute the registered Knowledge tools as needed.

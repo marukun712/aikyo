@@ -7,6 +7,7 @@
     "companion": "tsx ./scripts/companion.ts",
     "firehose": "tsx ./scripts/firehose.ts",
     "aituberkit": "tsx ./scripts/aituberkit-bridge.ts",
+    "translate": "tsx ./scripts/translate-docs.ts",
     "format": "biome format ./",
     "format:fix": "biome format --write ./",
     "lint": "biome lint ./",
