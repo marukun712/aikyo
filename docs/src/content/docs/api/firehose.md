@@ -199,9 +199,9 @@ Optional. Custom configuration for the libp2p node. If not specified, default se
 private receiveHandler?: ReceiveHandler
 ```
 
-WebSocketクライアントから受信したデータを処理するハンドラ関数。
+The handler function that processes data received from the WebSocket client.
 
-**型定義:**
+**Type Definition:**
 
 ```typescript
 const RequestSchema = z.object({ topic: z.string(), body: z.record(z.any()) });
@@ -211,11 +211,9 @@ type ReceiveHandler = (
 ) => RequestData | Promise<RequestData>;
 ```
 
-`setReceiveHandler()`メソッドで設定します。ハンドラが設定されている場合、WebSocketから受信した全てのデータがこのハンドラを通過し、返り値の`RequestData`がlibp2p pubsubにpublishされます。
+Configured via the `setReceiveHandler()` method. When a handler is set, all incoming data from WebSockets will pass through this handler, and the returned `RequestData` will be published to libp2p pubsub.
 
-ハンドラが設定されていない場合は、受信データを`RequestSchema`でパースして直接publishします（デフォルト動作）。
-
-## メソッド
+If no handler is configured, the received data will be parsed according to the `RequestSchema` and published directly (default behavior).
 
 ### start()
 
