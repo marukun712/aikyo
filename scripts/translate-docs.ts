@@ -10,6 +10,7 @@ const JA_DOCS_DIR = join(DOCS_DIR, "ja");
 const args = process.argv.slice(2);
 const SKIP_EXISTING = args.includes("--skip-existing");
 const DRY_RUN = args.includes("--dry-run");
+const PRESERVE_CODE_BLOCKS = args.includes("--preserve-code-blocks");
 
 interface TranslationResponse {
   choices: Array<{
@@ -17,6 +18,11 @@ interface TranslationResponse {
       content: string;
     };
   }>;
+}
+
+interface CodeBlockExtraction {
+  text: string;
+  codeBlocks: string[];
 }
 
 async function translateText(text: string): Promise<string> {
@@ -77,6 +83,42 @@ function parseFrontmatter(content: string): {
   };
 }
 
+function extractCodeBlocks(text: string): CodeBlockExtraction {
+  const codeBlocks: string[] = [];
+  const placeholder = "<<<CODE_BLOCK_{}>>>";
+
+  // Extract fenced code blocks (```...```)
+  let processedText = text.replace(/```[\s\S]*?```/g, (match) => {
+    const index = codeBlocks.length;
+    codeBlocks.push(match);
+    return placeholder.replace("{}", index.toString());
+  });
+
+  // Extract inline code (`...`)
+  processedText = processedText.replace(/`[^`\n]+`/g, (match) => {
+    const index = codeBlocks.length;
+    codeBlocks.push(match);
+    return placeholder.replace("{}", index.toString());
+  });
+
+  return {
+    text: processedText,
+    codeBlocks,
+  };
+}
+
+function restoreCodeBlocks(text: string, codeBlocks: string[]): string {
+  const placeholder = "<<<CODE_BLOCK_{}>>>";
+  let restoredText = text;
+
+  for (let i = 0; i < codeBlocks.length; i++) {
+    const pattern = placeholder.replace("{}", i.toString());
+    restoredText = restoredText.replace(pattern, codeBlocks[i]);
+  }
+
+  return restoredText;
+}
+
 async function translateFrontmatter(frontmatter: string): Promise<string> {
   const lines = frontmatter.split("\n");
   const translatedLines: string[] = [];
@@ -135,7 +177,16 @@ async function translateMarkdownFile(
 
   // Translate body
   console.log("  - Translating body...");
-  const translatedBody = await translateText(body);
+  let translatedBody: string;
+
+  if (PRESERVE_CODE_BLOCKS) {
+    const { text: bodyWithoutCode, codeBlocks } = extractCodeBlocks(body);
+    const translatedWithoutCode = await translateText(bodyWithoutCode);
+    translatedBody = restoreCodeBlocks(translatedWithoutCode, codeBlocks);
+  } else {
+    translatedBody = await translateText(body);
+  }
+
   translatedContent += translatedBody;
 
   // Ensure output directory exists
@@ -154,7 +205,7 @@ async function main() {
   console.log(`Japanese docs directory: ${JA_DOCS_DIR}`);
   console.log(`English docs directory: ${DOCS_DIR}`);
   console.log(
-    `Flags: ${DRY_RUN ? "[DRY RUN] " : ""}${SKIP_EXISTING ? "[SKIP EXISTING]" : ""}\n`,
+    `Flags: ${DRY_RUN ? "[DRY RUN] " : ""}${SKIP_EXISTING ? "[SKIP EXISTING] " : ""}${PRESERVE_CODE_BLOCKS ? "[PRESERVE CODE BLOCKS]" : ""}\n`,
   );
 
   // Find all .md and .mdx files in Japanese docs directory
