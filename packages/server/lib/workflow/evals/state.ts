@@ -14,7 +14,10 @@ const generatePrompt = (
   closingInstruction: string,
 ) => `
 Here are the last 5 messages:
-${memory.map((m) => JSON.stringify(m, null, 2)).join("\n")}
+${memory
+  .slice(-5)
+  .map((m) => JSON.stringify(m, null, 2))
+  .join("\n")}
 
 Your id is ${id}. Please assess your state. Return the following state information in JSON format:
 

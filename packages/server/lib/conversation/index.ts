@@ -51,27 +51,35 @@ export class TurnTakingManager implements ITurnTakingManager {
   }
 
   private async decideNextSpeaker(messageId: string, states: State[]) {
+    //selected(指名された)コンパニオンがいる場合
     const selectedAgents = states.filter((state) => state.params.selected);
     if (selectedAgents.length > 0) {
-      const speaker = selectedAgents.reduce((prev, current) =>
-        prev.params.importance > current.params.importance ? prev : current,
+      //importanceの最大値をとって最大のコンパニオンをspeakerとする
+      const speaker = selectedAgents.sort(
+        (a, b) => b.params.importance - a.params.importance,
       );
-      await this.executeSpeaker(messageId, speaker);
+      await this.executeSpeaker(messageId, speaker[0]);
       return;
     }
+
+    //speakの意思を持っているコンパニオンがいる場合
     const speakAgents = states.filter(
       (state) => state.params.state === "speak",
     );
     if (speakAgents.length > 0) {
-      const speaker = speakAgents.reduce((prev, current) =>
-        prev.params.importance > current.params.importance ? prev : current,
+      //importanceの最大値をとって最大のコンパニオンをspeakerとする
+      const speaker = speakAgents.sort(
+        (a, b) => b.params.importance - a.params.importance,
       );
-      await this.executeSpeaker(messageId, speaker);
+      await this.executeSpeaker(messageId, speaker[0]);
       return;
     }
+
+    //だれも発言の意思がない場合は、会話を終了させる
     this.pending.delete(messageId);
   }
 
+  //選出された発言者が実行
   private async executeSpeaker(messageId: string, speaker: State) {
     logger.info(
       {
@@ -82,6 +90,7 @@ export class TurnTakingManager implements ITurnTakingManager {
     );
     if (speaker.params.from === this.companionAgent.companion.metadata.id) {
       try {
+        //反応すべきメッセージを取得
         const pending = this.pending.get(messageId);
         if (pending) {
           const myState = pending.states.find((state) => {
@@ -89,15 +98,18 @@ export class TurnTakingManager implements ITurnTakingManager {
               state.params.from === this.companionAgent.companion.metadata.id
             );
           });
+          //closingの確認(terminalなら終了)
           if (myState && myState.params.closing === "terminal") {
             logger.info("The conversation is over");
             return;
           }
+          //会話のスピードを落とすため任意のタイムアウトをあける
           await new Promise<void>((resolve) => {
             setTimeout(() => {
               resolve();
             }, this.timeoutDuration);
           });
+          //agentにinput
           await this.companionAgent.input(pending.message);
         } else {
           logger.warn(

@@ -123,6 +123,7 @@ export class CompanionAgent implements ICompanionAgent {
   }
 
   async generateToolInstruction(input: Message) {
+    //toolの使用指示を取得
     const res = await this.run.start({
       inputData: { message: input, history: this.history },
     });
@@ -132,17 +133,22 @@ export class CompanionAgent implements ICompanionAgent {
   async generateState(): Promise<State> {
     let closingInstruction: string = "";
 
+    //繰り返し検出が有効になっている場合
     if (this.config.enableRepetitionJudge) {
+      //string[]に変形
       const formatted = this.history.map((message) => message.params.message);
+      //評価
       const result = await this.repetitionJudge.evaluate(formatted);
       logger.info({ result }, "Repetition judge evaluation");
       const repetition = result.score;
       if (repetition > 0.7) {
+        //プロンプトに会話の終了か転換を促すプロンプトをいれる
         closingInstruction =
           'Most important: the conversation is becoming repetitive. Immediately either shift the closing status through "pre-closing", "closing", and "terminal" in order to end the conversation, or change the topic.';
       }
     }
 
+    //stateを取得
     const state = await this.stateJudge.evaluate(
       this.companion.metadata.id,
       this.history,
@@ -174,6 +180,7 @@ export class CompanionAgent implements ICompanionAgent {
       throw new Error("イベント実行に失敗しました。");
     }
     logger.info({ instructions }, "Generated tool instructions");
+    //メタデータとツール指示をコンテキストに含める
     const res = await this.agent.generate(JSON.stringify(message, null, 2), {
       runtimeContext: this.runtimeContext,
       resourceId: "main",

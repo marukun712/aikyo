@@ -1,5 +1,11 @@
-import type { Action, Message, Query, QueryResult, State } from "@aikyo/server";
-import { MessageSchema, QueryResultSchema, type Services } from "@aikyo/server";
+import type {
+  Action,
+  Message,
+  Query,
+  QueryResult,
+  Services,
+  State,
+} from "@aikyo/server";
 import { gossipsub } from "@chainsafe/libp2p-gossipsub";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
@@ -12,7 +18,7 @@ import { WebSocketServer } from "ws";
 import z from "zod";
 import { logger } from "./lib/logger.js";
 
-const RequestSchema = z.union([QueryResultSchema, MessageSchema]);
+const RequestSchema = z.object({ topic: z.string(), body: z.record(z.any()) });
 
 type TopicPayloads = {
   messages: Message;
@@ -78,11 +84,9 @@ export class Firehose {
             ws.send(JSON.stringify({ error: parsed.error }));
             return;
           }
-          const topic: keyof TopicPayloads =
-            "method" in parsed.data ? "messages" : "queries";
           this.libp2p.services.pubsub.publish(
-            topic,
-            new TextEncoder().encode(JSON.stringify(parsed.data)),
+            parsed.data.topic,
+            new TextEncoder().encode(JSON.stringify(parsed.data.body)),
           );
         } catch (e) {
           logger.error({ err: e }, "Error handling WebSocket message");

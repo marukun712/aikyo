@@ -32,7 +32,10 @@ export function createEvaluateStep(
         {
           instructions: `
         直近5件の発言は以下のとおりです。
-        ${input.history.map((m) => JSON.stringify(m, null, 2)).join("\n")}
+        ${input.history
+          .slice(-5)
+          .map((m) => JSON.stringify(m, null, 2))
+          .join("\n")}
         与えられた入力から、あなたの長期記憶とワーキングメモリを元に、
         ${JSON.stringify(companionCard.events.params, null, 2)}
         に適切なパラメータを代入して返却してください。

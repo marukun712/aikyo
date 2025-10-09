@@ -8,7 +8,7 @@ description: aikyoのAction（行動ツール）の詳細とAPI仕様
 ## Actionの特徴
 
 - **クライアントへの通知**: P2Pネットワークへのメッセージ送信やクライアントへの通知など、外部への影響を持つ
-- **イベント駆動**: CEL式による条件付き実行が可能
+- **宣言的な実行**: CEL式による宣言的なツール実行の定義
 
 ## createCompanionAction API
 
