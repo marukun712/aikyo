@@ -1,5 +1,11 @@
 # scripts
 
+## 1.0.5
+
+### Patch Changes
+
+- @aikyo/firehose@1.5.1
+
 ## 1.0.4
 
 ### Patch Changes
