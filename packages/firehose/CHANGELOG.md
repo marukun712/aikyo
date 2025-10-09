@@ -1,5 +1,11 @@
 # @aikyo/firehose
 
+## 1.5.2
+
+### Patch Changes
+
+- 91f448a: WebSocket の receive 時にハンドラを定義できるように
+
 ## 1.5.1
 
 ### Patch Changes
