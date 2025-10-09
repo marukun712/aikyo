@@ -1,15 +1,14 @@
 ---
-title: クイックスタート
-description: aikyoを使ってAIコンパニオンを作成する最初のステップ
+title: Quick Start
+description: the first steps in creating an AI companion using aikyo
 ---
-
 import { Aside } from '@astrojs/starlight/components';
 
-`aikyo`は、P2Pで相互に作用するAIコンパニオンを構築するためのフレームワークです。このガイドでは、あなたのNode.js/TypeScriptプロジェクトに`aikyo`を導入し、最終的に複数体のコンパニオンを起動するまでの手順を学びます。
+`aikyo` is a framework for building AI companions that interact with each other through P2P networking. In this guide, you'll learn how to integrate `aikyo` into your Node.js/TypeScript project and eventually deploy multiple companion instances.
 
-## 1. プロジェクトのセットアップ
+## 1. Project Setup
 
-まず、新しいプロジェクト用のディレクトリを作成し、初期化します。
+First, create a new directory for your project and initialize it:
 
 ```bash
 mkdir my-aikyo-app
@@ -17,7 +16,7 @@ cd my-aikyo-app
 pnpm init
 ```
 
-package.jsonを以下のように書き換えます。
+Update your package.json as follows:
 
 ```json
 {
@@ -39,28 +38,28 @@ package.jsonを以下のように書き換えます。
 }
 ```
 
-パッケージをインストールします。
+Install the packages.
 ```bash
 pnpm i
 ```
 
-## 2. 環境変数の設定
+## 2. Configuring Environment Variables
 
-プロジェクトのルートに`.env`ファイルを作成し、コンパニオンが使用するLLMのAPIキーを設定します。
+Create a `.env` file in the project root to store API keys for the LLMs your companions will use.
 
-<Aside type="caution">aikyoは複数のLLMを同時に稼働させるため、通常よりもクレジットを消費します。必ず適切なリミットを設定してから使用してください。</Aside>
+<Aside type="caution">Note that aikyo consumes more credits than usual when running multiple LLMs simultaneously. Be sure to set appropriate usage limits before proceeding.</Aside>
 
 ```ini title=".env"
 ANTHROPIC_API_KEY="sk-ant-xxxxxxxx"
 ```
 
-## 3. 単体エージェントの起動と対話
+## 3. Launching and Interacting with a Single Agent
 
-まずは、1体のコンパニオン`aya`を起動してみましょう。
+Let's start by launching a single companion `aya`.
 
-### ステップ1: ツールの定義 (tools.ts)
+### Step 1: Defining the Tools (tools.ts)
 
-コンパニオンが利用するツールを`tools.ts`に定義します。
+Define the tools your companion will utilize in `tools.ts`:
 
 ```typescript
 import { createCompanionAction, createCompanionKnowledge } from "@aikyo/utils";
@@ -107,9 +106,9 @@ export const companionNetworkKnowledge = createCompanionKnowledge({
 });
 ```
 
-### ステップ2: サーバーとコンパニオンの実装
+### Step 2: Implementing the Server and Companion
 
-`firehose`サーバーと`aya`を起動するためのコードを、それぞれ`firehose.ts`と`aya.ts`に記述します。
+Write the server code for `firehose` and the companion launcher code in `firehose.ts` respectively.
 
 ```typescript
 import { Firehose } from "@aikyo/firehose";
@@ -208,16 +207,16 @@ const server = new CompanionServer(companion, history, {
 await server.start();
 ```
 
-### ステップ3: 実行と対話
+### Step 3: Running and Interacting
 
-2つのターミナルで、それぞれ`firehose`とコンパニオンを起動します。
+In two separate terminals, launch both <<<CODE_BLOCK_22>> and the companion.
 
 ```bash
 $ npx tsx firehose.ts
 $ npx tsx aya.ts
 ```
 
-`aya`に話しかけるクライアント`client.ts`を作成して実行します。
+Create a client <<<CODE_BLOCK_24>> to communicate with `aya`, and run it:
 
 ```typescript
 import WebSocket from 'ws';
@@ -251,19 +250,19 @@ ws.on('message', (data) => {
 });
 ```
 
-クライアントを実行します。
+Run the client.
 ```bash
 $ npx tsx client.ts
 ```
-`aya`から返事が来ることを確認しましょう。
+You should see responses coming from `aya`.
 
-## 4. 複数エージェントへの拡張
+## 4. Expanding to Multiple Agents
 
-次に、2体目のコンパニオン`kyoko`を追加し、複数エージェントの対話を試します。
+Next, we'll add a second companion `kyoko` and experiment with multi-agent interactions.
 
-### ステップ1: `kyoko.ts`の作成
+### Step 1: Creating `kyoko.ts`
 
-`kyoko.ts`を作成します。
+Create `kyoko.ts`:
 
 ```typescript
 import { anthropic } from "@ai-sdk/anthropic";
@@ -339,14 +338,14 @@ const server = new CompanionServer(companion, history, { timeoutDuration: 1000 }
 await server.start();
 ```
 
-### ステップ2: 実行と対話
-`kyoko`を起動します。
+### Step 2: Running and Interacting
+Launch `kyoko`.
 
 ```bash
 $ npx tsx kyoko.ts
 ```
 
-`client.ts`を修正して、二人の会話を開始させます。
+Modify `client.ts` to initiate a conversation between the two companions.
 
 ```typescript
 import WebSocket from 'ws';
@@ -381,7 +380,7 @@ ws.on('message', (data) => {
 });
 ```
 
-コンソールに、コンパニオン同士が会話しているメッセージが流れてきます。
+Messages from the companions conversing will appear in your console.
 
 # Examples
 
@@ -389,4 +388,4 @@ ws.on('message', (data) => {
 
 https://github.com/marukun712/kyoko
 
-aikyoをバックエンドとしたAIコンパニオン実装、kyokoでは、Quick Startで実装したコンパニオンの対話以外にも、外部APIからのデータ取得、Queryを使ったクライアント側でのカメラキャプチャなどが実装されています。
+The AI companion implementation "kyoko" using aikyo as backend includes features beyond just the dialogue implemented in Quick Start, such as data retrieval from external APIs and camera capture functionality on the client side.
