@@ -1,5 +1,11 @@
 # @aikyo/server
 
+## 1.4.2
+
+### Patch Changes
+
+- 6e972ba: state 集計時にユーザーを含めない
+
 ## 1.4.1
 
 ### Patch Changes
