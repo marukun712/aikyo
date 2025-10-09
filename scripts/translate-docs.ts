@@ -1,5 +1,5 @@
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
-import { join, dirname, basename, relative } from "node:path";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { basename, dirname, join, relative } from "node:path";
 import { glob } from "glob";
 
 const LMSTUDIO_API_URL = "http://localhost:1234/v1/chat/completions";
@@ -214,7 +214,9 @@ async function main() {
     ignore: ["**/node_modules/**"],
   });
 
-  console.log(`Found ${files.length} Japanese markdown file(s) to translate.\n`);
+  console.log(
+    `Found ${files.length} Japanese markdown file(s) to translate.\n`,
+  );
 
   let successCount = 0;
   let skipCount = 0;
