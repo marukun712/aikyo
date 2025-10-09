@@ -46,6 +46,39 @@ await firehose.subscribe("actions", (data) => {
 });
 ```
 
+クライアント例
+```typescript
+import WebSocket from 'ws';
+
+const firehoseUrl = 'ws://localhost:8080';
+const ws = new WebSocket(firehoseUrl);
+
+const companionId = 'companion_aya'; // ayaのIDを指定
+const userId = 'user_yamada';        // ユーザーの名前を指定
+
+ws.on('open', () => {
+  const message = {
+    topic: "messages",
+    body: {
+      jsonrpc: '2.0',
+      method: 'message.send',
+      params: {
+        id: crypto.randomUUID(),
+        from: userId,
+        to: [companionId],
+        message: 'こんにちは、ayaさん！',
+      }
+    }
+  };
+
+  ws.send(JSON.stringify(message));
+});
+
+ws.on('message', (data) => {
+  console.log(JSON.parse(data.toString()));
+});
+```
+
 カスタムlibp2p設定を使用する場合は、完全な設定を提供する必要があります。
 
 ```typescript

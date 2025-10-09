@@ -7,10 +7,11 @@
   "dependencies": {
     "@ai-sdk/anthropic": "catalog:",
     "@ai-sdk/google": "catalog:",
+    "@ai-sdk/openai": "^2.0.44",
+    "@aikyo/server": "workspace:*",
+    "@aikyo/utils": "workspace:*",
     "@openrouter/ai-sdk-provider": "catalog:",
     "ollama-ai-provider": "catalog:",
-    "zod": "catalog:",
-    "@aikyo/utils": "workspace:*",
-    "@aikyo/server": "workspace:*"
+    "zod": "catalog:"
   }
 }
