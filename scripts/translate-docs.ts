@@ -1,9 +1,15 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { join, dirname, basename, relative } from "node:path";
 import { glob } from "glob";
 
 const LMSTUDIO_API_URL = "http://localhost:1234/v1/chat/completions";
-const DOCS_DIR = join(process.cwd(), "docs");
+const DOCS_DIR = join(process.cwd(), "docs", "src", "content", "docs");
+const JA_DOCS_DIR = join(DOCS_DIR, "ja");
+
+// Command line flags
+const args = process.argv.slice(2);
+const SKIP_EXISTING = args.includes("--skip-existing");
+const DRY_RUN = args.includes("--dry-run");
 
 interface TranslationResponse {
   choices: Array<{
@@ -93,9 +99,27 @@ async function translateFrontmatter(frontmatter: string): Promise<string> {
   return translatedLines.join("\n");
 }
 
-async function translateMarkdownFile(filePath: string): Promise<void> {
-  const relativePath = relative(DOCS_DIR, filePath);
-  console.log(`\nTranslating: ${relativePath}`);
+async function translateMarkdownFile(
+  filePath: string,
+  dryRun = false,
+): Promise<void> {
+  // Calculate output path by removing 'ja/' from the path
+  const relativeToJa = relative(JA_DOCS_DIR, filePath);
+  const outputPath = join(DOCS_DIR, relativeToJa);
+  const relativePath = relative(DOCS_DIR, outputPath);
+
+  console.log(`\nTranslating: ja/${relativeToJa} → ${relativePath}`);
+
+  // Skip if output file already exists and --skip-existing is set
+  if (SKIP_EXISTING && existsSync(outputPath)) {
+    console.log("  ⊘ Skipped: File already exists");
+    return;
+  }
+
+  if (dryRun) {
+    console.log("  ⊙ Dry run: Would translate this file");
+    return;
+  }
 
   const content = readFileSync(filePath, "utf-8");
   const { frontmatter, body } = parseFrontmatter(content);
@@ -114,38 +138,76 @@ async function translateMarkdownFile(filePath: string): Promise<void> {
   const translatedBody = await translateText(body);
   translatedContent += translatedBody;
 
-  // Write to new file
-  const dir = dirname(filePath);
-  const base = basename(filePath, ".md");
-  const outputPath = join(dir, `${base}-en.md`);
+  // Ensure output directory exists
+  const outputDir = dirname(outputPath);
+  if (!existsSync(outputDir)) {
+    mkdirSync(outputDir, { recursive: true });
+  }
 
+  // Write to new file
   writeFileSync(outputPath, translatedContent, "utf-8");
-  console.log(`  ✓ Saved: ${relative(DOCS_DIR, outputPath)}`);
+  console.log(`  ✓ Saved: ${relativePath}`);
 }
 
 async function main() {
   console.log("Starting translation of markdown files...\n");
-  console.log(`Docs directory: ${DOCS_DIR}\n`);
+  console.log(`Japanese docs directory: ${JA_DOCS_DIR}`);
+  console.log(`English docs directory: ${DOCS_DIR}`);
+  console.log(
+    `Flags: ${DRY_RUN ? "[DRY RUN] " : ""}${SKIP_EXISTING ? "[SKIP EXISTING]" : ""}\n`,
+  );
 
-  // Find all .md files in docs directory
-  const pattern = join(DOCS_DIR, "**/*.md");
+  // Find all .md and .mdx files in Japanese docs directory
+  const pattern = join(JA_DOCS_DIR, "**/*.{md,mdx}");
   const files = await glob(pattern, {
-    ignore: ["**/node_modules/**", "**/*-en.md"],
+    ignore: ["**/node_modules/**"],
   });
 
-  console.log(`Found ${files.length} markdown file(s) to translate.\n`);
+  console.log(`Found ${files.length} Japanese markdown file(s) to translate.\n`);
+
+  let successCount = 0;
+  let skipCount = 0;
+  let errorCount = 0;
 
   for (let i = 0; i < files.length; i++) {
     console.log(`[${i + 1}/${files.length}]`);
     try {
-      await translateMarkdownFile(files[i]);
+      const outputPath = join(DOCS_DIR, relative(JA_DOCS_DIR, files[i]));
+      if (SKIP_EXISTING && existsSync(outputPath)) {
+        skipCount++;
+      } else if (!DRY_RUN) {
+        successCount++;
+      }
+      await translateMarkdownFile(files[i], DRY_RUN);
     } catch (error) {
-      console.error(`Failed to translate ${files[i]}:`, error);
-      process.exit(1);
+      errorCount++;
+      console.error(`  ✗ Failed to translate ${files[i]}:`, error);
+      // Continue with next file instead of exiting
     }
   }
 
-  console.log("\n✓ All translations completed!");
+  console.log("\n" + "=".repeat(50));
+  console.log("Translation Summary:");
+  console.log(`  Total files: ${files.length}`);
+  if (DRY_RUN) {
+    console.log(`  Would translate: ${files.length - skipCount}`);
+    if (skipCount > 0) {
+      console.log(`  Would skip: ${skipCount}`);
+    }
+  } else {
+    console.log(`  ✓ Successful: ${successCount}`);
+    if (skipCount > 0) {
+      console.log(`  ⊘ Skipped: ${skipCount}`);
+    }
+    if (errorCount > 0) {
+      console.log(`  ✗ Failed: ${errorCount}`);
+    }
+  }
+  console.log("=".repeat(50));
+
+  if (errorCount > 0) {
+    process.exit(1);
+  }
 }
 
 main().catch((error) => {
