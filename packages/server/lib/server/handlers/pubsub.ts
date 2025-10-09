@@ -19,7 +19,7 @@ export const handlePubSubMessage = async (
         const parsed = MessageSchema.safeParse(data);
         if (!parsed.success) return;
         const body = parsed.data;
-        //一時時会話履歴にpush
+        //一時会話履歴にpush
         self.history.push(parsed.data);
         if (self.history.length > 5) {
           self.history.shift();
