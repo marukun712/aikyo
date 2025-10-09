@@ -1,8 +1,44 @@
 import { Firehose } from "@aikyo/firehose";
+import { QueryResultSchema } from "@aikyo/server";
+import { z } from "zod";
 
 async function createFirehose(port: number, fromName: string) {
   const firehose = new Firehose(port);
   await firehose.start();
+
+  firehose.setReceiveHandler(async (rawData) => {
+    const RequestSchema = z.union([
+      z.object({
+        content: z.string(),
+        type: z.enum(["chat"]),
+      }),
+      QueryResultSchema,
+    ]);
+
+    const parsed = RequestSchema.safeParse(rawData);
+    if (!parsed.success) {
+      throw new Error("スキーマが不正です。");
+    }
+
+    if ("content" in parsed.data) {
+      return {
+        topic: "messages",
+        body: {
+          jsonrpc: "2.0",
+          method: "message.send",
+          params: {
+            id: crypto.randomUUID(),
+            from: "user_hoge",
+            to: [fromName],
+            message: parsed.data.content,
+          },
+        },
+      };
+    } else {
+      return { topic: "queries", body: parsed.data };
+    }
+  });
+
   await firehose.subscribe("queries", (data) => {
     if (
       "params" in data &&

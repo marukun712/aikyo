@@ -5,6 +5,8 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "@aikyo/firehose": "workspace:*"
+    "@aikyo/firehose": "workspace:*",
+    "@aikyo/server": "workspace:*",
+    "zod": "catalog:"
   }
 }
