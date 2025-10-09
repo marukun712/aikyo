@@ -211,7 +211,7 @@ async generateState(): Promise<State>
 **処理フロー:**
 
 1. 重複検出を実行（`enableRepetitionJudge`が`true`の場合）
-2. スコアが0.7より大きいならクロージング指示を追加
+2. スコア > 0.7ならクロージング指示を追加
 3. `StateJudge`を使用してStateを生成
 4. `maxTurn`チェック（設定時）
 
