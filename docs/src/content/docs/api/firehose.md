@@ -193,6 +193,25 @@ private libp2pConfig?: Libp2pOptions<Services>
 
 オプション。libp2pノードのカスタム設定。指定しない場合はデフォルト設定が使用されます。
 
+### receiveHandler
+
+```typescript
+private receiveHandler?: ReceiveHandler
+```
+
+WebSocketクライアントから受信したデータを処理するハンドラ関数。
+
+**型定義:**
+
+```typescript
+type RequestData = { topic: string, body: Record<string, any> };
+type ReceiveHandler = (data: any) => RequestData | Promise<RequestData>;
+```
+
+`setReceiveHandler()`メソッドで設定します。ハンドラが設定されている場合、WebSocketから受信した全てのデータがこのハンドラを通過し、返り値の`RequestData`がlibp2p pubsubにpublishされます。
+
+ハンドラが設定されていない場合は、受信データを`RequestSchema`でパースして直接publishします（デフォルト動作）。
+
 ## メソッド
 
 ### start()
@@ -271,6 +290,58 @@ firehose.addHandler("actions", (action) => {
   console.log("Action received:", action);
 });
 ```
+
+### setReceiveHandler()
+
+WebSocketクライアントから受信したデータを処理するハンドラを設定します。
+
+```typescript
+setReceiveHandler(handler: ReceiveHandler): void
+```
+
+**パラメータ:**
+
+| パラメータ | 型 | 説明 |
+|-----------|-----|------|
+| `handler` | `(data: any) => RequestData \| Promise<RequestData>` | WebSocketから受信した任意の型のデータを`RequestData`に変換する関数 |
+
+**型定義:**
+
+```typescript
+type RequestData = { topic: string, body: Record<string, any> };
+```
+
+**使用例:**
+
+```typescript
+// カスタムデータ処理を行うハンドラを設定
+firehose.setReceiveHandler(async (rawData) => {
+  // ユーザー定義の検証や変換処理
+  const validated = await validateAndTransform(rawData);
+
+  return {
+    topic: "messages",
+    body: {
+      jsonrpc: "2.0",
+      method: "message.send",
+      params: validated
+    }
+  };
+});
+
+// ハンドラが設定されている場合、WebSocketから送信されるデータは
+// RequestSchemaに従う必要はなく、任意の形式で送信可能
+ws.send(JSON.stringify({
+  customField: "value",
+  anotherField: 123
+}));
+```
+
+**動作:**
+
+- ハンドラが設定されている場合、WebSocketから受信した全データがハンドラを通過します
+- ハンドラの返り値（`RequestData`）がlibp2p pubsubにpublishされます
+- ハンドラが設定されていない場合、従来通り`RequestSchema`でパースして直接publishします
 
 ### broadcastToClients()
 
