@@ -294,6 +294,12 @@ importers:
       glob:
         specifier: ^11.0.3
         version: 11.0.3
+      '@aikyo/server':
+        specifier: workspace:*
+        version: link:../packages/server
+      zod:
+        specifier: 'catalog:'
+        version: 3.25.76
 
 packages:
 

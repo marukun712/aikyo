@@ -20,6 +20,11 @@ import { logger } from "./lib/logger.js";
 
 const RequestSchema = z.object({ topic: z.string(), body: z.record(z.any()) });
 
+type RequestData = z.infer<typeof RequestSchema>;
+type ReceiveHandler = (
+  data: Record<string, unknown>,
+) => RequestData | Promise<RequestData>;
+
 type TopicPayloads = {
   messages: Message;
   queries: Query | QueryResult;
@@ -40,6 +45,7 @@ export class Firehose {
     actions: [],
     states: [],
   };
+  private receiveHandler?: ReceiveHandler;
   private libp2pConfig?: Libp2pOptions<Services>;
 
   constructor(port: number, libp2pConfig?: Libp2pOptions<Services>) {
@@ -76,17 +82,30 @@ export class Firehose {
     this.wss.on("connection", (ws) => {
       this.clients.add(ws);
 
-      ws.on("message", (evt) => {
+      ws.on("message", async (evt) => {
         try {
-          const data = JSON.parse(evt.toString());
-          const parsed = RequestSchema.safeParse(data);
-          if (!parsed.success) {
-            ws.send(JSON.stringify({ error: parsed.error }));
-            return;
+          const data: Record<string, unknown> = JSON.parse(evt.toString());
+          let requestData: RequestData;
+
+          if (this.receiveHandler) {
+            requestData = await this.receiveHandler(data);
+            const parsed = RequestSchema.safeParse(requestData);
+            if (!parsed.success) {
+              ws.send(JSON.stringify({ error: parsed.error }));
+              return;
+            }
+          } else {
+            const parsed = RequestSchema.safeParse(data);
+            if (!parsed.success) {
+              ws.send(JSON.stringify({ error: parsed.error }));
+              return;
+            }
+            requestData = parsed.data;
           }
+
           this.libp2p.services.pubsub.publish(
-            parsed.data.topic,
-            new TextEncoder().encode(JSON.stringify(parsed.data.body)),
+            requestData.topic,
+            new TextEncoder().encode(JSON.stringify(requestData.body)),
           );
         } catch (e) {
           logger.error({ err: e }, "Error handling WebSocket message");
@@ -131,6 +150,10 @@ export class Firehose {
     handler: (data: TopicPayloads[K]) => void,
   ) {
     this.topicHandlers[topic].push(handler);
+  }
+
+  setReceiveHandler(handler: ReceiveHandler) {
+    this.receiveHandler = handler;
   }
 
   broadcastToClients(data: unknown) {
