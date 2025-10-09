@@ -1,5 +1,16 @@
 # @aikyo/firehose
 
+## 1.5.0
+
+### Minor Changes
+
+- eaa303d: 任意の topic に data を publish できるようにする
+
+### Patch Changes
+
+- Updated dependencies [eaa303d]
+  - @aikyo/server@1.4.1
+
 ## 1.4.1
 
 ### Patch Changes

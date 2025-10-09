@@ -1,5 +1,11 @@
 # @aikyo/server
 
+## 1.4.1
+
+### Patch Changes
+
+- eaa303d: コメントを追加
+
 ## 1.4.0
 
 ### Minor Changes

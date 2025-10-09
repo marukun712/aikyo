@@ -1,5 +1,12 @@
 # scripts
 
+## 1.0.4
+
+### Patch Changes
+
+- Updated dependencies [eaa303d]
+  - @aikyo/firehose@1.5.0
+
 ## 1.0.3
 
 ### Patch Changes
