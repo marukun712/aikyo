@@ -204,8 +204,11 @@ WebSocketクライアントから受信したデータを処理するハンド�
 **型定義:**
 
 ```typescript
-type RequestData = { topic: string, body: Record<string, any> };
-type ReceiveHandler = (data: any) => RequestData | Promise<RequestData>;
+const RequestSchema = z.object({ topic: z.string(), body: z.record(z.any()) });
+type RequestData = z.infer<typeof RequestSchema>;
+type ReceiveHandler = (
+  data: Record<string, unknown>,
+) => RequestData | Promise<RequestData>;
 ```
 
 `setReceiveHandler()`メソッドで設定します。ハンドラが設定されている場合、WebSocketから受信した全てのデータがこのハンドラを通過し、返り値の`RequestData`がlibp2p pubsubにpublishされます。
@@ -303,12 +306,13 @@ setReceiveHandler(handler: ReceiveHandler): void
 
 | パラメータ | 型 | 説明 |
 |-----------|-----|------|
-| `handler` | `(data: any) => RequestData \| Promise<RequestData>` | WebSocketから受信した任意の型のデータを`RequestData`に変換する関数 |
+| `handler` | `(data: Record<string,unknown>) => RequestData \| Promise<RequestData>` | WebSocketから受信した任意の型のデータを`RequestData`に変換する関数 |
 
 **型定義:**
 
 ```typescript
-type RequestData = { topic: string, body: Record<string, any> };
+const RequestSchema = z.object({ topic: z.string(), body: z.record(z.any()) });
+type RequestData = z.infer<typeof RequestSchema>;
 ```
 
 **使用例:**

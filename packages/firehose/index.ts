@@ -21,7 +21,9 @@ import { logger } from "./lib/logger.js";
 const RequestSchema = z.object({ topic: z.string(), body: z.record(z.any()) });
 
 type RequestData = z.infer<typeof RequestSchema>;
-type ReceiveHandler = (data: any) => RequestData | Promise<RequestData>;
+type ReceiveHandler = (
+  data: Record<string, unknown>,
+) => RequestData | Promise<RequestData>;
 
 type TopicPayloads = {
   messages: Message;
@@ -82,11 +84,16 @@ export class Firehose {
 
       ws.on("message", async (evt) => {
         try {
-          const data = JSON.parse(evt.toString());
+          const data: Record<string, unknown> = JSON.parse(evt.toString());
           let requestData: RequestData;
 
           if (this.receiveHandler) {
             requestData = await this.receiveHandler(data);
+            const parsed = RequestSchema.safeParse(requestData);
+            if (!parsed.success) {
+              ws.send(JSON.stringify({ error: parsed.error }));
+              return;
+            }
           } else {
             const parsed = RequestSchema.safeParse(data);
             if (!parsed.success) {
