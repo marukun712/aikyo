@@ -11,6 +11,7 @@ aikyo operates on a P2P network built upon **libp2p**. This enables a fully dece
 Each companion and the Firehose server participate as libp2p nodes in the P2P network.
 
 By default, the following features are enabled:
+
 - TCP/IP communication
 - mDNS peer discovery
 - Gossipsub Pubsub messaging

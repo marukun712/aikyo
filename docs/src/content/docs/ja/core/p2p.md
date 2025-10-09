@@ -12,6 +12,7 @@ aikyoは**libp2p**を基盤としたP2Pネットワーク上で動作します�
 各コンパニオンとFirehoseサーバーは、libp2pノードとしてP2Pネットワークに参加します。
 
 デフォルトでは、以下の機能が有効化されます：
+
 - TCP/IP通信
 - mDNSピア発見
 - Gossipsub Pubsubメッセージング

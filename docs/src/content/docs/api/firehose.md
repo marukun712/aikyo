@@ -46,6 +46,7 @@ await firehose.subscribe("actions", (data) => {
 ```
 
 Client Example:
+
 ```typescript
 import WebSocket from 'ws';
 
@@ -193,6 +194,7 @@ private libp2pConfig?: Libp2pOptions<Services>
 Optional. Custom configuration for the libp2p node. If not specified, default settings will be used.
 
 ## Methods
+
 ### receiveHandler
 
 ```typescript

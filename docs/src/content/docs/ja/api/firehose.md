@@ -47,6 +47,7 @@ await firehose.subscribe("actions", (data) => {
 ```
 
 クライアント例
+
 ```typescript
 import WebSocket from 'ws';
 
