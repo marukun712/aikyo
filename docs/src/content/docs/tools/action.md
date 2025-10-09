@@ -85,6 +85,7 @@ export const speakTool = createCompanionAction({
     message: z.string(),
     to: z
       .array(z.string())
+      .transform((arr) => new Set(arr))
       .describe(
         "このメッセージの宛先。必ずコンパニオンのidを指定してください。特定のコンパニオンに個人的に話しかけたいとき以外は、必ず、会話に参加したことのある全員を含むようにしてください。また、積極的にuserに会話を振ってください。",
       ),
@@ -118,6 +119,8 @@ export const speakTool = createCompanionAction({
   },
 });
 ```
+
+`to`フィールドは配列として受け取られますが、内部的には`Set`に変換されるため、重複した宛先は自動的に除外されます。
 
 **動作:**
 

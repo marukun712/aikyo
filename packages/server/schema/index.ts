@@ -95,7 +95,7 @@ export const MessageSchema = z
     params: z.object({
       id: z.string(),
       from: z.string(),
-      to: z.set(z.string()),
+      to: z.array(z.string()).transform((arr) => new Set(arr)),
       message: z.string(),
       metadata: z.record(z.string(), z.any()).optional(),
     }),

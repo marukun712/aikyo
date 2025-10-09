@@ -58,11 +58,13 @@ export const MessageSchema = z.object({
   params: z.object({
     id: z.string(),
     from: z.string(),
-    to: z.array(z.string()),
+    to: z.array(z.string()).transform((arr) => new Set(arr)),
     message: z.string(),
     metadata: z.record(z.string(), z.any()).optional(),
   }),
 });
 ```
+
+`to`フィールドは配列として受け取られますが、内部的には`Set`に変換されるため、重複した宛先は自動的に除外されます。
 
 この統一により、クライアント・サーバー間で一貫したメッセージ処理が可能になります。
