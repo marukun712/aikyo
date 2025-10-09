@@ -24,11 +24,7 @@ export const handlePubSubMessage = async (
         if (self.history.length > 5) {
           self.history.shift();
         }
-        if (
-          body.params.to.find((to) => {
-            return to === self.companion.metadata.id;
-          })
-        ) {
+        if (body.params.to.has(self.companion.metadata.id)) {
           await self.handleMessageReceived(body);
         }
         break;
