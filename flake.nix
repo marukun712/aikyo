@@ -63,50 +63,6 @@
               + "/bin/dev";
           };
 
-          aituberkit = {
-            type = "app";
-            program =
-              (pkgs.writeShellApplication {
-                name = "dev";
-                runtimeInputs = [
-                  pkgs.nodejs_24
-                  pkgs.pnpm
-                  pkgs.coreutils
-                ];
-                text = ''
-                  #!/usr/bin/env bash
-                  set -euo pipefail
-
-                  if [ "$#" -eq 0 ]; then
-                    echo "Usage: nix run .#dev -- <COMPANION> [<COMPANION> ...]"
-                    echo "Example: nix run .#dev -- kyoko aya"
-                    exit 1
-                  fi
-
-                  pids=()
-
-                  pnpm aituberkit &
-                  pids+=($!)
-
-                  for name in "$@"; do
-                    pnpm companion "$name" &
-                    pids+=($!)
-                  done
-
-                  cleanup() {
-                    trap - INT TERM EXIT
-                    echo "Shutting down..."
-                    kill "''${pids[@]}" 2>/dev/null || true
-                    wait || true
-                  }
-                  trap cleanup INT TERM EXIT
-
-                  wait
-                '';
-              }).outPath
-              + "/bin/dev";
-          };
-
           docs = {
             type = "app";
             program =
