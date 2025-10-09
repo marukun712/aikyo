@@ -1,10 +1,10 @@
 ---
 title: Firehose
-description: API Reference for the Firehose class
+description: API Reference for the Firehose Class
 ---
 `Firehose` is a server that bridges WebSocket clients with libp2p Pubsub, enabling browsers and Node.js clients to participate in a P2P network.
 
-## Import Statement
+## Import
 
 ```typescript
 import { Firehose } from "@aikyo/firehose";
@@ -18,10 +18,10 @@ constructor(port: number, libp2pConfig?: Libp2pOptions<Services>)
 
 ### Parameters
 
-| Parameter | Type | Description |
-|-----------|-----|-------------|
-| `port` | `number` | Port number for the WebSocket server |
-| `libp2pConfig` | `Libp2pOptions<Services>` | Optional. Custom configuration settings for the libp2p node |
+| Parameter | Type          | Description                               |
+|-----------|---------------|-------------------------------------------|
+| `port`    | `number`      | Port number for the WebSocket server     |
+| `libp2pConfig` | `Libp2pOptions<Services>` | Optional. Custom configuration for the libp2p node                   |
 
 ### Usage Example
 
@@ -52,8 +52,8 @@ import WebSocket from 'ws';
 const firehoseUrl = 'ws://localhost:8080';
 const ws = new WebSocket(firehoseUrl);
 
-const companionId = 'companion_aya'; // Specify Aya's ID here
-const userId = 'user_yamada';        // Enter your username here
+const companionId = 'companion_aya'; // Specify Aya's ID
+const userId = 'user_yamada';        // Specify the user's name
 
 ws.on('open', () => {
   const message = {
@@ -78,7 +78,7 @@ ws.on('message', (data) => {
 });
 ```
 
-When using custom libp2p configuration, you must provide complete settings.
+For using custom libp2p configuration, you must provide complete settings.
 
 ```typescript
 import { Firehose } from "@aikyo/firehose";
@@ -111,7 +111,7 @@ await customFirehose.start();
 private libp2p: Libp2p<Services>
 ```
 
-An instance of the libp2p node, configured identically to the CompanionServer.
+Instance of the libp2p node (configured similarly to CompanionServer).
 
 ```typescript
 this.libp2p = await createLibp2p({
@@ -135,7 +135,7 @@ this.libp2p = await createLibp2p({
 private wss: WebSocketServer
 ```
 
-An instance of the WebSocket server.
+Instance of the WebSocket server.
 
 ```typescript
 this.wss = new WebSocketServer({ port: this.port });
@@ -147,13 +147,13 @@ this.wss = new WebSocketServer({ port: this.port });
 private clients: Set<WebSocket>
 ```
 
-A Set managing connected WebSocket clients.
+Set managing connected WebSocket clients.
 
 ```typescript
 this.clients = new Set();
 ```
 
-New clients are added when they connect and removed when they disconnect.
+New clients are added when they connect and removed when disconnecting.
 
 ### port
 
@@ -161,7 +161,7 @@ New clients are added when they connect and removed when they disconnect.
 private readonly port: number
 ```
 
-The port number for the WebSocket server.
+Port number for the WebSocket server.
 
 ### topicHandlers
 
@@ -171,7 +171,7 @@ private topicHandlers: {
 }
 ```
 
-An object managing handler functions for each topic, providing type-safe event handling.
+Object managing handler functions for each topic, providing type-safe event handling.
 
 ```typescript
 type TopicPayloads = {
@@ -190,7 +190,7 @@ Multiple handlers can be registered for each topic and will be executed sequenti
 private libp2pConfig?: Libp2pOptions<Services>
 ```
 
-Optional. Custom configuration settings for the libp2p node. If not specified, default settings are used.
+Optional. Custom configuration for the libp2p node. If not specified, default settings will be used.
 
 ## Methods
 
@@ -204,11 +204,11 @@ async start(): Promise<void>
 
 **Process Flow:**
 
-1. Initialize the libp2p node
-2. Start the WebSocket server
-3. Register event listeners
+1. Initializes the libp2p node
+2. Starts the WebSocket server
+3. Registers event listeners
 
-**Output Example:**
+**Example Output:**
 
 ```
 aikyo firehose server running on ws://localhost:8080
@@ -216,7 +216,7 @@ aikyo firehose server running on ws://localhost:8080
 
 ### subscribe()
 
-Subscribes to a specified topic and optionally registers a handler.
+Subscribes to specified topics and optionally registers handlers.
 
 ```typescript
 async subscribe<K extends keyof TopicPayloads>(
@@ -227,15 +227,15 @@ async subscribe<K extends keyof TopicPayloads>(
 
 **Parameters:**
 
-| Parameter | Type | Description |
-|-----------|-----|-------------|
-| `topic` | `keyof TopicPayloads` | The topic to subscribe to ("messages", "queries", "actions", or "states") |
-| `handler` | `function` | Optional. Handler function to execute when messages are received |
+| Parameter | Type          | Description                               |
+|-----------|---------------|-------------------------------------------|
+| `topic`   | `keyof TopicPayloads` | Name of the topic to subscribe to ("messages", "queries", "actions", "states") |
+| `handler` | `function`    | Optional. Handler function to execute when messages are received                 |
 
 **Usage Example:**
 
 ```typescript
-// Subscribe to the topic only
+// Subscribe to a topic only
 await firehose.subscribe("messages");
 
 // Subscribe with a handler
@@ -258,10 +258,10 @@ addHandler<K extends keyof TopicPayloads>(
 
 **Parameters:**
 
-| Parameter | Type | Description |
-|-----------|-----|-------------|
-| `topic` | `keyof TopicPayloads` | The topic name |
-| `handler` | `function` | Handler function to execute when messages are received |
+| Parameter | Type          | Description                               |
+|-----------|---------------|-------------------------------------------|
+| `topic`   | `keyof TopicPayloads` | Topic name                                |
+| `handler` | `function`    | Handler function to execute when messages are received                       |
 
 **Usage Example:**
 
@@ -281,6 +281,6 @@ broadcastToClients(data: unknown): void
 
 **Parameters:**
 
-| Parameter | Type | Description |
-|-----------|-----|-------------|
-| `data` | `unknown` | Data to be broadcasted (will be JSON.stringified) |
+| Parameter | Type          | Description                               |
+|-----------|---------------|-------------------------------------------|
+| `data`    | `unknown`     | Data to broadcast (will be JSON.stringified) |

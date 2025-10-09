@@ -1,15 +1,15 @@
 ---
 title: Query (query system)
-description: AIKYO client ↔ companion bidirectional communication system
+description: aikyo's client ↔ companion bidirectional communication system
 ---
-The **Query** mechanism enables bidirectional communication between companions and clients. It allows companions to request information from clients and receive the results.
+**Query** is a mechanism enabling bidirectional communication between companions and clients. It allows companions to request information from clients and receive the results.
 
-## Features of Query
+## Features of Queries
 
-- **Bidirectional Communication**: Supports round-trip communication from companion → client → companion.
-- **Asynchronous Processing**: Uses Promise-based approach to handle asynchronous result waiting.
-- **Timeout Functionality**: Automatically times out if no response is received within the specified duration.
-- **Flexible Data Handling**: Can send and receive requests/responses in any JSON format.
+- **Bidirectional Communication**: Roundtrip communication from companion → client → companion
+- **Asynchronous Processing**: Results are awaited using Promise-based mechanisms
+- **Timeout Functionality**: Automatically times out if no response is received
+- **Flexible Data Handling**: Supports sending and receiving requests/responses in any JSON format
 
 ## Query and QueryResult Types
 
@@ -29,13 +29,13 @@ export const QuerySchema = z.object({
 export type Query = z.infer<typeof QuerySchema>;
 ```
 
-| Field       | Type     | Description                           |
-|-------------|---------|---------------------------------------|
-| `jsonrpc`   | `"2.0"` | JSON-RPC version                      |
-| `method`    | `"query.send"` | Method name                           |
-| `id`        | `string`  | Unique identifier for the query (linked to response) |
-| `params.from` | `string` | Identifier of the sending companion    |
-| `params.type` | `string` | Type of query (e.g., `"vision"`, `"speak"`) |
+| Field       | Type     | Description                          |
+|-------------|---------|--------------------------------------|
+| `jsonrpc`   | `"2.0"` | JSON-RPC version                     |
+| `method`    | `"query.send"` | Method name                          |
+| `id`        | `string`   | Unique query identifier (linked to response) |
+| `params.from` | `string` | Identifier of the sending companion      |
+| `params.type` | `string` | Type of query (e.g., `"vision"`, `"speak"`)    |
 | `params.body` | `object` | Additional data (optional)            |
 
 ### QueryResult Type
@@ -55,18 +55,18 @@ export const QueryResultSchema = z.object({
 export type QueryResult = z.infer<typeof QueryResultSchema>;
 ```
 
-| Field       | Type     | Description                           |
-|-------------|---------|---------------------------------------|
-| `jsonrpc`   | `"2.0"` | JSON-RPC version                      |
-| `id`        | `string` | Query identifier (matches Query)      |
-| `result`    | `object` | Response data when successful (optional) |
+| Field       | Type     | Description                          |
+|-------------|---------|--------------------------------------|
+| `jsonrpc`   | `"2.0"` | JSON-RPC version                     |
+| `id`        | `string` | Query identifier (matches Query)       |
+| `result`    | `object` | Success response data (optional)      |
 | `result.success` | `boolean` | Success/failure flag               |
-| `result.body` | `object` | Response content                     |
-| `error`     | `string` | Error message if failure occurs (optional) |
+| `result.body` | `object` | Response data                        |
+| `error`     | `string` | Error message (optional)              |
 
 ## sendQuery Function
 
-The `sendQuery` function sends a Query and waits for the associated QueryResult.
+The `sendQuery` function sends a Query and waits for a QueryResult.
 
 **Parameters:**
 
@@ -83,11 +83,11 @@ If no response is received from the client within the specified `timeout` period
 
 ## Managing pendingQueries
 
-The `CompanionServer` uses a `pendingQueries` Map to track querys that are awaiting responses.
+The `CompanionServer` maintains the state of pending queries using a `pendingQueries` Map.
 
 **Processing upon receiving a QueryResult:**
 
 1. Receives the QueryResult on the `queries` topic
-2. Locates the corresponding query in the `pendingQueries` map
-3. Calls `resolve` to complete the Promise
+2. Searches for the corresponding query in the `pendingQueries` map
+3. Callers `resolve` to complete the Promise
 4. Removes the entry from the `pendingQueries` map

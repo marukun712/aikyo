@@ -1,39 +1,39 @@
 ---
 title: Duplicate Detection
-description: Aikyo's LLM-based Conversation Duplication Detection System
+description: aikyo's LLM-based Conversation Duplication Detection System
 ---
-In conversations between AI companions, it's common for similar content to repeat. **RepetitionJudge** automatically detects conversation redundancy using the `RepetitionJudge` mechanism and facilitates natural topic transitions or graceful conversation termination.
+In conversations between AI companions, it's common for similar content to repeat. The **RepetitionJudge** automatically detects conversation redundancy using natural language processing and suggests appropriate transitions or graceful termination of the conversation to maintain fluidity.
 
 ## How RepetitionJudge Works
 
-The `RepetitionJudge` utilizes an LLM to analyze the conversation history and assign a redundancy score.
+The `RepetitionJudge` utilizes an LLM to analyze conversation history and assign a redundancy score based on message similarity.
 
 ### Scoring System
 
 - **0.0**: All messages are completely unique
-- **0.5**: Some partial overlap detected
-- **1.0**: Nearly identical content repeated multiple times
+- **0.5**: Some degree of partial overlap detected
+- **1.0**: Nearly identical content being repeated multiple times
 
-The LLM examines the last five messages and evaluates their similarity levels.
+The LLM evaluates the similarity of all past five messages to determine this score.
 
 ## Integration with CompanionAgent
 
-The `CompanionAgent` creates an instance of `RepetitionJudge` during initialization. By default, redundancy detection is enabled (`enableRepetitionJudge: true`).
+When initializing, the `CompanionAgent` creates a `RepetitionJudge`. By default, redundancy detection is enabled (`enableRepetitionJudge: true`).
 
 ## Evaluation During State Generation
 
-Each companion evaluates the conversation history's redundancy level when generating its `State`.
+Each companion performs a redundancy assessment when generating its `State` object, which encapsulates the conversation history.
 
 ### Thresholds and Behavior
 
-**When the redundancy score exceeds 0.7**:
+When the **redundancy score exceeds 0.7**:
 
 1. The system sends a warning to the LLM
 2. The LLM then selects one of the following actions:
-   - **Topic transition**: Suggests a new topic
-   - **Gradual conclusion**: Progresses through `closing` states from `pre-closing` → `closing` → `terminal`
+   - **Topic shift**: Proposes a new conversation topic
+   - **Gradual termination**: Progresses through the `closing` states in sequence: pre-closing → closing → terminal
 
-This prevents conversations from getting stuck in repetitive loops.
+This mechanism prevents conversations from becoming repetitive and unproductive.
 
 ## Disabling Redundancy Detection
 

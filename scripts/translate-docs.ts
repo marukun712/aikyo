@@ -71,9 +71,7 @@ function parseFrontmatter(content: string): {
   };
 }
 
-async function translateFrontmatter(
-  frontmatter: string,
-): Promise<string> {
+async function translateFrontmatter(frontmatter: string): Promise<string> {
   const lines = frontmatter.split("\n");
   const translatedLines: string[] = [];
 

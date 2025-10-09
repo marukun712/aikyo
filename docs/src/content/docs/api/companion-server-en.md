@@ -2,9 +2,9 @@
 title: Companion Server
 description: API reference for the CompanionServer class
 ---
-The `CompanionServer` class provides P2P server functionality for companions, integrating management of libp2p nodes, messaging, turn-taking, and metadata exchange.
+The `CompanionServer` class provides the P2P server functionality for companions. It integrates management of libp2p nodes, messaging, turn-taking, and metadata exchange.
 
-## Import Statement
+## Imports
 
 ```typescript
 import { CompanionServer } from "@aikyo/server";
@@ -23,13 +23,13 @@ constructor(
 
 ### Parameters
 
-| Parameter       | Type           | Description                                               | Default Value    |
-|-----------------|----------------|-----------------------------------------------------------|------------------|
-| `companionAgent` | `CompanionAgent` | Instance of the companion agent                           | -                |
-| `history`       | `Message[]`    | Array of conversation history (must reference the same array as CompanionAgent) | -                |
-| `config`        | `object`       | Optional configuration settings                            | `{ timeoutDuration: 5000 }` |
-| `config.timeoutDuration` | `number` | Delay in milliseconds before allowing another turn after a turn-taking event | `5000`           |
-| `libp2pConfig`  | `Libp2pOptions<Services>` | Optional: Custom configuration for the libp2p node       | -                |
+| Parameter | Type                   | Description                                               | Default Value |
+|-----------|------------------------|-----------------------------------------------------------|---------------|
+| `companionAgent` | `CompanionAgent`       | Instance of the companion agent                           | -             |
+| `history` | `Message[]`            | Array of conversation history (must reference the same array as CompanionAgent) | -             |
+| `config` | `object`               | Optional configuration settings                           | `{ timeoutDuration: 5000 }` |
+| `config.timeoutDuration` | `number` | Delay in milliseconds before allowing another turn after a turn-taking event | `5000`       |
+| `libp2pConfig` | `Libp2pOptions<Services>` | Optional: Custom configuration for the libp2p node           | -             |
 
 ### Usage Example
 
@@ -52,7 +52,7 @@ const server = new CompanionServer(companion, history, {
 await server.start();
 ```
 
-When using custom libp2p configuration, you must provide the full configuration settings.
+When using custom libp2p configuration, you must provide complete settings.
 
 ```typescript
 import { CompanionAgent, CompanionServer, type Message } from "@aikyo/server";
@@ -120,7 +120,7 @@ Array of conversation history (reference).
 turnTakingManager: TurnTakingManager
 ```
 
-Manager responsible for handling turn-taking. See [Turn-Taking](../core/turn-taking) for details.
+Manager responsible for handling turn-taking. For details, see [Turn-Taking](../core/turn-taking).
 
 ```typescript
 this.turnTakingManager = new TurnTakingManager(
@@ -143,7 +143,7 @@ Configuration card for the companion (same as `companionAgent.companion`).
 libp2p: Libp2p<Services>
 ```
 
-Instance of the libp2p node. The core object responsible for P2P communication.
+Instance of the libp2p node. This serves as the core object for P2P communication.
 
 ```typescript
 this.libp2p = await createLibp2p({
@@ -178,7 +178,7 @@ companionList = new Map<string, Metadata>();
 
 **During initialization:**
 
-First registers itself, then adds the other party's metadata when peer connections are established.
+First, register yourself, then add the other party's metadata when connecting peers.
 
 ### pendingQueries
 
@@ -192,7 +192,7 @@ pendingQueries = new Map<
 >();
 ```
 
-Map managing the state of client query requests. For details, see [Query](../tools/query#managing-pendingqueries).
+Map managing the state of pending queries to clients. For details, see [Query](../tools/query#managing-pendingqueries).
 
 ### libp2pConfig
 
@@ -200,7 +200,7 @@ Map managing the state of client query requests. For details, see [Query](../too
 libp2pConfig?: Libp2pOptions<Services>
 ```
 
-Optional: Custom configuration for the libp2p node. If not specified, default settings will be used.
+Optional: Custom configuration for the libp2p node. If omitted, default settings are used.
 
 ## Methods
 
@@ -212,27 +212,27 @@ Starts the server.
 async start(): Promise<void>
 ```
 
-**Process Flow:**
+**Processing Flow:**
 
-1. Initializes the libp2p node (`setupLibp2p()`)
-2. Registers event listeners
+1. Initialize the libp2p node (`setupLibp2p()`)
+2. Register event listeners
 
 ### handleMessageReceived()
 
-Handles incoming messages.
+Handles the reception of messages.
 
 ```typescript
 async handleMessageReceived(message: Message): Promise<void>
 ```
 
-**Parameter:**
+**Parameters:**
 
 - `message`: The received message
 
-**Process Flow:**
+**Processing Flow:**
 
-1. Registers the message with the `TurnTakingManager`
-2. Generates the local `State` object
-3. Publishes the State to the `states` topic
+1. Register the message with the `TurnTakingManager`
+2. Generate your own `State`
+3. Publish the State to the `states` topic
 
 This method is called from `handlePubSubMessage`.

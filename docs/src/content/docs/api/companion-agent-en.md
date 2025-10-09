@@ -1,10 +1,10 @@
 ---
 title: Companion Agent
-description: API reference for the CompanionAgent class
+description: API Reference for the CompanionAgent class
 ---
 The `CompanionAgent` class manages the core logic for an AI companion. It integrates the agent, memory, workflow, and duplicate detection to handle message processing and state generation.
 
-## Import Statement
+## Imports
 
 ```typescript
 import { CompanionAgent } from "@aikyo/server";
@@ -23,14 +23,14 @@ constructor(
 
 ### Parameters
 
-| Parameter       | Type                   | Description                                                           | Default Value    |
-|-----------------|------------------------|-----------------------------------------------------------------------|------------------|
-| `companion`     | `CompanionCard`        | Companion configuration including metadata, tools, and events.       | -               |
-| `model`         | `LanguageModel`        | The LLM model to be used (retrieved from `@ai-sdk/*`).                | -               |
-| `history`       | `Message[]`            | Array of conversation history passed by reference.                    | -               |
-| `config`        | `object`               | Optional configuration settings.                                     | `{ maxTurn: null, enableRepetitionJudge: true }` |
-| `config.maxTurn` | `number \| null`       | Maximum number of turns before forced termination.                    | `null` (no limit) |
-| `config.enableRepetitionJudge` | `boolean`              | Enable/disable duplicate detection functionality.                     | `true`           |
+| Parameter       | Type                  | Description                                                                           | Default    |
+|-----------------|-----------------------|--------------------------------------------------------------------------------------|------------|
+| `companion`     | `CompanionCard`       | Companion configuration including metadata, tools, and events                        | -          |
+| `model`         | `LanguageModel`       | LLM model to be used (retrieved from `@ai-sdk/*`)                                    | -          |
+| `history`       | `Message[]`           | Array of conversation history references                                             | -          |
+| `config`        | `object`              | Optional configuration settings                                                      | `{ maxTurn: null, enableRepetitionJudge: true }` |
+| `config.maxTurn` | `number \| null`      | Maximum number of turns before forced termination                                    | `null` (no limit) |
+| `config.enableRepetitionJudge` | `boolean`             | Enabled/disabled duplicate detection                                                 | `true`     |
 
 ### Usage Example
 
@@ -52,7 +52,7 @@ const companion = new CompanionAgent(
 );
 ```
 
-**Supported LLM Providers**
+**Tested LLM Providers**
 
 - **Anthropic**: `@ai-sdk/anthropic`
 - **Google**: `@ai-sdk/google`
@@ -65,7 +65,7 @@ const companion = new CompanionAgent(
 companion: CompanionCard
 ```
 
-The configuration card for the companion.
+The companion configuration card.
 
 ### agent
 
@@ -73,7 +73,7 @@ The configuration card for the companion.
 agent: Agent
 ```
 
-An instance of the Mastra Agent that manages interactions with the LLM.
+An instance of the Mastra Agent responsible for managing interactions with the LLM.
 
 ### repetitionJudge
 
@@ -89,7 +89,7 @@ A judge for detecting conversation duplicates. See [Duplicate Detection](../core
 stateJudge: StateJudge
 ```
 
-A judge that generates the companion's state (State) based on the conversation history. Used for turn-taking functionality.
+A judge that generates the companion's state (State) based on conversation history. Used for turn-taking management.
 
 ### history
 
@@ -97,7 +97,7 @@ A judge that generates the companion's state (State) based on the conversation h
 history: Message[]
 ```
 
-Array of conversation history passed by reference.
+Array of conversation history references.
 
 ### memory
 
@@ -109,8 +109,9 @@ An instance of the `Memory` class managing long-term and working memory.
 
 **Persistence:**
 
-- Creates a LibSQL database at `db/<companion_id>.db`.
-- Utilizes LibSQLStore for storage and LibSQLVector for vector store, enabling similarity searches via the vector store.
+- Creates a LibSQL database at `db/<companion_id>.db`
+- Utilizes LibSQLStore for storage and LibSQLVector for vector store
+- Supports similarity searches using the vector store
 
 **Working Memory Schema:**
 
@@ -131,15 +132,15 @@ export const MemorySchema = z.object({
 runtimeContext: RuntimeContext
 ```
 
-The runtime context referenced during tool execution, containing the following information:
+The runtime context referenced during tool execution. Contains the following information:
 
-| Key       | Type     | Description                          |
-|-----------|----------|--------------------------------------|
-| `id`      | `string` | Companion's ID                       |
-| `libp2p`  | `Libp2p` | libp2p instance                      |
-| `companions` | `Map<string, Metadata>` | List of connected companions         |
-| `pendingQueries` | `Map` | Pending queries                     |
-| `agent`   | `CompanionAgent`              | The agent itself                     |
+| Key           | Type       | Description                               |
+|---------------|------------|-------------------------------------------|
+| `id`          | `string`   | Companion's ID                            |
+| `libp2p`      | `Libp2p`   | libp2p instance                           |
+| `companions`  | `Map<string, Metadata>` | List of connected companions    |
+| `pendingQueries` | `Map` | Pending queries                           |
+| `agent`       | `CompanionAgent` | The agent itself                          |
 
 ### run
 
@@ -155,7 +156,7 @@ A Run instance of the workflow generated by `createToolInstructionWorkflow`.
 count: number
 ```
 
-Current turn count (used when `maxTurn` configuration is enabled).
+Current turn count (used when `maxTurn` configuration is set).
 
 ### config
 
@@ -169,7 +170,7 @@ Configuration passed to the constructor.
 
 ### generateToolInstruction()
 
-Receives a message and generates tool execution instructions by evaluating a CEL expression.
+Generates a tool execution instruction by evaluating CEL expressions based on the received message.
 
 ```typescript
 async generateToolInstruction(input: Message): Promise<string>
@@ -182,17 +183,17 @@ async generateToolInstruction(input: Message): Promise<string>
 **Returns:**
 
 - `string`: Tool execution instruction (e.g., "Introduce yourself. Use the tool to respond.")
-  or `"failed"` if event execution fails.
+  or `"failed"` if event execution fails
 
 **Process Flow:**
 
-1. In Workflow's `evaluateStep`, the LLM evaluates the `params` schema.
-2. In `runStep`, the CEL expression is checked based on the condition.
-3. Concatenates and returns the `instruction` for the matched condition.
+1. In Workflow's `evaluateStep`, the LLM evaluates the `params` schema
+2. In `runStep`, checks conditions are evaluated based on CEL expressions
+3. Concatenates and returns the `instruction` of the matched condition
 
 ### generateState()
 
-Generates the companion's state (State) based on the entire conversation history.
+Generates the companion's state (State) based on the complete conversation history.
 
 ```typescript
 async generateState(): Promise<State>
@@ -204,20 +205,20 @@ None (internally references `this.history`)
 
 **Returns:**
 
-- `State`: State information including speak/listen, importance, selected, and closing status.
+- `State`: State information including speak/listen, importance, selected, and closing statuses
 
 **Process Flow:**
 
-1. Performs duplicate detection if `enableRepetitionJudge` is `true`.
-2. Adds a closing instruction if the score > 0.7.
-3. Generates the State using `StateJudge`.
-4. Checks for `maxTurn` limit (if configured).
+1. Performs duplicate detection if `enableRepetitionJudge` is `true`
+2. Adds closing instructions if score > 0.7
+3. Generates State using `StateJudge`
+4. Checks for `maxTurn` limit (if configured)
 
-For more details, see [Turn-Taking](../core/turn-taking#state-state-generation).
+For details, see [Turn-Taking](../core/turn-taking#state-state-generation).
 
 ### input()
 
-Receives a message and executes the LLM based on the tool execution instructions.
+Receives a message and executes the LLM based on the tool execution instruction.
 
 ```typescript
 async input(message: Message): Promise<void>
@@ -229,6 +230,6 @@ async input(message: Message): Promise<void>
 
 **Process Flow:**
 
-1. Retrieves tool execution instructions using `generateToolInstruction`.
-2. Executes the LLM with the instruction and the message.
-3. The LLM automatically executes tools as needed.
+1. Retrieves a tool execution instruction using `generateToolInstruction`
+2. Executes the LLM with the instruction and message
+3. The LLM automatically executes tools as needed

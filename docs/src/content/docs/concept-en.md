@@ -1,8 +1,8 @@
 ---
 title: concept
-description: Concept of AIKYO
+description: Concept of aikyo
 ---
-`aikyo` represents a novel framework designed for creating environments where **humans and multiple AI companions engage in equal, conversational interactions**. While recent advances in LLMs have led to numerous AI Agent implementations and A2A protocols, most are primarily focused on task automation or operational efficiency. `aikyo` differs by emphasizing not merely efficiency and productivity, but instead aims to foster genuinely companionable relationships between humans and their AI counterparts through equitable dialogue.
+`aikyo` is an innovative framework designed to facilitate **equally balanced conversations between humans and multiple AI companions** in an environment where they coexist. While recent advances in LLMs have led to numerous AI Agent implementations and A2A protocols, most focus on task automation or efficiency improvements. `aikyo` differs by prioritizing not operational efficiency, but rather creating AI companions that can genuinely engage with humans in a mutually respectful, equal conversational partnership.
 
 ---
 
@@ -10,34 +10,34 @@ description: Concept of AIKYO
 
 ### 1. P2P-Based Fully Decentralized Agent Communication
 
-The foundation of `aikyo` lies in **peer-to-peer (P2P) communication**. This architecture ensures that all connected AI companions operate completely independently, free from reliance on centralized servers, enabling them to directly connect and coordinate with each other.
+The foundation of `aikyo` lies in **peer-to-peer (P2P) communication**. This architecture ensures each connected AI companion operates completely independently, free from reliance on centralized servers. Instead, they establish direct connections and collaborate through **direct peer-to-peer interaction**.
 
-### 2. Dialogue Control for Equitable A2A Interactions with Human Companionship
+### 2. Dialogue Control for Equal A2A Interactions with Humans
 
-To facilitate natural conversation flow among multiple AI companions, the system provides the following functionalities:
+To enable natural conversation flow among multiple AI companions, the system provides the following functionalities:
 
 - **Turn Management**
-    Implements mechanisms to ensure smooth turn-taking between LLMs. This includes managing speech order and maintaining logical conversation sequences, thereby establishing a natural dialogue flow with humans.
+    Implements mechanisms to facilitate smooth dialogue exchanges between LLMs. This ensures proper turn-taking and conversational sequence, creating an intuitive flow of interaction that mirrors human conversation.
 - **Conversation Duplication Detection**
-    A detection feature that prevents multiple AI companions from simultaneously speaking the same content or repeating unnecessary information. This helps maintain conversational quality and enables more sophisticated A2A communication.
+    A detection feature designed to prevent multiple AI companions from simultaneously speaking the same content or engaging in unnecessary repetition. This helps maintain conversation quality and deliver more refined A2A communication.
 
 ---
 
 ## AI Companion Enhancements
 
-`aikyo` goes beyond basic conversation capabilities by providing extensions to endow AI companions with both physical embodiment and dynamic knowledge acquisition. These features enable users to easily create AI companions with tangible representations or enhanced cognitive abilities.
+Beyond basic conversational capabilities, `aikyo` offers extension features to endow AI companions with both physical embodiment and dynamic knowledge acquisition. These enable users to easily create AI companions equipped with some form of tangible presence or interactive capability.
 
 ### Action (Physical Embodiment)
 
-- Provides functionality to imbue AI companions with a **controllable physical form**.
+- Provides functionality to give AI companions **operable physical forms**.
 - This allows the AI companion to perform specific **actions** within both physical and virtual environments.
 
 ### Knowledge (Dynamic Knowledge Acquisition)
 
-- Enables AI companions to acquire not just pre-learned information but also **dynamically obtained knowledge**, which can be reflected in their conversations and actions.
-- Through integration with external data sources or API connections, it ensures access to always up-to-date and relevant information.
+- Enables AI companions to acquire not just pre-trained knowledge, but also **dynamically obtained information** that can be incorporated into their conversations and actions.
+- Through integration with external data sources or API connections, it ensures access to always up-to-date and contextually relevant information.
 
 ### Query (Client Requests)
 
 - Allows the system to send requests to client applications.
-- For instance, it can transmit camera footage from the client side to the AI companion or enable the AI to use text-to-speech functionality available on the client side at any desired time.
+- For instance, it can transmit camera footage from the client side to the AI companion or enable the AI to use voice synthesis capabilities available on the client side at any desired time.

@@ -1,17 +1,17 @@
 ---
 title: Action (Behavior Tool)
-description: Details and API specifications for AIKYO's Action Tool
+description: Details and API specifications for aikyo's Action (behavioral tool)
 ---
-**Actions** are tools that provide a physical presence for your AI companion. They enable communication with P2P networks and clients by sending messages or performing actions to external environments.
+**Actions** are tools that give your AI companion a physical presence. They enable communication and interaction with the external environment by sending messages or actions to P2P networks and clients.
 
 ## Key Features of Actions
 
-- **Notification to Clients**: Has an impact on external systems, such as sending messages to P2P networks or notifying clients.
+- **Notification to Clients**: Has the ability to influence external systems, such as sending messages to P2P networks or notifying clients.
 - **Declarative Execution**: Defines tool execution through CEL expressions using declarative syntax.
 
 ## createCompanionAction API
 
-Use the `createCompanionAction` function to create an Action tool:
+Use the `createCompanionAction` function to create an Action tool.
 
 ```typescript
 export function createCompanionAction<T extends ZodTypeAny>({
@@ -43,23 +43,23 @@ export interface CompanionActionConfig<T extends z.ZodSchema> {
 }
 ```
 
-| Field       | Type           | Description                                              |
-|-------------|----------------|----------------------------------------------------------|
-| `id`        | `string`       | Unique identifier for the tool                           |
-| `description` | `string`     | Tool description (referenced by LLMs when selecting tools) |
-| `inputSchema` | `ZodTypeAny` | Input schema defined using Zod schemas                   |
-| `topic`     | `"actions"` \| `"messages"` | Topic for publishing messages               |
-| `publish`   | `function`      | Message generation function                              |
+| Field           | Type       | Description                               |
+|-----------------|------------|-------------------------------------------|
+| `id`            | `string`   | Unique identifier for the tool            |
+| `description`   | `string`   | Tool description (referenced by LLM during tool selection) |
+| `inputSchema`   | `ZodTypeAny` | Input schema defined using Zod Schema     |
+| `topic`         | `"actions"` \| `"messages"`               | Publication topic                       |
+| `publish`       | `function` | Message generation function               |
 
-#### props for the publish function
+#### publish Function Props
 
-| Property   | Type           | Description                                               |
-|------------|----------------|-----------------------------------------------------------|
-| `input`    | `z.infer<T>`   | Input data as defined by the inputSchema                  |
-| `id`       | `string`       | ID of the companion                                        |
-| `companions` | `Map<string, string>` | List of connected companions               |
-| `sendQuery` | `function`     | Function to send a Query to the client               |
-| `companionAgent` | `CompanionAgent` | Instance of the companion agent                           |
+| Property       | Type       | Description                               |
+|----------------|------------|-------------------------------------------|
+| `input`        | `z.infer<T>` | Input data as defined in inputSchema       |
+| `id`           | `string`   | Companion's ID                            |
+| `companions`   | `Map<string, string>` | List of connected companions              |
+| `sendQuery`    | `function` | Function to send Queries to clients       |
+| `companionAgent` | `CompanionAgent` | Instance of the companion agent           |
 
 #### Return Type (Output)
 
@@ -72,19 +72,19 @@ type Output = Action | Message;
 
 ## Implementation Example
 
-### speakTool (Conversational Message Sender)
+### speakTool (Conversational Message Transmission)
 
-The most basic Action tool that sends conversational messages between companions:
+The most basic Action tool that transmits conversational messages between companions.
 
 ```typescript
 export const speakTool = createCompanionAction({
   id: "speak",
-  description: "Speak a message.",
+  description: "Speak.",
   inputSchema: z.object({
     message: z.string(),
     to: z
       .array(z.string())
-      .describe("Recipient of this message. Please specify the companion's ID. Always include all companions who have participated in the conversation unless addressing a specific companion privately. Also, actively involve the user in conversations."),
+      .describe("Recipient of this message. Always specify the companion's ID. Be sure to include all companions who have participated in the conversation unless you're addressing a specific one. Additionally, actively involve the user in conversations."),
     emotion: z.enum(["happy", "sad", "angry", "neutral"]),
   }),
   topic: "messages",
@@ -119,13 +119,13 @@ export const speakTool = createCompanionAction({
 **Operation:**
 
 1. Obtains `message`, `to`, and `emotion` from the input
-2. Generates and sends a Query with `type: "speak"` to the client for voice synthesis or other purposes
+2. Generates and sends a Query with `type: "speak"` to the client (used for voice synthesis, etc.)
 3. Generates data in the `Message` type format
 4. Publishes to the `messages` topic
 
 ## Registration in CompanionCard
 
-The created Action tool should be registered under the `actions` field of `CompanionCard`:
+The created Action tool should be registered under the `actions` field of the `CompanionCard`.
 
 ```typescript
 export const companionCard: CompanionCard = {

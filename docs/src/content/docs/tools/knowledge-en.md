@@ -1,18 +1,18 @@
 ---
-title: Knowledge (Tool)
+title: Knowledge Tool
 description: Details and API specifications for aikyo's Knowledge (knowledge tool)
 ---
-**Knowledge** is a tool designed to provide dynamic knowledge to your AI companion. It can retrieve information from external data sources or APIs and incorporate it into conversations and actions.
+**Knowledge** is a tool designed to dynamically equip your AI companion with knowledge. It enables the retrieval of information from external data sources and APIs, which can be then incorporated into conversations or actions.
 
-## Features of Knowledge
+## Key Features of Knowledge
 
-- **Read-only operation**: Only retrieves information without sending it externally or modifying any state.
-- **Dynamic retrieval**: Fetches the most up-to-date information at runtime rather than using pre-trained knowledge.
-- **Flexible integration**: Can work with P2P networks and client queries.
+- **Read-only operation**: Only retrieves information; does not transmit it externally or modify any states.
+- **Dynamic retrieval**: Fetches the most up-to-date information at runtime rather than relying on pre-trained knowledge.
+- **Flexible integration**: Can be integrated with P2P networks and client queries.
 
 ## createCompanionKnowledge API
 
-Use the `createCompanionKnowledge` function to create a Knowledge tool:
+Use the `createCompanionKnowledge` function to instantiate a Knowledge tool.
 
 ```typescript
 export function createCompanionKnowledge<
@@ -50,35 +50,35 @@ export interface CompanionKnowledgeConfig<
 }
 ```
 
-| Field       | Type    | Description                           |
-|-------------|---------|---------------------------------------|
-| `id`        | `string` | Unique identifier for the tool        |
-| `description` | `string` | Tool description (referenced by LLM when selecting tools) |
-| `inputSchema` | `ZodTypeAny` | Input schema (using Zod schema)       |
-| `outputSchema` | `ZodTypeAny` | Output schema (using Zod schema)     |
-| `knowledge` | `function` | Knowledge retrieval function          |
+| Field       | Type           | Description                                     |
+|-------------|----------------|-------------------------------------------------|
+| `id`        | `string`       | Unique identifier for the tool                  |
+| `description` | `string`       | Tool description (referenced by LLM during tool selection) |
+| `inputSchema` | `ZodTypeAny`     | Input schema defined using Zod schema             |
+| `outputSchema` | `ZodTypeAny`     | Output schema defined using Zod schema           |
+| `knowledge` | `function`      | Knowledge retrieval function                     |
 
 #### props for the knowledge function
 
-| Property    | Type    | Description                             |
-|-------------|---------|-----------------------------------------|
-| `input`     | `z.infer<T>` | Input data as defined by inputSchema    |
-| `id`        | `string`  | ID of the companion                      |
-| `companions` | `Map<string, string>` | List of connected companions             |
-| `sendQuery` | `function` | Function to send Queries to the client   |
-| `companionAgent` | `CompanionAgent` | Instance of the companion agent          |
+| Property      | Type           | Description                                   |
+|---------------|----------------|-----------------------------------------------|
+| `input`       | `z.infer<T>`   | Input data as defined in inputSchema          |
+| `id`          | `string`       | ID of the companion                            |
+| `companions`  | `Map<string, string>` | List of currently connected companions     |
+| `sendQuery`   | `function`     | Function to send a Query to the client       |
+| `companionAgent` | `CompanionAgent` | Instance of the companion agent               |
 
 ## Implementation Example
 
 ### 1. companionNetworkKnowledge
 
-A Knowledge tool that retrieves a list of currently connected companions.
+A Knowledge tool that retrieves a list of companions currently on the same network.
 
 ```typescript
 export const companionNetworkKnowledge = createCompanionKnowledge({
   id: "companions-network",
   description:
-    "Retrieves a list of companions belonging to the same network.",
+    "Retrieves the list of companions belonging to the same network.",
   inputSchema: z.object({}),
   outputSchema: z.string(),
   knowledge: async ({ companions }) =>
@@ -88,15 +88,15 @@ export const companionNetworkKnowledge = createCompanionKnowledge({
 });
 ```
 
-**Operation:**
+**Functionality:**
 
 1. Fetches metadata for all connected companions from the `companions` Map.
 2. Converts the data into JSON-formatted strings and returns it.
-3. The LLM can reference this information to influence the conversation.
+3. The LLM can reference this information when processing conversations.
 
-## Registration in CompanionCard
+## Registration with CompanionCard
 
-The created Knowledge tool should be registered in the `knowledge` field of a `CompanionCard`:
+The created Knowledge tool should be registered in the `knowledge` field of a `CompanionCard`.
 
 ```typescript
 export const companionCard: CompanionCard = {

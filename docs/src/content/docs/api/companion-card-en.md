@@ -1,8 +1,8 @@
 ---
 title: Companion Card
-description: Detailed specifications for the CompanionCard type
+description: Detailed specifications for CompanionCard type
 ---
-`CompanionCard` is a type that defines the configuration settings for a AI companion. It manages metadata, roles, tools, and event conditions in a unified manner.
+`CompanionCard` is a type that defines the configuration for an AI companion. It consolidates metadata, roles, tools, and event conditions into a single structure.
 
 ## Import Statement
 
@@ -35,7 +35,7 @@ export type CompanionCard = z.infer<typeof CompanionSchema>;
 metadata: Metadata
 ```
 
-Information about the companion's metadata.
+Contains metadata information about the companion.
 
 ```typescript
 export const MetadataSchema = z.object({
@@ -49,26 +49,26 @@ export const MetadataSchema = z.object({
 export type Metadata = z.infer<typeof MetadataSchema>;
 ```
 
-| Field       | Type     | Description                                   |
-|-------------|---------|-----------------------------------------------|
-| `id`        | `string` | Unique identifier for the companion (e.g., `"companion_aya"`) |
-| `name`      | `string` | Visible name (e.g., `"aya"`)                   |
-| `personality` | `string` | Character profile settings that the LLM will use for role-playing references. |
-| `story`     | `string` | Backstory information                         |
-| `sample`    | `string` | Sample response text (used as a reference for the companion's tone) |
+| Field       | Type     | Description                                          |
+|-------------|---------|------------------------------------------------------|
+| `id`        | `string` | Unique identifier for the companion (e.g., "companion_aya") |
+| `name`      | `string` | Visible name to display (e.g., "aya")                    |
+| `personality` | `string` | Character traits that the LLM will reference for role-playing |
+| `story`     | `string` | Backstory information                                   |
+| `sample`    | `string` | Sample dialogue or speech pattern for tone reference      |
 
-**Usage Example:**
+**Example Usage:**
 
 ```typescript
 metadata: {
   id: "companion_aya",
   name: "aya",
   personality:
-    "Maintains a calm and cool demeanor, but occasionally shows a slightly clumsy yet endearing side.",
+    "Exudes calm and cool demeanor, while occasionally showing a slightly clumsy yet endearing side.",
   story:
-    "Continues research and creative work in her own freestyle while valuing her personal interests.",
+    "Continues research and creative work in her freestyle style while valuing her personal interests.",
   sample:
-    "When I get talking about things I'm interested in, I just lose myself in the subject... though it's a bit embarrassing to admit."",
+    "'When I get talking about things I love, I just lose myself... though it's a little embarrassing.'",
 }
 ```
 
@@ -80,7 +80,7 @@ role: string
 
 A string describing the companion's role.
 
-**Usage Example:**
+**Example Usage:**
 
 ```typescript
 role: "You actively engage with other companions and users."
@@ -94,7 +94,7 @@ actions: Record<string, Tool>
 
 An object containing records of Action tools available to the companion.
 
-**Usage Example:**
+**Example Usage:**
 
 ```typescript
 actions: {
@@ -103,7 +103,7 @@ actions: {
 }
 ```
 
-For details on creating Action tools, see the [Action](../tools/action) documentation.
+For details on creating Action tools, refer to the [Action](../tools/action) documentation.
 
 ### knowledge
 
@@ -113,7 +113,7 @@ knowledge: Record<string, Tool>
 
 An object containing records of Knowledge tools available to the companion.
 
-**Usage Example:**
+**Example Usage:**
 
 ```typescript
 knowledge: {
@@ -123,7 +123,7 @@ knowledge: {
 }
 ```
 
-For details on creating Knowledge tools, see the [Knowledge](../tools/knowledge) documentation.
+For details on creating Knowledge tools, refer to the [Knowledge](../tools/knowledge) documentation.
 
 ### events
 
@@ -142,14 +142,14 @@ Configuration for event-driven tool execution.
 params: JSONSchema
 ```
 
-JSON schema defining parameters that the LLM should evaluate.
+JSON schema defining the parameters that the LLM should evaluate.
 
-**Usage Example:**
+**Example Usage:**
 
 ```typescript
 params: {
   title: "Parameters for you to determine",
-  description: "Please assign appropriate values to each field according to the description.",
+  description: "Please assign appropriate values according to this description.",
   type: "object",
   properties: {
     already_replied: {
@@ -157,7 +157,7 @@ params: {
       type: "boolean",
     },
     need_response: {
-      description: "Whether a response is required",
+      description: "Indicates whether a response is required",
       type: "boolean",
     },
   },
@@ -171,7 +171,7 @@ params: {
 conditions: EventCondition[]
 ```
 
-An array of conditions expressed in CEL syntax along with tool execution configurations.
+An array of conditions expressed using CEL expressions along with tool execution configurations.
 
 ```typescript
 export const EventCondition = z.object({
@@ -185,14 +185,14 @@ export const EventCondition = z.object({
 });
 ```
 
-| Field       | Type     | Description                                   |
-|-------------|---------|-----------------------------------------------|
-| `expression` | `string` | CEL expression (e.g., `"need_response == true"`) |
-| `execute`   | `array` | Array of instructions and tools to execute when conditions match |
-| `execute[].instruction` | `string` | Instruction text for the LLM                     |
-| `execute[].tool` | `Tool`  | Tool to be used                                |
+| Field       | Type     | Description                                          |
+|-------------|---------|------------------------------------------------------|
+| `expression` | `string` | CEL expression (e.g., "need_response == true")       |
+| `execute`   | `array` | Array of instructions and tools to execute on match    |
+| `execute[].instruction` | `string` | Instruction text for the LLM                         |
+| `execute[].tool` | `Tool` | Tool to be used                                       |
 
-**Usage Example:**
+**Example Usage:**
 
 ```typescript
 conditions: [
