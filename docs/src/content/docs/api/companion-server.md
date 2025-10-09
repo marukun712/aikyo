@@ -1,17 +1,16 @@
 ---
-title: CompanionServer
-description: CompanionServerクラスのAPIリファレンス
+title: Companion Server
+description: API reference for the CompanionServer class
 ---
+The `CompanionServer` class provides the P2P server functionality for companions. It integrates management of libp2p nodes, messaging, turn-taking, and metadata exchange.
 
-`CompanionServer`は、コンパニオンのP2Pサーバー機能を提供するクラスです。libp2pノードの管理、メッセージング、ターンテイキング、メタデータ交換を統合します。
-
-## インポート
+## Imports
 
 ```typescript
 import { CompanionServer } from "@aikyo/server";
 ```
 
-## コンストラクタ
+## Constructor
 
 ```typescript
 constructor(
@@ -22,17 +21,17 @@ constructor(
 )
 ```
 
-### パラメータ
+### Parameters
 
-| パラメータ | 型 | 説明 | デフォルト |
-|-----------|-----|------|-----------|
-| `companionAgent` | `CompanionAgent` | コンパニオンエージェントのインスタンス | - |
-| `history` | `Message[]` | 会話履歴の配列（CompanionAgentと同じ参照を渡す） | - |
-| `config` | `object` | オプション設定 | `{ timeoutDuration: 5000 }` |
-| `config.timeoutDuration` | `number` | ターンテイキング後の発言待機時間（ミリ秒） | `5000` |
-| `libp2pConfig` | `Libp2pOptions<Services>` | オプション。libp2pノードのカスタム設定 | - |
+| Parameter | Type                   | Description                                               | Default Value |
+|-----------|------------------------|-----------------------------------------------------------|---------------|
+| `companionAgent` | `CompanionAgent`       | Instance of the companion agent                           | -             |
+| `history` | `Message[]`            | Array of conversation history (must reference the same array as CompanionAgent) | -             |
+| `config` | `object`               | Optional configuration settings                           | `{ timeoutDuration: 5000 }` |
+| `config.timeoutDuration` | `number` | Delay in milliseconds before allowing another turn after a turn-taking event | `5000`       |
+| `libp2pConfig` | `Libp2pOptions<Services>` | Optional: Custom configuration for the libp2p node           | -             |
 
-### 使用例
+### Usage Example
 
 ```typescript
 import { CompanionAgent, CompanionServer, type Message } from "@aikyo/server";
@@ -53,7 +52,7 @@ const server = new CompanionServer(companion, history, {
 await server.start();
 ```
 
-カスタムlibp2p設定を使用する場合は、完全な設定を提供する必要があります。
+When using custom libp2p configuration, you must provide complete settings.
 
 ```typescript
 import { CompanionAgent, CompanionServer, type Message } from "@aikyo/server";
@@ -75,7 +74,9 @@ const companion = new CompanionAgent(
 const customServer = new CompanionServer(
   companion,
   history,
-  { timeoutDuration: 1000 },
+  {
+    timeoutDuration: 1000
+  },
   {
     addresses: { listen: ["/ip4/0.0.0.0/tcp/9000"] },
     transports: [tcp()],
@@ -95,7 +96,7 @@ const customServer = new CompanionServer(
 await customServer.start();
 ```
 
-## プロパティ
+## Properties
 
 ### companionAgent
 
@@ -103,7 +104,7 @@ await customServer.start();
 companionAgent: CompanionAgent
 ```
 
-コンパニオンエージェントのインスタンス。
+Instance of the companion agent.
 
 ### history
 
@@ -111,7 +112,7 @@ companionAgent: CompanionAgent
 history: Message[]
 ```
 
-会話履歴の配列（参照）。
+Array of conversation history (reference).
 
 ### turnTakingManager
 
@@ -119,7 +120,7 @@ history: Message[]
 turnTakingManager: TurnTakingManager
 ```
 
-ターンテイキングを管理するマネージャー。詳細は[ターンテイキング](../core/turn-taking)を参照。
+Manager responsible for handling turn-taking. For details, see [Turn-Taking](../core/turn-taking).
 
 ```typescript
 this.turnTakingManager = new TurnTakingManager(
@@ -134,7 +135,7 @@ this.turnTakingManager = new TurnTakingManager(
 companion: CompanionCard
 ```
 
-コンパニオンの設定カード（`companionAgent.companion`と同じ）。
+Configuration card for the companion (same as `companionAgent.companion`).
 
 ### libp2p
 
@@ -142,7 +143,7 @@ companion: CompanionCard
 libp2p: Libp2p<Services>
 ```
 
-libp2pノードのインスタンス。P2P通信の核となるオブジェクトです。
+Instance of the libp2p node. This serves as the core object for P2P communication.
 
 ```typescript
 this.libp2p = await createLibp2p({
@@ -161,7 +162,7 @@ this.libp2p = await createLibp2p({
 });
 ```
 
-詳細は[P2P通信](../core/p2p)を参照。
+For details, see [P2P Communication](../core/p2p).
 
 ### companionList
 
@@ -169,15 +170,15 @@ this.libp2p = await createLibp2p({
 companionList: Map<string, Metadata>
 ```
 
-接続中のコンパニオンのメタデータを管理するMap。
+Map managing metadata for connected companions.
 
 ```typescript
 companionList = new Map<string, Metadata>();
 ```
 
-**初期化時:**
+**During initialization:**
 
-自分自身をまず登録し、ピア接続時に相手のメタデータを追加します。
+First, register yourself, then add the other party's metadata when connecting peers.
 
 ### pendingQueries
 
@@ -191,7 +192,7 @@ pendingQueries = new Map<
 >();
 ```
 
-クライアントへのクエリ待機状態を管理するMap。詳細は[Query](../tools/query#pendingqueries管理)を参照。
+Map managing the state of pending queries to clients. For details, see [Query](../tools/query#managing-pendingqueries).
 
 ### libp2pConfig
 
@@ -199,39 +200,39 @@ pendingQueries = new Map<
 libp2pConfig?: Libp2pOptions<Services>
 ```
 
-オプション。libp2pノードのカスタム設定。指定しない場合はデフォルト設定が使用されます。
+Optional: Custom configuration for the libp2p node. If omitted, default settings are used.
 
-## メソッド
+## Methods
 
 ### start()
 
-サーバーを起動します。
+Starts the server.
 
 ```typescript
 async start(): Promise<void>
 ```
 
-**処理フロー:**
+**Processing Flow:**
 
-1. libp2pノードを初期化（`setupLibp2p()`）
-2. イベントリスナーを登録
+1. Initialize the libp2p node (`setupLibp2p()`)
+2. Register event listeners
 
 ### handleMessageReceived()
 
-メッセージ受信時の処理を行います。
+Handles the reception of messages.
 
 ```typescript
 async handleMessageReceived(message: Message): Promise<void>
 ```
 
-**パラメータ:**
+**Parameters:**
 
-- `message`: 受信したメッセージ
+- `message`: The received message
 
-**処理フロー:**
+**Processing Flow:**
 
-1. `TurnTakingManager`にメッセージを登録
-2. 自分の`State`を生成
-3. `states`トピックにStateをパブリッシュ
+1. Register the message with the `TurnTakingManager`
+2. Generate your own `State`
+3. Publish the State to the `states` topic
 
-このメソッドは`handlePubSubMessage`から呼び出されます。
+This method is called from `handlePubSubMessage`.

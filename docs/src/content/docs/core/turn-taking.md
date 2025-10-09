@@ -1,72 +1,71 @@
 ---
-title: ターンテイキング
-description: aikyoのターンテイキングシステムによる会話順序制御
+title: Turn-taking
+description: Conversation order control using aikyo's turn-taking system
 ---
+aikyo implements a **turn-taking system** to enable multiple AI companions to engage in natural conversation flow. This system automatically determines who should speak and when.
 
-aikyoでは、複数のAIコンパニオンが自然に会話を進めるために**ターンテイキングシステム**を実装しています。このシステムにより、誰がいつ発言するかが自動的に決定されます。
+## How Turn Taking Works
 
-## ターンテイキングの仕組み
+### Overall Process
 
-### 全体の流れ
+1. The companion receiving a message generates a `State` object.
+2. All companions publish their `State` objects to the `states` topic.
+3. The `TurnTakingManager` collects all collected `States`.
+4. Based on votes, it selects the next speaker.
+5. The selected companion then executes its turn.
 
-1. メッセージを受信したコンパニオンは`State`（状態）を生成
-2. 全コンパニオンが`states`トピックに`State`をパブリッシュ
-3. `TurnTakingManager`が全員の`State`を収集
-4. 投票に基づいて次の発言者を選出
-5. 選出されたコンパニオンが発言を実行
+## Generating State
 
-## State（状態）の生成
+Each companion determines its own state based on the entire conversation history.
 
-各コンパニオンは会話履歴全体を元に、自分の状態を判断します。
-
-### Stateの構造
+### State Structure
 
 ```typescript
 export const StateBodySchema = z.object({
   from: z.string(),
-  messageId: z.string().describe("このstateが対応する元のメッセージのID"),
+  messageId: z.string().describe("The ID of the original message this state corresponds to"),
   state: z
     .enum(["speak", "listen"])
-    .describe("次に発言をしたいか、聞く姿勢に入りたいか"),
+    .describe("Whether you want to speak next or enter listening mode"),
   importance: z
     .number()
     .min(0)
     .max(10)
-    .describe("会話の文脈におけるあなたが次にしたい発言の重要度"),
+    .describe("The priority of your next intended statement in the conversation context"),
   selected: z
     .boolean()
-    .describe("前回の発言者の発言で、あなたに発言を求められているかどうか"),
+    .describe("Indicates whether the previous speaker has specifically called on you to speak"),
   closing: z
     .enum(["none", "pre-closing", "closing", "terminal"])
     .default("none")
-    .describe("会話の収束段階:なし/事前クロージング/クロージング/終端"),
+    .describe("Conversation closure stage: none/pre-closure/closure/terminal"),
 }).strict();
 export type StateBody = z.infer<typeof StateBodySchema>;
 ```
 
-**重要なフィールド:**
+**Key Fields:**
 
-- **state**: `speak`（発言したい）か`listen`（聞く姿勢）
-- **importance**: 0-10のスコア（高いほど優先される）
-- **selected**: 名指しされているかどうか
-- **closing**: 会話終了の意思（詳細は[会話クロージング](./closing)を参照）
+- **state**: Either `speak` (wanting to speak) or `listen` (entering listening mode)
+- **importance**: A score between 0-10, where higher values indicate greater priority
+- **selected**: Indicates whether you have been specifically called upon
+- **closing**: Indication of conversation termination intent (see [Conversation Closure](./closing) for details)
 
-## TurnTakingManagerによる発言者選出
+## Speaker Selection by TurnTakingManager
 
-`TurnTakingManager`は全コンパニオンの`State`を収集し、発言者を決定します。
+The `TurnTakingManager` collects all companions' `States` to determine who should speak next.
 
-### State収集
+### State Collection
 
-参加者全員の`State`が集まるまで待機し、全員の投票が揃った時点で次のステップに進みます。
+It waits until all participants have submitted their `State` objects, then proceeds once all votes are in.
 
-### 発言者選出
+### Speaker Selection Logic
 
-**優先順位:**
+**Priority Order:**
 
-1. **名指しされたコンパニオン (`selected=true`)**: その中で最高`importance`
-2. **発言希望コンパニオン (`state=speak`)**: その中で最高`importance`
-3. **該当なし**: 発言者なしで終了
+1. **Named companions (`selected=true`)**: Among these, the one with the highest `importance`
+2. **Companions requesting to speak (`state=speak`)**: Among these, the one with the highest `importance`
+3. **No eligible candidates**: The turn ends without selection
 
-### 発言実行
+### Statement Execution
 
-選出されたコンパニオンが自分である場合、設定された待機時間後に発言を実行します。`closing=terminal`の場合は発言を行わず、会話を終了します。
+If the selected companion is yourself, you will execute your statement after a predetermined wait period. If `closing=terminal`, no statement will be delivered, and the conversation will conclude.

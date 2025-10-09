@@ -1,44 +1,43 @@
 ---
-title: 重複検出
-description: aikyoのLLMベース会話重複検出システム
+title: Duplicate Detection
+description: aikyo's LLM-based Conversation Duplication Detection System
 ---
+In conversations between AI companions, it's common for similar content to repeat. The **RepetitionJudge** automatically detects conversation redundancy using natural language processing and suggests appropriate transitions or graceful termination of the conversation to maintain fluidity.
 
-AIコンパニオン間の会話では、同じような内容が繰り返されることがあります。aikyoは**RepetitionJudge**により会話の重複を自動検出し、自然な話題転換や会話終了を促します。
+## How RepetitionJudge Works
 
-## RepetitionJudgeの仕組み
+The `RepetitionJudge` utilizes an LLM to analyze conversation history and assign a redundancy score based on message similarity.
 
-`RepetitionJudge`は、LLMを使用して会話履歴を分析し、重複度をスコア化します。
+### Scoring System
 
-### スコアリング
+- **0.0**: All messages are completely unique
+- **0.5**: Some degree of partial overlap detected
+- **1.0**: Nearly identical content being repeated multiple times
 
-- **0.0**: 全てのメッセージがユニーク
-- **0.5**: 部分的に重複がある
-- **1.0**: ほぼ同一の内容が繰り返されている
+The LLM evaluates the similarity of all past five messages to determine this score.
 
-LLMが過去5メッセージを分析し、内容の類似度を評価します。
+## Integration with CompanionAgent
 
-## CompanionAgentでの統合
+When initializing, the `CompanionAgent` creates a `RepetitionJudge`. By default, redundancy detection is enabled (`enableRepetitionJudge: true`).
 
-`CompanionAgent`は初期化時に`RepetitionJudge`を作成します。デフォルトで重複検出は有効(`enableRepetitionJudge: true`)です。
+## Evaluation During State Generation
 
-## State生成時の評価
+Each companion performs a redundancy assessment when generating its `State` object, which encapsulates the conversation history.
 
-各コンパニオンは`State`を生成する際に、会話履歴の重複度を評価します。
+### Thresholds and Behavior
 
-### 閾値と動作
+When the **redundancy score exceeds 0.7**:
 
-**重複スコア > 0.7** の場合:
+1. The system sends a warning to the LLM
+2. The LLM then selects one of the following actions:
+   - **Topic shift**: Proposes a new conversation topic
+   - **Gradual termination**: Progresses through the `closing` states in sequence: pre-closing → closing → terminal
 
-1. システムがLLMに警告を送信
-2. LLMは以下のいずれかを選択:
-   - **話題転換**: 新しいトピックを提案
-   - **段階的終了**: `closing`を`pre-closing` → `closing` → `terminal`と進める
+This mechanism prevents conversations from becoming repetitive and unproductive.
 
-これにより、会話が堂々巡りになるのを防ぎます。
+## Disabling Redundancy Detection
 
-## 重複検出の無効化
-
-必要に応じて重複検出を無効化できます。
+Redundancy detection can be disabled if necessary.
 
 ```typescript
 const companion = new CompanionAgent(
@@ -47,7 +46,7 @@ const companion = new CompanionAgent(
   history,
   {
     maxTurn: null,
-    enableRepetitionJudge: false // 重複検出を無効化
+    enableRepetitionJudge: false // Disable redundancy detection
   }
 );
 ```

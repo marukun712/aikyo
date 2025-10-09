@@ -9,12 +9,16 @@ export default defineConfig({
     starlight({
       title: "aikyo",
       locales: {
-        root: {
+        ja: {
           label: "日本語",
           lang: "ja",
         },
+        root: {
+          label: "English",
+          lang: "en",
+        },
       },
-      defaultLocale: "ja",
+      defaultLocale: "root",
       social: [
         {
           icon: "github",

@@ -1,29 +1,30 @@
 ---
 title: Firehose
-description: API Reference for the Firehose Class
+description: FirehoseクラスのAPIリファレンス
 ---
-`Firehose` is a server that bridges WebSocket clients with libp2p Pubsub, enabling browsers and Node.js clients to participate in a P2P network.
 
-## Import
+`Firehose`は、WebSocketクライアントとlibp2p Pubsubをブリッジするサーバーです。ブラウザやNode.jsクライアントがP2Pネットワークに参加できるようにします。
+
+## インポート
 
 ```typescript
 import { Firehose } from "@aikyo/firehose";
 ```
 
-## Constructor
+## コンストラクタ
 
 ```typescript
 constructor(port: number, libp2pConfig?: Libp2pOptions<Services>)
 ```
 
-### Parameters
+### パラメータ
 
-| Parameter | Type          | Description                               |
-|-----------|---------------|-------------------------------------------|
-| `port`    | `number`      | Port number for the WebSocket server     |
-| `libp2pConfig` | `Libp2pOptions<Services>` | Optional. Custom configuration for the libp2p node                   |
+| パラメータ | 型 | 説明 |
+|-----------|-----|------|
+| `port` | `number` | WebSocketサーバーのポート番号 |
+| `libp2pConfig` | `Libp2pOptions<Services>` | オプション。libp2pノードのカスタム設定 |
 
-### Usage Example
+### 使用例
 
 ```typescript
 import { Firehose } from "@aikyo/firehose";
@@ -31,7 +32,7 @@ import { Firehose } from "@aikyo/firehose";
 const firehose = new Firehose(8080);
 await firehose.start();
 
-// Subscribe to each topic
+//各トピックをサブスクライブ
 await firehose.subscribe("messages", (data) => {
   firehose.broadcastToClients(data);
 });
@@ -45,15 +46,15 @@ await firehose.subscribe("actions", (data) => {
 });
 ```
 
-Client Example:
+クライアント例
 ```typescript
 import WebSocket from 'ws';
 
 const firehoseUrl = 'ws://localhost:8080';
 const ws = new WebSocket(firehoseUrl);
 
-const companionId = 'companion_aya'; // Specify Aya's ID
-const userId = 'user_yamada';        // Specify the user's name
+const companionId = 'companion_aya'; // ayaのIDを指定
+const userId = 'user_yamada';        // ユーザーの名前を指定
 
 ws.on('open', () => {
   const message = {
@@ -65,7 +66,7 @@ ws.on('open', () => {
         id: crypto.randomUUID(),
         from: userId,
         to: [companionId],
-        message: 'Hello Aya!',
+        message: 'こんにちは、ayaさん！',
       }
     }
   };
@@ -78,7 +79,7 @@ ws.on('message', (data) => {
 });
 ```
 
-For using custom libp2p configuration, you must provide complete settings.
+カスタムlibp2p設定を使用する場合は、完全な設定を提供する必要があります。
 
 ```typescript
 import { Firehose } from "@aikyo/firehose";
@@ -103,7 +104,7 @@ const customFirehose = new Firehose(8080, {
 await customFirehose.start();
 ```
 
-## Properties
+## プロパティ
 
 ### libp2p
 
@@ -111,7 +112,7 @@ await customFirehose.start();
 private libp2p: Libp2p<Services>
 ```
 
-Instance of the libp2p node (configured similarly to CompanionServer).
+libp2pノードのインスタンス（CompanionServerと同じ構成）。
 
 ```typescript
 this.libp2p = await createLibp2p({
@@ -135,7 +136,7 @@ this.libp2p = await createLibp2p({
 private wss: WebSocketServer
 ```
 
-Instance of the WebSocket server.
+WebSocketサーバーのインスタンス。
 
 ```typescript
 this.wss = new WebSocketServer({ port: this.port });
@@ -147,13 +148,13 @@ this.wss = new WebSocketServer({ port: this.port });
 private clients: Set<WebSocket>
 ```
 
-Set managing connected WebSocket clients.
+接続中のWebSocketクライアントを管理するSet。
 
 ```typescript
 this.clients = new Set();
 ```
 
-New clients are added when they connect and removed when disconnecting.
+新しいクライアントが接続すると追加され、切断時に削除されます。
 
 ### port
 
@@ -161,7 +162,7 @@ New clients are added when they connect and removed when disconnecting.
 private readonly port: number
 ```
 
-Port number for the WebSocket server.
+WebSocketサーバーのポート番号。
 
 ### topicHandlers
 
@@ -171,7 +172,7 @@ private topicHandlers: {
 }
 ```
 
-Object managing handler functions for each topic, providing type-safe event handling.
+トピックごとのハンドラー関数を管理するオブジェクト。型安全なイベント処理を提供します。
 
 ```typescript
 type TopicPayloads = {
@@ -182,7 +183,7 @@ type TopicPayloads = {
 };
 ```
 
-Multiple handlers can be registered for each topic and will be executed sequentially when messages are received.
+各トピックに対して複数のハンドラーを登録でき、メッセージ受信時に順次実行されます。
 
 ### libp2pConfig
 
@@ -190,25 +191,25 @@ Multiple handlers can be registered for each topic and will be executed sequenti
 private libp2pConfig?: Libp2pOptions<Services>
 ```
 
-Optional. Custom configuration for the libp2p node. If not specified, default settings will be used.
+オプション。libp2pノードのカスタム設定。指定しない場合はデフォルト設定が使用されます。
 
-## Methods
+## メソッド
 
 ### start()
 
-Starts the Firehose server.
+Firehoseサーバーを起動します。
 
 ```typescript
 async start(): Promise<void>
 ```
 
-**Process Flow:**
+**処理フロー:**
 
-1. Initializes the libp2p node
-2. Starts the WebSocket server
-3. Registers event listeners
+1. libp2pノードを初期化
+2. WebSocketサーバーを起動
+3. イベントリスナーを登録
 
-**Example Output:**
+**出力例:**
 
 ```
 aikyo firehose server running on ws://localhost:8080
@@ -216,7 +217,7 @@ aikyo firehose server running on ws://localhost:8080
 
 ### subscribe()
 
-Subscribes to specified topics and optionally registers handlers.
+指定したトピックをサブスクライブし、オプションでハンドラーを登録します。
 
 ```typescript
 async subscribe<K extends keyof TopicPayloads>(
@@ -225,20 +226,20 @@ async subscribe<K extends keyof TopicPayloads>(
 ): Promise<void>
 ```
 
-**Parameters:**
+**パラメータ:**
 
-| Parameter | Type          | Description                               |
-|-----------|---------------|-------------------------------------------|
-| `topic`   | `keyof TopicPayloads` | Name of the topic to subscribe to ("messages", "queries", "actions", "states") |
-| `handler` | `function`    | Optional. Handler function to execute when messages are received                 |
+| パラメータ | 型 | 説明 |
+|-----------|-----|------|
+| `topic` | `keyof TopicPayloads` | サブスクライブするトピック名（`"messages"`, `"queries"`, `"actions"`, `"states"`） |
+| `handler` | `function` | オプション。メッセージ受信時に実行するハンドラー関数 |
 
-**Usage Example:**
+**使用例:**
 
 ```typescript
-// Subscribe to a topic only
+// トピックのサブスクライブのみ
 await firehose.subscribe("messages");
 
-// Subscribe with a handler
+// ハンドラー付きでサブスクライブ
 await firehose.subscribe("messages", (data) => {
   console.log("Message received:", data);
   firehose.broadcastToClients(data);
@@ -247,7 +248,7 @@ await firehose.subscribe("messages", (data) => {
 
 ### addHandler()
 
-Adds a handler to an existing topic.
+既存のトピックにハンドラーを追加します。
 
 ```typescript
 addHandler<K extends keyof TopicPayloads>(
@@ -256,14 +257,14 @@ addHandler<K extends keyof TopicPayloads>(
 ): void
 ```
 
-**Parameters:**
+**パラメータ:**
 
-| Parameter | Type          | Description                               |
-|-----------|---------------|-------------------------------------------|
-| `topic`   | `keyof TopicPayloads` | Topic name                                |
-| `handler` | `function`    | Handler function to execute when messages are received                       |
+| パラメータ | 型 | 説明 |
+|-----------|-----|------|
+| `topic` | `keyof TopicPayloads` | トピック名 |
+| `handler` | `function` | メッセージ受信時に実行するハンドラー関数 |
 
-**Usage Example:**
+**使用例:**
 
 ```typescript
 firehose.addHandler("actions", (action) => {
@@ -273,14 +274,14 @@ firehose.addHandler("actions", (action) => {
 
 ### broadcastToClients()
 
-Broadcasts data to all connected WebSocket clients.
+接続中の全WebSocketクライアントにデータをブロードキャストします。
 
 ```typescript
 broadcastToClients(data: unknown): void
 ```
 
-**Parameters:**
+**パラメータ:**
 
-| Parameter | Type          | Description                               |
-|-----------|---------------|-------------------------------------------|
-| `data`    | `unknown`     | Data to broadcast (will be JSON.stringified) |
+| パラメータ | 型 | 説明 |
+|-----------|-----|------|
+| `data` | `unknown` | ブロードキャストするデータ（JSON.stringifyされます） |

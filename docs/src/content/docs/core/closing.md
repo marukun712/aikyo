@@ -1,53 +1,52 @@
 ---
-title: 会話クロージング
-description: aikyoの段階的な会話終了制御システム
+title: Conversation Closings
+description: Aikyo's phased conversation termination control system
 ---
+aikyo implements a **gradual closing system** to naturally conclude conversations between AI companions. This ensures that discussions don't continue indefinitely and are properly concluded at appropriate moments.
 
-aikyoでは、AIコンパニオン間の会話を自然に終了させるために**段階的なクロージングシステム**を実装しています。これにより、会話が延々と続くことなく、適切なタイミングで終了できます。
+## Closing Stage Fields
 
-## Closingフィールドの段階
-
-各コンパニオンは`State`生成時に、会話の終了段階を`closing`フィールドで表明します。
+When generating its `State`, each companion indicates its current conversation closure stage through the `closing` field.
 
 ```typescript
 closing: z
   .enum(["none", "pre-closing", "closing", "terminal"])
   .default("none")
-  .describe("会話の収束段階:なし/事前クロージング/クロージング/終端"),
+  .describe("Conversation convergence stage: none/pre-closure/closure/termination"),
 ```
 
-### 4つの段階
+### The Four Stages
 
-| 段階 | 意味 | 例 |
-|------|------|-----|
-| `none` | 会話継続 | 通常の会話中 |
-| `pre-closing` | 会話を終わりに向ける布石 | 「そろそろ時間だね」「ところで…」 |
-| `closing` | クロージング表現（感謝・挨拶など） | 「話せて楽しかったよ」「ありがとう」 |
-| `terminal` | 最後の別れの挨拶 | 「それじゃあね」「またね」 |
+| Stage | Meaning | Example Phrase |
+|-------|---------|----------------|
+| `none` | Conversation continues | During normal conversation flow |
+| `pre-closing` | Preparation for ending the conversation | "It's getting late, isn't it?" / "By the way..." |
+| `closing` | Closing expressions (thanks/farewells, etc.) | "It was nice talking to you" / "Thank you" |
+| `terminal` | Final farewell phrase | "See you later" / "Take care" |
 
-## Closingの判断ロジック
+## Decision Logic for Determining When to Close
 
-### LLMによる自動判断
+### Automatic Determination by LLM
 
-各コンパニオンは受信したメッセージから会話の文脈を読み取り、適切な`closing`段階を判断します。LLMは会話履歴を参照しながら、自然な終了タイミングを判断します。
+Each companion analyzes the incoming message context to determine the appropriate `closing` stage. The LLM references the conversation history to determine a natural point for concluding the discussion.
 
-### 重複検出との連携
+### Integration with Duplication Detection
 
-会話が繰り返しになっている場合、強制的にクロージングを促します（詳細は[重複検出](./repetition)を参照）。
+When conversations become repetitive, the system will automatically prompt for a closing (see [Duplication Detection](./repetition) for more details).
 
-重複が検出されると、システムがLLMに対して段階的にクロージングするよう指示します。
+Upon detecting repetition, the system instructs the LLM to proceed with the gradual closure process.
 
-## Terminal時の処理
+## Handling When `closing=terminal` is Set
 
-`closing=terminal`の場合、そのコンパニオンは発言を実行しません。
+If `closing=terminal` is set, that companion will not make any subsequent statements.
 
-これにより、クロージングが完了したコンパニオンは新たな発言を行わず、会話が自然に収束します。
+This ensures that companions who have completed their closing do not make any further responses, allowing the conversation to naturally reach its conclusion.
 
-## ターン上限による強制終了
+## Forced Termination by Turn Limit
 
-オプションで`maxTurn`を設定することで、会話のターン数に上限を設けることができます。ターン上限に達すると、自動的に`closing=terminal`が設定され、会話が終了します。
+Optionally, you can set a `maxTurn` limit to establish an upper bound on conversation turns. When the turn limit is reached, the system automatically sets `closing=terminal` and ends the conversation.
 
-**使用例:**
+**Usage Example:**
 
 ```typescript
 const companion = new CompanionAgent(
@@ -55,7 +54,7 @@ const companion = new CompanionAgent(
   anthropic("claude-3-5-haiku-latest"),
   history,
   {
-    maxTurn: 10, // 10ターンで強制終了
+    maxTurn: 10, // Force termination after 10 turns
     enableRepetitionJudge: true
   }
 );

@@ -1,17 +1,16 @@
 ---
-title: CompanionCard
-description: CompanionCard型の詳細仕様
+title: Companion Card
+description: Detailed specifications for CompanionCard type
 ---
+`CompanionCard` is a type that defines the configuration for an AI companion. It consolidates metadata, roles, tools, and event conditions into a single structure.
 
-`CompanionCard`は、AIコンパニオンの設定を定義する型です。メタデータ、役割、ツール、イベント条件などをまとめて管理します。
-
-## インポート
+## Import Statement
 
 ```typescript
 import type { CompanionCard } from "@aikyo/server";
 ```
 
-## 型定義
+## Type Definition
 
 ```typescript
 export const CompanionSchema = z.object({
@@ -28,7 +27,7 @@ export const CompanionSchema = z.object({
 export type CompanionCard = z.infer<typeof CompanionSchema>;
 ```
 
-## フィールド
+## Fields
 
 ### metadata
 
@@ -36,7 +35,7 @@ export type CompanionCard = z.infer<typeof CompanionSchema>;
 metadata: Metadata
 ```
 
-コンパニオンのメタデータ情報。
+Contains metadata information about the companion.
 
 ```typescript
 export const MetadataSchema = z.object({
@@ -50,26 +49,26 @@ export const MetadataSchema = z.object({
 export type Metadata = z.infer<typeof MetadataSchema>;
 ```
 
-| フィールド | 型 | 説明 |
-|-----------|-----|------|
-| `id` | `string` | コンパニオンの一意なID（例: `"companion_aya"`） |
-| `name` | `string` | 表示名（例: `"aya"`） |
-| `personality` | `string` | 性格設定（LLMがロールプレイの参考にする） |
-| `story` | `string` | バックストーリー |
-| `sample` | `string` | サンプル発言（口調の参考） |
+| Field       | Type     | Description                                          |
+|-------------|---------|------------------------------------------------------|
+| `id`        | `string` | Unique identifier for the companion (e.g., "companion_aya") |
+| `name`      | `string` | Visible name to display (e.g., "aya")                    |
+| `personality` | `string` | Character traits that the LLM will reference for role-playing |
+| `story`     | `string` | Backstory information                                   |
+| `sample`    | `string` | Sample dialogue or speech pattern for tone reference      |
 
-**使用例:**
+**Example Usage:**
 
 ```typescript
 metadata: {
   id: "companion_aya",
   name: "aya",
   personality:
-    "落ち着いていてクールな雰囲気を持つが、時折ほんの少し抜けていて親しみやすい一面を見せる。",
+    "Exudes calm and cool demeanor, while occasionally showing a slightly clumsy yet endearing side.",
   story:
-    "自分の関心を大切にしながら、自由なスタイルで研究や創作を続けている。",
+    "Continues research and creative work in her freestyle style while valuing her personal interests.",
   sample:
-    "『好きなものについて話してると、つい夢中になっちゃうんだよね。…ちょっと恥ずかしいけど。』",
+    "'When I get talking about things I love, I just lose myself... though it's a little embarrassing.'",
 }
 ```
 
@@ -79,12 +78,12 @@ metadata: {
 role: string
 ```
 
-コンパニオンの役割を記述する文字列。
+A string describing the companion's role.
 
-**使用例:**
+**Example Usage:**
 
 ```typescript
-role: "あなたは、他のコンパニオンやユーザーと積極的に交流します。"
+role: "You actively engage with other companions and users."
 ```
 
 ### actions
@@ -93,9 +92,9 @@ role: "あなたは、他のコンパニオンやユーザーと積極的に交�
 actions: Record<string, Tool>
 ```
 
-コンパニオンが使用できるActionツールのレコード。
+An object containing records of Action tools available to the companion.
 
-**使用例:**
+**Example Usage:**
 
 ```typescript
 actions: {
@@ -104,7 +103,7 @@ actions: {
 }
 ```
 
-Actionツールの作成方法は[Action](../tools/action)を参照。
+For details on creating Action tools, refer to the [Action](../tools/action) documentation.
 
 ### knowledge
 
@@ -112,9 +111,9 @@ Actionツールの作成方法は[Action](../tools/action)を参照。
 knowledge: Record<string, Tool>
 ```
 
-コンパニオンが使用できるKnowledgeツールのレコード。
+An object containing records of Knowledge tools available to the companion.
 
-**使用例:**
+**Example Usage:**
 
 ```typescript
 knowledge: {
@@ -124,7 +123,7 @@ knowledge: {
 }
 ```
 
-Knowledgeツールの作成方法は[Knowledge](../tools/knowledge)を参照。
+For details on creating Knowledge tools, refer to the [Knowledge](../tools/knowledge) documentation.
 
 ### events
 
@@ -135,7 +134,7 @@ events: {
 }
 ```
 
-イベント駆動のツール実行設定。
+Configuration for event-driven tool execution.
 
 #### events.params
 
@@ -143,22 +142,22 @@ events: {
 params: JSONSchema
 ```
 
-LLMが評価すべきパラメータのJSONスキーマ。
+JSON schema defining the parameters that the LLM should evaluate.
 
-**使用例:**
+**Example Usage:**
 
 ```typescript
 params: {
-  title: "あなたが判断すべきパラメータ",
-  description: "descriptionに従い、それぞれ適切に値を代入してください。",
+  title: "Parameters for you to determine",
+  description: "Please assign appropriate values according to this description.",
   type: "object",
   properties: {
     already_replied: {
-      description: "すでに話したことのある人かどうか",
+      description: "Whether this person has already been spoken to before",
       type: "boolean",
     },
     need_response: {
-      description: "返答の必要があるかどうか",
+      description: "Indicates whether a response is required",
       type: "boolean",
     },
   },
@@ -172,7 +171,7 @@ params: {
 conditions: EventCondition[]
 ```
 
-CEL式による条件とツール実行の配列。
+An array of conditions expressed using CEL expressions along with tool execution configurations.
 
 ```typescript
 export const EventCondition = z.object({
@@ -186,14 +185,14 @@ export const EventCondition = z.object({
 });
 ```
 
-| フィールド | 型 | 説明 |
-|-----------|-----|------|
-| `expression` | `string` | CEL式（例: `"need_response == true"`） |
-| `execute` | `array` | マッチ時に実行する指示とツールの配列 |
-| `execute[].instruction` | `string` | LLMへの指示文 |
-| `execute[].tool` | `Tool` | 使用するツール |
+| Field       | Type     | Description                                          |
+|-------------|---------|------------------------------------------------------|
+| `expression` | `string` | CEL expression (e.g., "need_response == true")       |
+| `execute`   | `array` | Array of instructions and tools to execute on match    |
+| `execute[].instruction` | `string` | Instruction text for the LLM                         |
+| `execute[].tool` | `Tool` | Tool to be used                                       |
 
-**使用例:**
+**Example Usage:**
 
 ```typescript
 conditions: [
@@ -201,7 +200,7 @@ conditions: [
     expression: "already_replied == false",
     execute: [
       {
-        instruction: "自己紹介をする。",
+        instruction: "Introduce yourself.",
         tool: speakTool,
       },
     ],
@@ -210,7 +209,7 @@ conditions: [
     expression: "need_response == true",
     execute: [
       {
-        instruction: "ツールを使って返信する。",
+        instruction: "Respond using the tool.",
         tool: speakTool,
       },
     ],
