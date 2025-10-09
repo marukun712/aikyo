@@ -141,7 +141,7 @@ export class CompanionAgent implements ICompanionAgent {
       const result = await this.repetitionJudge.evaluate(formatted);
       logger.info({ result }, "Repetition judge evaluation");
       const repetition = result.score;
-      //スコアが0.8以上の場合
+      //スコアが0.7より大きい場合
       if (repetition > 0.7) {
         //プロンプトに会話の終了か転換を促すプロンプトをいれる
         closingInstruction =
