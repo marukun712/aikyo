@@ -54,7 +54,7 @@ export interface CompanionActionConfig<T extends z.ZodSchema> {
     input: z.infer<T>;
     id: string;
     companions: Map<string, string>;
-    sendQuery: (query: Query) => Promise<QueryResult>;
+    sendQuery: (query: Query, timeout?: number) => Promise<QueryResult>;
     companionAgent: CompanionAgent;
   }) => Promise<Output> | Output;
 }

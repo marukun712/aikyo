@@ -17,7 +17,7 @@ export interface CompanionKnowledgeConfig<
     input: z.infer<T>;
     id: string;
     companions: Map<string, string>;
-    sendQuery: (query: Query) => Promise<QueryResult>;
+    sendQuery: (query: Query, timeout?: number) => Promise<QueryResult>;
     companionAgent: CompanionAgent;
   }) => Promise<z.infer<U>> | z.infer<U>;
 }
