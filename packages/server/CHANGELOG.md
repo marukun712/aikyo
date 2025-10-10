@@ -1,5 +1,11 @@
 # @aikyo/server
 
+## 1.4.3
+
+### Patch Changes
+
+- da5c332: Closing State を Context に含める
+
 ## 1.4.2
 
 ### Patch Changes
