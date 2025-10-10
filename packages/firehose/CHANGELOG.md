@@ -1,5 +1,13 @@
 # @aikyo/firehose
 
+## 1.5.3
+
+### Patch Changes
+
+- da5c332: 不要な log を削除
+- Updated dependencies [da5c332]
+  - @aikyo/server@1.4.3
+
 ## 1.5.2
 
 ### Patch Changes
