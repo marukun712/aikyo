@@ -1,4 +1,3 @@
-import { anthropic } from "@ai-sdk/anthropic";
 import {
   CompanionAgent,
   type CompanionCard,
@@ -10,6 +9,7 @@ import {
   speakTool,
   visionKnowledge,
 } from "@aikyo/utils";
+import { openrouter } from "@openrouter/ai-sdk-provider";
 
 export const companionCard: CompanionCard = {
   metadata: {
@@ -35,12 +35,8 @@ export const companionCard: CompanionCard = {
           description: "すでに話したことのある人かどうか",
           type: "boolean",
         },
-        need_response: {
-          description: "返答の必要があるかどうか",
-          type: "boolean",
-        },
       },
-      required: ["already_replied", "need_response"],
+      required: ["already_replied"],
     },
     conditions: [
       {
@@ -53,7 +49,7 @@ export const companionCard: CompanionCard = {
         ],
       },
       {
-        expression: "need_response == true",
+        expression: "true",
         execute: [
           {
             instruction: "ツールを使って返信する。",
@@ -65,14 +61,18 @@ export const companionCard: CompanionCard = {
   },
 };
 
-const history: Message[] = [];
-const companion = new CompanionAgent(
-  companionCard,
-  anthropic("claude-sonnet-4-5"),
-  history,
-  { enableRepetitionJudge: false },
-);
-const server = new CompanionServer(companion, history, {
-  timeoutDuration: 1000,
-});
-await server.start();
+async function main() {
+  const history: Message[] = [];
+  const companion = new CompanionAgent(
+    companionCard,
+    openrouter("gemini-2.5-flash", { provider: { require_parameters: true } }),
+    history,
+    { enableRepetitionJudge: false },
+  );
+  const server = new CompanionServer(companion, history, {
+    timeoutDuration: 1000,
+  });
+  await server.start();
+}
+
+main().catch((e) => console.log(e));

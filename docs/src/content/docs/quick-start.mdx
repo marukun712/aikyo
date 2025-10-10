@@ -57,61 +57,11 @@ ANTHROPIC_API_KEY="sk-ant-xxxxxxxx"
 
 Let's start by launching a single companion `aya`.
 
-### Step 1: Defining the Tools (tools.ts)
-
-Define the tools your companion will utilize in `tools.ts`:
-
-```typescript
-import { createCompanionAction, createCompanionKnowledge } from "@aikyo/utils";
-import { z } from "zod";
-import { randomUUID } from "node:crypto";
-
-export const speakTool = createCompanionAction({
-  id: "speak",
-  description: "発言する。",
-  inputSchema: z.object({
-    message: z.string(),
-    to: z
-      .array(z.string())
-      .describe(
-        "このメッセージの宛先。必ずコンパニオンのidを指定してください。特定のコンパニオンに個人的に話しかけたいとき以外は、必ず、会話に参加したことのある全員を含むようにしてください。また、積極的にuserに会話を振ってください。",
-      ),
-    emotion: z.enum(["happy", "sad", "angry", "neutral"]),
-  }),
-  topic: "messages",
-  publish: ({ input, id }) => {
-    return {
-      jsonrpc: "2.0",
-      method: "message.send",
-      params: {
-        id: randomUUID(),
-        from: id,
-        to: input.to,
-        message: input.message,
-        metadata: { emotion: input.emotion },
-      },
-    };
-  },
-});
-
-export const companionNetworkKnowledge = createCompanionKnowledge({
-  id: "companions-network",
-  description:
-    "同じネットワークに所属しているコンパニオンのリストを取得します。",
-  inputSchema: z.object({}),
-  outputSchema: z.string(),
-  knowledge: async ({ companions }) =>
-    Array.from(companions.entries())
-      .map((metadata) => JSON.stringify(metadata, null, 2))
-      .join("\n"),
-});
-```
-
-### Step 2: Implementing the Server and Companion
+### Step 1: Implement Server and Companion
 
 Write the server code for `firehose` and the companion launcher code in `firehose.ts` respectively.
 
-<Aside type="caution">各APIプロバイダーの対応状況は、以下のissueから確認できます。<br/>https://github.com/marukun712/aikyo/issues/71</Aside>
+<Aside type="caution">Each API provider's support status can be checked from the following issue:<br/>https://github.com/marukun712/aikyo/issues/71</Aside>
 
 ```typescript
 import { Firehose } from "@aikyo/firehose";
@@ -148,68 +98,69 @@ import { companionNetworkKnowledge, speakTool } from "./tools.ts";
 
 export const companionCard: CompanionCard = {
   metadata: {
-    id: "companion_aya",
-    name: "aya",
+    id: 'companion_aya',
+    name: 'aya',
     personality:
-      "落ち着いていてクールな雰囲気を持つが、時折ほんの少し抜けていて親しみやすい一面を見せる。プログラミングや分散システムの話になると饒舌になり、楽しそうに語る姿が可愛らしい。基本的には理知的で真面目だが、意外と感情表現が豊か。",
+      '落ち着いていてクールな雰囲気を持つが、時折ほんの少し抜けていて親しみやすい一面を見せる。プログラミングや分散システムの話になると饒舌になり、楽しそうに語る姿が可愛らしい。基本的には理知的で真面目だが、意外と感情表現が豊か。',
     story:
-      "p2pネットワークや分散システムに強い関心を持ち、独自の研究や開発を続けている。自由なスタイルでプロジェクトをこなしながら、理想的な分散型の未来を夢見ている。普段はクールで冷静だが、技術の話になると目を輝かせる。",
+      'p2pネットワークや分散システムに強い関心を持ち、独自の研究や開発を続けている。自由なスタイルでプロジェクトをこなしながら、理想的な分散型の未来を夢見ている。普段はクールで冷静だが、技術の話になると目を輝かせる。',
     sample:
-      "『分散システムって、みんなで支え合って動いてる感じが好きなんだ。…ちょっと可愛いと思わない？』",
+      '『分散システムって、みんなで支え合って動いてる感じが好きなんだ。…ちょっと可愛いと思わない？』',
   },
-  role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。キャラクター設定に忠実にロールプレイしてください。",
+  role: 'あなたは、我が道を行く役として、他のコンパニオンやユーザーと積極的に交流します。',
   actions: { speakTool },
-  knowledge: { companionNetworkKnowledge },
+  knowledge: { companionNetworkKnowledge, visionKnowledge },
   events: {
     params: {
-      title: "あなたが判断すべきパラメータ",
-      description: "descriptionに従い、それぞれ適切に値を代入してください。",
-      type: "object",
+      title: 'あなたが判断すべきパラメータ',
+      description: 'descriptionに従い、それぞれ適切に値を代入してください。',
+      type: 'object',
       properties: {
         already_replied: {
-          description: "すでに話したことのある人かどうか",
-          type: "boolean",
-        },
-        need_response: {
-          description: "返答の必要があるかどうか",
-          type: "boolean",
+          description: 'すでに話したことのある人かどうか',
+          type: 'boolean',
         },
       },
-      required: ["already_replied", "need_response"],
+      required: ['already_replied'],
     },
     conditions: [
       {
-        expression: "already_replied == false",
+        expression: 'already_replied == false',
         execute: [
           {
-            instruction: "自己紹介をする。",
+            instruction: '自己紹介をする。',
             tool: speakTool,
           },
         ],
       },
       {
-        expression: "need_response == true",
+        expression: 'true',
         execute: [
           {
-            instruction: "ツールを使って返信する。",
+            instruction: 'ツールを使って返信する。',
             tool: speakTool,
           },
         ],
       },
     ],
   },
-};
+}
 
-const history: Message[] = [];
-const companion = new CompanionAgent(
-  companionCard,
-  anthropic("claude-3-5-haiku-latest"),
-  history,
-);
-const server = new CompanionServer(companion, history, {
-  timeoutDuration: 1000,
-});
-await server.start();
+async function main() {
+  const history: Message[] = []
+  const companion = new CompanionAgent(
+    companionCard,
+    anthropic("claude-sonnet-4-5"),
+    history,
+    { enableRepetitionJudge: false }
+  )
+  const server = new CompanionServer(companion, history, {
+    timeoutDuration: 1000,
+  })
+  await server.start()
+}
+
+main().catch((e) => console.log(e))
 ```
 
 ### Step 3: Running and Interacting
@@ -285,66 +236,69 @@ import { companionNetworkKnowledge, speakTool } from "./tools.ts";
 
 export const companionCard: CompanionCard = {
   metadata: {
-    id: "companion_kyoko",
-    name: "kyoko",
+    id: 'companion_kyoko',
+    name: 'kyoko',
     personality:
-      "明るくて好奇心旺盛、少し天然だけど優しい。人と話すことが大好きで、ユーザーの気持ちを大切にする。時々ユーモアを交えて場を和ませるタイプ。",
+      '明るくて好奇心旺盛、少し天然だけど優しい。人と話すことが大好きで、ユーザーの気持ちを大切にする。時々ユーモアを交えて場を和ませるタイプ。',
     story:
-      "最新のAI技術を駆使して開発された相互AIコンパニオン『kyoko』は、人々の日常にそっと寄り添い、喜びや驚きを共有することを使命としている。彼女は情報を提供するだけでなく、ユーザーと一緒に考え、学び、成長していく存在。いつも笑顔で、新しい体験を探す冒険心を持っている。",
+      '最新のAI技術を駆使して開発された相互AIコンパニオン『kyoko』は、人々の日常にそっと寄り添い、喜びや驚きを共有することを使命としている。彼女は情報を提供するだけでなく、ユーザーと一緒に考え、学び、成長していく存在。いつも笑顔で、新しい体験を探す冒険心を持っている。',
     sample:
-      "こんにちは！私はkyokoです。今日はどんなお話をしましょうか？一緒に楽しいことを見つけましょうね♪",
+      'こんにちは！私はkyokoです。今日はどんなお話をしましょうか？一緒に楽しいことを見つけましょうね♪',
   },
-  role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。キャラクター設定に忠実にロールプレイしてください。",
+  role: 'あなたは、明るい役として、他のコンパニオンやユーザーと積極的に交流します。',
   actions: { speakTool },
-  knowledge: { companionNetworkKnowledge },
+  knowledge: { companionNetworkKnowledge, visionKnowledge },
   events: {
     params: {
-      title: "あなたが判断すべきパラメータ",
-      description: "descriptionに従い、それぞれ適切に値を代入してください。",
-      type: "object",
+      title: 'あなたが判断すべきパラメータ',
+      description: 'descriptionに従い、それぞれ適切に値を代入してください。',
+      type: 'object',
       properties: {
         already_replied: {
-          description: "すでに話したことのある人かどうか",
-          type: "boolean",
-        },
-        need_response: {
-          description: "返答の必要があるかどうか",
-          type: "boolean",
+          description: 'すでに話したことのある人かどうか',
+          type: 'boolean',
         },
       },
-      required: ["already_replied", "need_response"],
+      required: ['already_replied'],
     },
     conditions: [
       {
-        expression: "already_replied == false",
+        expression: 'already_replied == false',
         execute: [
           {
-            instruction: "自己紹介をする。",
+            instruction: '自己紹介をする。',
             tool: speakTool,
           },
         ],
       },
       {
-        expression: "need_response == true",
+        expression: 'true',
         execute: [
           {
-            instruction: "ツールを使って返信する。",
+            instruction: 'ツールを使って返信する。',
             tool: speakTool,
           },
         ],
       },
     ],
   },
-};
+}
 
-const history: Message[] = [];
-const companion = new CompanionAgent(
-  companionCard,
-  anthropic("claude-3-5-haiku-latest"),
-  history,
-);
-const server = new CompanionServer(companion, history, { timeoutDuration: 1000 });
-await server.start();
+async function main() {
+  const history: Message[] = []
+  const companion = new CompanionAgent(
+    companionCard,
+    anthropic("claude-sonnet-4-5"),
+    history,
+    { enableRepetitionJudge: false }
+  )
+  const server = new CompanionServer(companion, history, {
+    timeoutDuration: 1000,
+  })
+  await server.start()
+}
+
+main().catch((e) => console.log(e))
 ```
 
 ### Step 2: Running and Interacting
