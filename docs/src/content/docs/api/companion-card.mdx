@@ -161,13 +161,9 @@ params: {
       description: "すでに話したことのある人かどうか",
       type: "boolean",
     },
-    need_response: {
-      description: "返答の必要があるかどうか",
-      type: "boolean",
-    },
   },
-  required: ["already_replied", "need_response"],
-}
+  required: ["already_replied"],
+},
 ```
 
 #### events.conditions
@@ -215,7 +211,7 @@ conditions: [
     ],
   },
   {
-    expression: "need_response == true",
+    expression: "true",
     execute: [
       {
         instruction: "ツールを使って返信する。",
@@ -223,5 +219,5 @@ conditions: [
       },
     ],
   },
-]
+],
 ```
