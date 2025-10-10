@@ -122,7 +122,6 @@ export class Firehose {
         const topic = message.detail.topic as keyof TopicPayloads;
         if (!(topic in this.topicHandlers)) return;
         const data = JSON.parse(new TextDecoder().decode(message.detail.data));
-        logger.debug({ topic, data }, "Received pubsub message");
         const handlers = this.topicHandlers[topic];
         for (const handler of handlers) {
           handler(data);

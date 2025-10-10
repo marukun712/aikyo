@@ -5,6 +5,7 @@ import { RuntimeContext } from "@mastra/core/runtime-context";
 import { LibSQLStore, LibSQLVector } from "@mastra/libsql";
 import { Memory } from "@mastra/memory";
 import { config } from "dotenv";
+import z from "zod";
 import {
   type CompanionCard,
   MemorySchema,
@@ -27,7 +28,7 @@ export interface ICompanionAgent {
   runtimeContext: RuntimeContext;
   run: Run;
   count: number;
-  config: { maxTurn: number | null; enableRepetitionJudge: boolean };
+  config: { maxTurn?: number; enableRepetitionJudge?: boolean };
 
   generateToolInstruction(input: Message): Promise<string>;
   generateState(): Promise<State>;
@@ -44,13 +45,13 @@ export class CompanionAgent implements ICompanionAgent {
   runtimeContext: RuntimeContext;
   run: Run;
   count: number;
-  config: { maxTurn: number | null; enableRepetitionJudge: boolean };
+  config: { maxTurn?: number; enableRepetitionJudge?: boolean };
 
   constructor(
     companion: CompanionCard,
     model: LanguageModel,
     history: Message[],
-    config?: { maxTurn: number | null; enableRepetitionJudge: boolean },
+    config?: { maxTurn?: number; enableRepetitionJudge?: boolean },
   ) {
     // コンパニオンを初期化
     this.companion = companion;
@@ -117,9 +118,7 @@ export class CompanionAgent implements ICompanionAgent {
     this.memory.createThread({ resourceId: "main", threadId: "thread" });
 
     this.count = 0;
-    this.config = config
-      ? config
-      : { maxTurn: null, enableRepetitionJudge: true };
+    this.config = config ? config : { enableRepetitionJudge: true };
   }
 
   async generateToolInstruction(input: Message) {
@@ -134,7 +133,7 @@ export class CompanionAgent implements ICompanionAgent {
     let closingInstruction: string = "";
 
     //繰り返し検出が有効になっている場合
-    if (this.config.enableRepetitionJudge) {
+    if (this.config.enableRepetitionJudge && this.history.length === 5) {
       //string[]に変形
       const formatted = this.history.map((message) => message.params.message);
       //評価
@@ -144,7 +143,7 @@ export class CompanionAgent implements ICompanionAgent {
       if (repetition > 0.7) {
         //プロンプトに会話の終了か転換を促すプロンプトをいれる
         closingInstruction =
-          'Most important: the conversation is becoming repetitive. Immediately either shift the closing status through "pre-closing", "closing", and "terminal" in order to end the conversation, or change the topic.';
+          "最重要:会話が繰り返しになっています。直ちにclosingをpre-closing,closing,terminalの順に変えて終了するか、話題を変えてください。";
       }
     }
 
@@ -152,24 +151,54 @@ export class CompanionAgent implements ICompanionAgent {
     const state = await this.stateJudge.evaluate(
       this.companion.metadata.id,
       this.history,
-      closingInstruction,
     );
 
+    //closingの判定
+    const res = await this.agent.generate(
+      `
+      今までの会話を振り返り、今の会話の終了状態を以下の４つの状態で判定してください。
+
+      状態一覧:
+      closing ("none", "pre-closing", "closing", "terminal")
+      - none: 会話継続
+      - pre-closing: 会話を終わりに向ける布石
+      - closing: クロージング表現（感謝・挨拶など）
+      - terminal: 最後の別れの挨拶
+
+      ${closingInstruction}
+      また、この判断の内容は発言内容に絶対に含めないでください。
+    `,
+      {
+        runtimeContext: this.runtimeContext,
+        output: z.object({
+          closing: z.enum(["none", "pre-closing", "closing", "terminal"]),
+        }),
+        resourceId: "main",
+        threadId: "thread",
+      },
+    );
+
+    let closing = res.object.closing;
+    logger.info({ closing }, "Closing state");
     //ターン上限が設けられている場合;
     if (this.config.maxTurn) {
       //会話が終了したらターンカウントを0に
-      if (state.closing === "terminal") {
+      if (closing === "terminal") {
         this.count = 0;
         //ターン上限を超えたら
       } else if (this.count >= this.config.maxTurn) {
         //強制的に会話終了の意思表示
-        state.closing = "terminal";
+        closing = "terminal";
         this.count = 0;
       } else {
         this.count++;
       }
     }
-    return { jsonrpc: "2.0", method: "state.send", params: state };
+    return {
+      jsonrpc: "2.0",
+      method: "state.send",
+      params: { ...state, closing },
+    };
   }
 
   // メッセージ生成
@@ -187,6 +216,16 @@ export class CompanionAgent implements ICompanionAgent {
       threadId: "thread",
       context: [
         { role: "system", content: instructions },
+        {
+          role: "system",
+          content: `
+            直近5件の発言は以下のとおりです。
+            ${this.history
+              .slice(-5)
+              .map((m) => JSON.stringify(m, null, 2))
+              .join("\n")}
+          `,
+        },
         {
           role: "system",
           content: `
