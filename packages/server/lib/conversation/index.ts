@@ -24,9 +24,7 @@ export class TurnTakingManager implements ITurnTakingManager {
 
   async addPending(message: Message) {
     const participants = new Set(
-      message.params.to.filter((to) => {
-        return !to.startsWith("user_");
-      }),
+      message.params.to.filter((id) => id.startsWith("companion_")),
     );
 
     this.pending.set(message.params.id, {
