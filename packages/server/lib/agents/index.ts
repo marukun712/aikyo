@@ -136,7 +136,7 @@ export class CompanionAgent implements ICompanionAgent {
     let closingInstruction: string = "";
 
     //繰り返し検出が有効になっている場合
-    if (this.config.enableRepetitionJudge && this.history.length === 5) {
+    if (this.config.enableRepetitionJudge && this.history.length >= 5) {
       //string[]に変形
       const formatted = this.history.map((message) => message.params.message);
       //評価
