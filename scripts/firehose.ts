@@ -3,6 +3,7 @@ import { Firehose } from "@aikyo/firehose";
 const firehose = new Firehose(8080);
 await firehose.start();
 
+//クライアントへ転送するため
 await firehose.subscribe("messages", (data) => {
   console.log(data);
   firehose.broadcastToClients(data);
@@ -18,7 +19,7 @@ await firehose.subscribe("actions", (data) => {
   firehose.broadcastToClients(data);
 });
 
+//ログ出力のためにサブスクライブ
 await firehose.subscribe("states", (data) => {
   console.log(data);
-  firehose.broadcastToClients(data);
 });
