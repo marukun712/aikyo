@@ -111,6 +111,8 @@ export const companionNetworkKnowledge = createCompanionKnowledge({
 
 `firehose`サーバーと`aya`を起動するためのコードを、それぞれ`firehose.ts`と`aya.ts`に記述します。
 
+<Aside type="caution">各APIプロバイダーの対応状況は、以下のissueから確認できます。<br/>https://github.com/marukun712/aikyo/issues/71</Aside>
+
 ```typescript
 import { Firehose } from "@aikyo/firehose";
 
@@ -130,6 +132,8 @@ await firehose.subscribe("actions", (data) => {
   firehose.broadcastToClients(data);
 });
 ```
+
+<Aside type="caution">コンパニオンのidはcompanion_から始まる必要があります。</Aside>
 
 ```typescript
 import {
@@ -218,6 +222,8 @@ $ npx tsx aya.ts
 ```
 
 `aya`に話しかけるクライアント`client.ts`を作成して実行します。
+
+<Aside type="caution">ユーザーのidはuser_から始まる必要があります。</Aside>
 
 ```typescript
 import WebSocket from 'ws';

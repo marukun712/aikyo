@@ -3,6 +3,8 @@ title: CompanionCard
 description: CompanionCard型の詳細仕様
 ---
 
+import { Aside } from '@astrojs/starlight/components';
+
 `CompanionCard`は、AIコンパニオンの設定を定義する型です。メタデータ、役割、ツール、イベント条件などをまとめて管理します。
 
 ## インポート
@@ -57,6 +59,8 @@ export type Metadata = z.infer<typeof MetadataSchema>;
 | `personality` | `string` | 性格設定（LLMがロールプレイの参考にする） |
 | `story` | `string` | バックストーリー |
 | `sample` | `string` | サンプル発言（口調の参考） |
+
+<Aside type="caution">コンパニオンのidはcompanion_から始まる必要があります。</Aside>
 
 **使用例:**
 
@@ -192,6 +196,10 @@ export const EventCondition = z.object({
 | `execute` | `array` | マッチ時に実行する指示とツールの配列 |
 | `execute[].instruction` | `string` | LLMへの指示文 |
 | `execute[].tool` | `Tool` | 使用するツール |
+
+式は上から順に評価され、一番最初に決定した実行条件でツールが実行されます。
+
+そのため、より抽象的な条件を下に記述してください。
 
 **使用例:**
 
