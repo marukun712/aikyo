@@ -1,5 +1,16 @@
 # @aikyo/utils
 
+## 1.4.0
+
+### Minor Changes
+
+- da5c332: Tool を含む
+
+### Patch Changes
+
+- Updated dependencies [da5c332]
+  - @aikyo/server@1.4.3
+
 ## 1.3.3
 
 ### Patch Changes
