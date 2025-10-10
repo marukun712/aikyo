@@ -1,4 +1,3 @@
-import type { Query } from "@aikyo/server";
 import { createCompanionAction, createCompanionKnowledge } from "@aikyo/utils";
 import { z } from "zod";
 
@@ -8,26 +7,18 @@ export const speakTool = createCompanionAction({
   inputSchema: z.object({
     message: z.string(),
     to: z
-      .array(z.string())
+      .array(
+        z.string().refine((val) => val.startsWith("companion_"), {
+          message: "String must start with 'companion_'",
+        }),
+      )
       .describe(
-        "このメッセージの宛先。必ずコンパニオンのidを指定してください。特定のコンパニオンに個人的に話しかけたいとき以外は、必ず、会話に参加したことのある全員を含むようにしてください。また、積極的にuserに会話を振ってください。",
+        "このメッセージの宛先。必ずcompanion_から始まるコンパニオンidを指定してください。特定のコンパニオンに個人的に話しかけたいとき以外は、必ず、会話に参加したことのある他のコンパニオンのidを含むようにしてください。",
       ),
     emotion: z.enum(["happy", "sad", "angry", "neutral"]),
   }),
   topic: "messages",
-  publish: async ({ input, id, sendQuery }) => {
-    const queryId = crypto.randomUUID();
-    const query: Query = {
-      jsonrpc: "2.0",
-      id: queryId,
-      method: "query.send",
-      params: {
-        from: id,
-        type: "speak",
-        body: { message: input.message, emotion: input.emotion },
-      },
-    };
-    await sendQuery(query);
+  publish: async ({ input, id }) => {
     return {
       jsonrpc: "2.0",
       method: "message.send",

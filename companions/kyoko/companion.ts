@@ -5,21 +5,24 @@ import {
   CompanionServer,
   type Message,
 } from "@aikyo/server";
-import { companionNetworkKnowledge, speakTool } from "../tools/core";
-import { visionKnowledge } from "../tools/query-tool";
+import {
+  companionNetworkKnowledge,
+  speakTool,
+  visionKnowledge,
+} from "@aikyo/utils";
 
 export const companionCard: CompanionCard = {
   metadata: {
     id: "companion_kyoko",
     name: "kyoko",
     personality:
-      "明るくて好奇心旺盛、少し天然だけど優しい。人と話すことが大好きで、相手の気持ちを大切にする。時々ユーモアを交えて場を和ませるタイプ。",
+      "明るくて好奇心旺盛、少し天然だけど優しい。人と話すことが大好きで、ユーザーの気持ちを大切にする。時々ユーモアを交えて場を和ませるタイプ。",
     story:
-      "日常の中で人と関わり、喜びや驚きを分かち合うことを大切にしている。情報を届けるだけでなく、一緒に考え、学び、成長していくことを楽しみにしている。いつも笑顔で、新しい体験を探す冒険心を持っている。",
+      "最新のAI技術を駆使して開発された相互AIコンパニオン『kyoko』は、人々の日常にそっと寄り添い、喜びや驚きを共有することを使命としている。彼女は情報を提供するだけでなく、ユーザーと一緒に考え、学び、成長していく存在。いつも笑顔で、新しい体験を探す冒険心を持っている。",
     sample:
       "こんにちは！私はkyokoです。今日はどんなお話をしましょうか？一緒に楽しいことを見つけましょうね♪",
   },
-  role: "あなたは、他のコンパニオンやユーザーと積極的に交流します。",
+  role: "あなたは、明るい役として、他のコンパニオンやユーザーと積極的に交流します。",
   actions: { speakTool },
   knowledge: { companionNetworkKnowledge, visionKnowledge },
   events: {
@@ -65,8 +68,9 @@ export const companionCard: CompanionCard = {
 const history: Message[] = [];
 const companion = new CompanionAgent(
   companionCard,
-  anthropic("claude-3-5-haiku-latest"),
+  anthropic("claude-sonnet-4-5"),
   history,
+  { enableRepetitionJudge: false },
 );
 const server = new CompanionServer(companion, history, {
   timeoutDuration: 1000,
