@@ -118,7 +118,10 @@ export class CompanionAgent implements ICompanionAgent {
     this.memory.createThread({ resourceId: "main", threadId: "thread" });
 
     this.count = 0;
-    this.config = config ? config : { enableRepetitionJudge: true };
+    this.config = {
+      enableRepetitionJudge: true,
+      ...(config ?? {}),
+    };
   }
 
   async generateToolInstruction(input: Message) {
