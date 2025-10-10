@@ -1,5 +1,11 @@
 # @aikyo/utils
 
+## 1.4.1
+
+### Patch Changes
+
+- ce9b677: インターフェースを修正
+
 ## 1.4.0
 
 ### Minor Changes
