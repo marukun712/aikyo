@@ -157,16 +157,12 @@ params: {
   type: "object",
   properties: {
     already_replied: {
-      description: "Whether this person has already been spoken to before",
-      type: "boolean",
-    },
-    need_response: {
-      description: "Indicates whether a response is required",
+      description: "すでに話したことのある人かどうか",
       type: "boolean",
     },
   },
-  required: ["already_replied", "need_response"],
-}
+  required: ["already_replied"],
+},
 ```
 
 #### events.conditions
@@ -214,7 +210,7 @@ conditions: [
     ],
   },
   {
-    expression: "need_response == true",
+    expression: "true",
     execute: [
       {
         instruction: "Respond using the tool.",
@@ -222,5 +218,5 @@ conditions: [
       },
     ],
   },
-]
+],
 ```
