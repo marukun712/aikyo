@@ -65,7 +65,9 @@ async function main() {
   const history: Message[] = [];
   const companion = new CompanionAgent(
     companionCard,
-    openrouter("gemini-2.5-flash", { provider: { require_parameters: true } }),
+    openrouter("google/gemini-2.5-flash", {
+      provider: { require_parameters: true },
+    }),
     history,
     { enableRepetitionJudge: false },
   );
