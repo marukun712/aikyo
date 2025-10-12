@@ -296,31 +296,31 @@ firehose.addHandler("actions", (action) => {
 
 ### setReceiveHandler()
 
-WebSocketクライアントから受信したデータを処理するハンドラを設定します。
+Configure a handler to process data received from WebSocket clients.
 
 ```typescript
 setReceiveHandler(handler: ReceiveHandler): void
 ```
 
-**パラメータ:**
+**Parameters:**
 
-| パラメータ | 型 | 説明 |
-|-----------|-----|------|
-| `handler` | `(data: Record<string,unknown>) => RequestData \| Promise<RequestData>` | WebSocketから受信した任意の型のデータを`RequestData`に変換する関数 |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `handler` | `(data: Record<string, unknown>) => RequestData \| Promise<RequestData>` | Function that transforms arbitrary WebSocket payloads into `RequestData` |
 
-**型定義:**
+**Type Definitions:**
 
 ```typescript
 const RequestSchema = z.object({ topic: z.string(), body: z.record(z.any()) });
 type RequestData = z.infer<typeof RequestSchema>;
 ```
 
-**使用例:**
+**Usage Example:**
 
 ```typescript
-// カスタムデータ処理を行うハンドラを設定
+// Register a custom data-processing handler
 firehose.setReceiveHandler(async (rawData) => {
-  // ユーザー定義の検証や変換処理
+  // Perform custom validation or transformation
   const validated = await validateAndTransform(rawData);
 
   return {
@@ -333,19 +333,18 @@ firehose.setReceiveHandler(async (rawData) => {
   };
 });
 
-// ハンドラが設定されている場合、WebSocketから送信されるデータは
-// RequestSchemaに従う必要はなく、任意の形式で送信可能
+// When a handler is set, the upstream payload can be any shape
 ws.send(JSON.stringify({
   customField: "value",
   anotherField: 123
 }));
 ```
 
-**動作:**
+**Behavior:**
 
-- ハンドラが設定されている場合、WebSocketから受信した全データがハンドラを通過します
-- ハンドラの返り値（`RequestData`）がlibp2p pubsubにpublishされます
-- ハンドラが設定されていない場合、従来通り`RequestSchema`でパースして直接publishします
+- When configured, every inbound WebSocket payload is routed through the handler.
+- The handler's return value (`RequestData`) is published to libp2p pubsub.
+- Without a handler, the payload is parsed via `RequestSchema` and published as-is.
 
 ### broadcastToClients()
 
