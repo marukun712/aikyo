@@ -104,7 +104,7 @@ actions: {
 }
 ```
 
-Actionツールの作成方法は[Action](../tools/action)を参照。
+Actionツールの作成方法は[Action](/ja/tools/action)を参照。
 
 ### knowledge
 
@@ -124,7 +124,7 @@ knowledge: {
 }
 ```
 
-Knowledgeツールの作成方法は[Knowledge](../tools/knowledge)を参照。
+Knowledgeツールの作成方法は[Knowledge](/ja/tools/knowledge)を参照。
 
 ### events
 

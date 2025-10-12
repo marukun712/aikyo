@@ -81,7 +81,7 @@ An instance of the Mastra Agent responsible for managing interactions with the L
 repetitionJudge: RepetitionJudge
 ```
 
-A judge for detecting conversation duplicates. See [Duplicate Detection](../core/repetition) for details.
+A judge for detecting conversation duplicates. See [Duplicate Detection](/core/repetition) for details.
 
 ### stateJudge
 
@@ -214,7 +214,7 @@ None (internally references `this.history`)
 3. Generates State using `StateJudge`
 4. Checks for `maxTurn` limit (if configured)
 
-For details, see [Turn-Taking](../core/turn-taking#state-state-generation).
+For details, see [Turn-Taking](/core/turn-taking#generating-state).
 
 ### input()
 

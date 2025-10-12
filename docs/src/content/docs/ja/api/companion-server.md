@@ -119,7 +119,7 @@ history: Message[]
 turnTakingManager: TurnTakingManager
 ```
 
-ターンテイキングを管理するマネージャー。詳細は[ターンテイキング](../core/turn-taking)を参照。
+ターンテイキングを管理するマネージャー。詳細は[ターンテイキング](/ja/core/turn-taking)を参照。
 
 ```typescript
 this.turnTakingManager = new TurnTakingManager(
@@ -161,7 +161,7 @@ this.libp2p = await createLibp2p({
 });
 ```
 
-詳細は[P2P通信](../core/p2p)を参照。
+詳細は[P2P通信](/ja/core/p2p)を参照。
 
 ### companionList
 
@@ -191,7 +191,7 @@ pendingQueries = new Map<
 >();
 ```
 
-クライアントへのクエリ待機状態を管理するMap。詳細は[Query](../tools/query#pendingqueries管理)を参照。
+クライアントへのクエリ待機状態を管理するMap。詳細は[Query](/ja/tools/query#pendingqueries管理)を参照。
 
 ### libp2pConfig
 

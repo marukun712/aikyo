@@ -103,7 +103,7 @@ actions: {
 }
 ```
 
-For details on creating Action tools, refer to the [Action](../tools/action) documentation.
+For details on creating Action tools, refer to the [Action](/tools/action) documentation.
 
 ### knowledge
 
@@ -123,7 +123,7 @@ knowledge: {
 }
 ```
 
-For details on creating Knowledge tools, refer to the [Knowledge](../tools/knowledge) documentation.
+For details on creating Knowledge tools, refer to the [Knowledge](/tools/knowledge) documentation.
 
 ### events
 

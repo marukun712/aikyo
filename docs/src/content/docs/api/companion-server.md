@@ -120,7 +120,7 @@ Array of conversation history (reference).
 turnTakingManager: TurnTakingManager
 ```
 
-Manager responsible for handling turn-taking. For details, see [Turn-Taking](../core/turn-taking).
+Manager responsible for handling turn-taking. For details, see [Turn-Taking](/core/turn-taking).
 
 ```typescript
 this.turnTakingManager = new TurnTakingManager(
@@ -162,7 +162,7 @@ this.libp2p = await createLibp2p({
 });
 ```
 
-For details, see [P2P Communication](../core/p2p).
+For details, see [P2P Communication](/core/p2p).
 
 ### companionList
 
@@ -192,7 +192,7 @@ pendingQueries = new Map<
 >();
 ```
 
-Map managing the state of pending queries to clients. For details, see [Query](../tools/query#managing-pendingqueries).
+Map managing the state of pending queries to clients. For details, see [Query](/tools/query#managing-pendingqueries).
 
 ### libp2pConfig
 

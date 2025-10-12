@@ -48,7 +48,7 @@ export type StateBody = z.infer<typeof StateBodySchema>;
 - **state**: Either `speak` (wanting to speak) or `listen` (entering listening mode)
 - **importance**: A score between 0-10, where higher values indicate greater priority
 - **selected**: Indicates whether you have been specifically called upon
-- **closing**: Indication of conversation termination intent (see [Conversation Closure](./closing) for details)
+- **closing**: Indication of conversation termination intent (see [Conversation Closure](../closing) for details)
 
 ## Speaker Selection by TurnTakingManager
 

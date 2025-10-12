@@ -49,7 +49,7 @@ export type StateBody = z.infer<typeof StateBodySchema>;
 - **state**: `speak`（発言したい）か`listen`（聞く姿勢）
 - **importance**: 0-10のスコア（高いほど優先される）
 - **selected**: 名指しされているかどうか
-- **closing**: 会話終了の意思（詳細は[会話クロージング](./closing)を参照）
+- **closing**: 会話終了の意思（詳細は[会話クロージング](../closing)を参照）
 
 ## TurnTakingManagerによる発言者選出
 

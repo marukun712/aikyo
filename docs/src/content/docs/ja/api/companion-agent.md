@@ -82,7 +82,7 @@ Mastra Agentのインスタンス。LLMとの対話を管理します。
 repetitionJudge: RepetitionJudge
 ```
 
-会話の重複を検出するジャッジ。詳細は[重複検出](../core/repetition)を参照。
+会話の重複を検出するジャッジ。詳細は[重複検出](/ja/core/repetition)を参照。
 
 ### stateJudge
 
@@ -215,7 +215,7 @@ async generateState(): Promise<State>
 3. `StateJudge`を使用してStateを生成
 4. `maxTurn`チェック（設定時）
 
-詳細は[ターンテイキング](../core/turn-taking#state状態の生成)を参照。
+詳細は[ターンテイキング](/ja/core/turn-taking#state状態の生成)を参照。
 
 ### input()
 
