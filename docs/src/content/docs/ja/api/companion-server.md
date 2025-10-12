@@ -28,7 +28,7 @@ constructor(
 |-----------|-----|------|-----------|
 | `companionAgent` | `CompanionAgent` | コンパニオンエージェントのインスタンス | - |
 | `history` | `Message[]` | 会話履歴の配列（CompanionAgentと同じ参照を渡す） | - |
-| `config` | `object` | オプション設定 | `{ timeoutDuration: 5000 }` |
+| `config` | `object` | 設定 | `{ timeoutDuration: 5000 }` |
 | `config.timeoutDuration` | `number` | ターンテイキング後の発言待機時間（ミリ秒） | `5000` |
 | `libp2pConfig` | `Libp2pOptions<Services>` | オプション。libp2pノードのカスタム設定 | - |
 

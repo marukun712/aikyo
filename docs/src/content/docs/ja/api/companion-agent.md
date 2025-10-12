@@ -29,7 +29,7 @@ constructor(
 | `companion` | `CompanionCard` | コンパニオンの設定（メタデータ、ツール、イベントなど） | - |
 | `model` | `LanguageModel` | 使用するLLMモデル（`@ai-sdk/*`から取得） | - |
 | `history` | `Message[]` | 会話履歴の配列（参照渡し） | - |
-| `config` | `object` | オプション設定 | `{ maxTurn: null, enableRepetitionJudge: true }` |
+| `config` | `object` | 設定 | `{ maxTurn: null, enableRepetitionJudge: true }` |
 | `config.maxTurn` | `number \| null` | 最大ターン数（超えると強制終了） | `null`（制限なし） |
 | `config.enableRepetitionJudge` | `boolean` | 重複検出の有効/無効 | `true` |
 

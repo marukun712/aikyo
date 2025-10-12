@@ -27,7 +27,7 @@ constructor(
 |-----------|------------------------|-----------------------------------------------------------|---------------|
 | `companionAgent` | `CompanionAgent`       | Instance of the companion agent                           | -             |
 | `history` | `Message[]`            | Array of conversation history (must reference the same array as CompanionAgent) | -             |
-| `config` | `object`               | Optional configuration settings                           | `{ timeoutDuration: 5000 }` |
+| `config` | `object`               | Configuration settings                           | `{ timeoutDuration: 5000 }` |
 | `config.timeoutDuration` | `number` | Delay in milliseconds before allowing another turn after a turn-taking event | `5000`       |
 | `libp2pConfig` | `Libp2pOptions<Services>` | Optional: Custom configuration for the libp2p node           | -             |
 

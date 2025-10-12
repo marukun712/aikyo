@@ -28,7 +28,7 @@ constructor(
 | `companion`     | `CompanionCard`       | Companion configuration including metadata, tools, and events                        | -          |
 | `model`         | `LanguageModel`       | LLM model to be used (retrieved from `@ai-sdk/*`)                                    | -          |
 | `history`       | `Message[]`           | Array of conversation history references                                             | -          |
-| `config`        | `object`              | Optional configuration settings                                                      | `{ maxTurn: null, enableRepetitionJudge: true }` |
+| `config`        | `object`              | Configuration settings                                                      | `{ maxTurn: null, enableRepetitionJudge: true }` |
 | `config.maxTurn` | `number \| null`      | Maximum number of turns before forced termination                                    | `null` (no limit) |
 | `config.enableRepetitionJudge` | `boolean`             | Enabled/disabled duplicate detection                                                 | `true`     |
 
