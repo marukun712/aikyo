@@ -30,7 +30,7 @@ Upon establishing a connection, the system retrieves the companion's metadata (i
 
 ## Gossipsub Communication
 
-aikyo utilizes three primary topics for Gossipsub messaging:
+aikyo utilizes four primary topics for Gossipsub messaging:
 
 ### Topic List
 
