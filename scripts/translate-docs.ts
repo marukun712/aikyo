@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { basename, dirname, join, relative } from "node:path";
+import { dirname, join, relative } from "node:path";
 import { glob } from "glob";
 
 const LMSTUDIO_API_URL = "http://localhost:1234/v1/chat/completions";
@@ -239,7 +239,7 @@ async function main() {
     }
   }
 
-  console.log("\n" + "=".repeat(50));
+  console.log(`\n${"=".repeat(50)}`);
   console.log("Translation Summary:");
   console.log(`  Total files: ${files.length}`);
   if (DRY_RUN) {
