@@ -171,7 +171,7 @@ params: {
 conditions: EventCondition[]
 ```
 
-An array of conditions expressed using CEL expressions along with tool execution configurations.
+Array of conditions and tool executions by CEL.
 
 ```typescript
 export const EventCondition = z.object({

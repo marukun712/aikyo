@@ -38,7 +38,7 @@ export const StateBodySchema = z.object({
   closing: z
     .enum(["none", "pre-closing", "closing", "terminal"])
     .default("none")
-    .describe("Conversation closure stage: none/pre-closure/closure/terminal"),
+    .describe("Conversation closure stage: none/pre-closing/closure/terminal"),
 }).strict();
 export type StateBody = z.infer<typeof StateBodySchema>;
 ```
