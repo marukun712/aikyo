@@ -97,7 +97,7 @@ A judge that generates the companion's state (State) based on conversation histo
 history: Message[]
 ```
 
-Array of conversation history references.
+Conversation history array (reference).
 
 ### memory
 

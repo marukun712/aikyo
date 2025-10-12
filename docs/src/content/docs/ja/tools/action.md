@@ -78,6 +78,8 @@ type Output = Action | Message;
 最も基本的なActionツールで、コンパニオン間の会話メッセージを送信します。
 
 ```typescript
+import { randomUUID } from "node:crypto";
+
 export const speakTool = createCompanionAction({
   id: "speak",
   description: "発言する。",
@@ -92,7 +94,7 @@ export const speakTool = createCompanionAction({
   }),
   topic: "messages",
   publish: async ({ input, id, sendQuery }) => {
-    const queryId = crypto.randomUUID();
+    const queryId = randomUUID();
     const query: Query = {
       jsonrpc: "2.0",
       id: queryId,
@@ -108,7 +110,7 @@ export const speakTool = createCompanionAction({
       jsonrpc: "2.0",
       method: "message.send",
       params: {
-        id: crypto.randomUUID(),
+        id: randomUUID(),
         from: id,
         to: input.to,
         message: input.message,

@@ -65,6 +65,7 @@ ANTHROPIC_API_KEY="sk-ant-xxxxxxxx"
 ```typescript
 import { createCompanionAction, createCompanionKnowledge } from "@aikyo/utils";
 import { z } from "zod";
+import { randomUUID } from "node:crypto";
 
 export const speakTool = createCompanionAction({
   id: "speak",
@@ -84,7 +85,7 @@ export const speakTool = createCompanionAction({
       jsonrpc: "2.0",
       method: "message.send",
       params: {
-        id: crypto.randomUUID(),
+        id: randomUUID(),
         from: id,
         to: input.to,
         message: input.message,
@@ -221,6 +222,7 @@ $ npx tsx aya.ts
 
 ```typescript
 import WebSocket from 'ws';
+import { randomUUID } from "node:crypto";
 
 const firehoseUrl = 'ws://localhost:8080';
 const ws = new WebSocket(firehoseUrl);
@@ -235,7 +237,7 @@ ws.on('open', () => {
       jsonrpc: '2.0',
       method: 'message.send',
       params: {
-        id: crypto.randomUUID(),
+        id: randomUUID(),
         from: userId,
         to: [companionId],
         message: 'こんにちは、ayaさん！',
@@ -350,6 +352,7 @@ $ npx tsx kyoko.ts
 
 ```typescript
 import WebSocket from 'ws';
+import { randomUUID } from "node:crypto";
 
 const firehoseUrl = 'ws://localhost:8080';
 const ws = new WebSocket(firehoseUrl);
@@ -365,7 +368,7 @@ ws.on('open', () => {
       jsonrpc: '2.0',
       method: 'message.send',
       params: {
-        id: crypto.randomUUID(),
+        id: randomUUID(),
         from: userId,
         to: [ayaId],
         message: 'kyokoちゃんに話しかけてみて',

@@ -49,6 +49,7 @@ Client Example:
 
 ```typescript
 import WebSocket from 'ws';
+import { randomUUID } from "node:crypto";
 
 const firehoseUrl = 'ws://localhost:8080';
 const ws = new WebSocket(firehoseUrl);
@@ -63,7 +64,7 @@ ws.on('open', () => {
       jsonrpc: '2.0',
       method: 'message.send',
       params: {
-        id: crypto.randomUUID(),
+        id: randomUUID(),
         from: userId,
         to: [companionId],
         message: 'Hello Aya!',
