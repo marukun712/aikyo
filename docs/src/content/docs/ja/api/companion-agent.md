@@ -53,7 +53,7 @@ const companion = new CompanionAgent(
 );
 ```
 
-**動作確認済みLLMプロバイダー**
+### 動作確認済みLLMプロバイダー
 
 - **Anthropic**: `@ai-sdk/anthropic`
 - **Google**: `@ai-sdk/google`

@@ -77,6 +77,8 @@ type Output = Action | Message;
 The most basic Action tool that transmits conversational messages between companions.
 
 ```typescript
+import { randomUUID } from "node:crypto";
+
 export const speakTool = createCompanionAction({
   id: "speak",
   description: "Speak.",
@@ -89,7 +91,7 @@ export const speakTool = createCompanionAction({
   }),
   topic: "messages",
   publish: async ({ input, id, sendQuery }) => {
-    const queryId = crypto.randomUUID();
+    const queryId = randomUUID();
     const query: Query = {
       jsonrpc: "2.0",
       id: queryId,
@@ -105,7 +107,7 @@ export const speakTool = createCompanionAction({
       jsonrpc: "2.0",
       method: "message.send",
       params: {
-        id: crypto.randomUUID(),
+        id: randomUUID(),
         from: id,
         to: input.to,
         message: input.message,
