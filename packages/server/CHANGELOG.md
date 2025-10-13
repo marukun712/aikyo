@@ -1,5 +1,11 @@
 # @aikyo/server
 
+## 1.4.4
+
+### Patch Changes
+
+- 5c7aef4: logger を読みやすく
+
 ## 1.4.3
 
 ### Patch Changes
