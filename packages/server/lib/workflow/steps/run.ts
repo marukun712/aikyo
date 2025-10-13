@@ -17,15 +17,12 @@ export function createRunStep(
     outputSchema: z.string(),
     execute: async ({ inputData }) => {
       const { output } = inputData;
+      logger.info({ expression: inputData }, "Params:");
       const tools = new Map<string, string>();
       // 上に書かれた条件を優先
       companionCard.events.conditions.forEach((condition) => {
         // expression を評価する
         if (evaluate(condition.expression, output)) {
-          logger.info(
-            { expression: condition.expression },
-            "Condition evaluated to true",
-          );
           condition.execute.forEach((tool) => {
             // すでに tool の実行条件が決まっていれば代入しない
             if (!tools.has(tool.tool.id)) {

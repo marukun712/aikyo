@@ -126,7 +126,7 @@ export class CompanionServer implements ICompanionServer {
       this.libp2p.dial(evt.detail.multiaddrs).catch((error) => {
         logger.error(
           { error, peerId: evt.detail.id.toString() },
-          "ピアへの接続に失敗しました",
+          "Failed to connect to peer",
         );
       });
     });

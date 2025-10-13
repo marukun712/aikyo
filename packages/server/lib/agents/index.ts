@@ -141,7 +141,7 @@ export class CompanionAgent implements ICompanionAgent {
       const formatted = this.history.map((message) => message.params.message);
       //評価
       const result = await this.repetitionJudge.evaluate(formatted);
-      logger.info({ result }, "Repetition judge evaluation");
+      logger.info({ result }, "Repetition state");
       const repetition = result.score;
       if (repetition > 0.7) {
         //プロンプトに会話の終了か転換を促すプロンプトをいれる
@@ -239,6 +239,6 @@ export class CompanionAgent implements ICompanionAgent {
         },
       ],
     });
-    logger.info({ text: res.text }, "Agent response generated");
+    logger.info({ text: res.text }, "Agent response");
   }
 }
