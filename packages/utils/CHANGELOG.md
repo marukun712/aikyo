@@ -1,5 +1,13 @@
 # @aikyo/utils
 
+## 1.4.2
+
+### Patch Changes
+
+- 5c7aef4: logger を読みやすく
+- Updated dependencies [5c7aef4]
+  - @aikyo/server@1.4.4
+
 ## 1.4.1
 
 ### Patch Changes
