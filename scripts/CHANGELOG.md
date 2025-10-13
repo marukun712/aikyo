@@ -1,5 +1,13 @@
 # scripts
 
+## 1.0.9
+
+### Patch Changes
+
+- Updated dependencies [f4da031]
+  - @aikyo/server@1.4.5
+  - @aikyo/firehose@1.5.5
+
 ## 1.0.8
 
 ### Patch Changes

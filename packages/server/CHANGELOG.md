@@ -1,5 +1,11 @@
 # @aikyo/server
 
+## 1.4.5
+
+### Patch Changes
+
+- f4da031: closing と state 判定を並列で実行する
+
 ## 1.4.4
 
 ### Patch Changes
