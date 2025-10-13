@@ -213,7 +213,7 @@ async start(): Promise<void>
 
 **出力例:**
 
-```
+```text
 aikyo firehose server running on ws://localhost:8080
 ```
 
@@ -232,8 +232,13 @@ async subscribe<K extends keyof TopicPayloads>(
 
 | パラメータ | 型 | 説明 |
 |-----------|-----|------|
-| `topic` | `keyof TopicPayloads` | サブスクライブするトピック名（`"messages"`, `"queries"`, `"actions"`, `"states"`） |
-| `handler` | `function` | オプション。メッセージ受信時に実行するハンドラー関数 |
+| `topic` | `keyof TopicPayloads` | サブスクライブするトピック |
+| `handler` | `function` | メッセージ受信時のハンドラー |
+
+**トピック詳細:**
+
+- `topic`: "messages"、"queries"、"actions"、"states" のいずれか
+- `handler`: オプション。メッセージ受信時に実行するハンドラー関数
 
 **使用例:**
 

@@ -2,13 +2,19 @@
 title: Knowledge Tool
 description: Details and API specifications for aikyo's Knowledge (knowledge tool)
 ---
-**Knowledge** is a tool designed to dynamically equip your AI companion with knowledge. It enables the retrieval of information from external data sources and APIs, which can be then incorporated into conversations or actions.
+
+**Knowledge** is a tool designed to dynamically equip your AI companion with
+knowledge. It enables the retrieval of information from external data sources
+and APIs, which can be then incorporated into conversations or actions.
 
 ## Key Features of Knowledge
 
-- **Read-only operation**: Only retrieves information; does not transmit it externally or modify any states.
-- **Dynamic retrieval**: Fetches the most up-to-date information at runtime rather than relying on pre-trained knowledge.
-- **Flexible integration**: Can be integrated with P2P networks and client queries.
+- **Read-only operation**: Only retrieves information; does not transmit it
+  externally or modify any states.
+- **Dynamic retrieval**: Fetches the most up-to-date information at runtime
+  rather than relying on pre-trained knowledge.
+- **Flexible integration**: Can be integrated with P2P networks and client
+  queries.
 
 ## createCompanionKnowledge API
 
@@ -50,29 +56,30 @@ export interface CompanionKnowledgeConfig<
 }
 ```
 
-| Field       | Type           | Description                                     |
-|-------------|----------------|-------------------------------------------------|
-| `id`        | `string`       | Unique identifier for the tool                  |
-| `description` | `string`       | Tool description (referenced by LLM during tool selection) |
-| `inputSchema` | `ZodTypeAny`     | Input schema defined using Zod schema             |
-| `outputSchema` | `ZodTypeAny`     | Output schema defined using Zod schema           |
-| `knowledge` | `function`      | Knowledge retrieval function                     |
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Tool unique identifier |
+| `description` | `string` | Tool description for LLM |
+| `inputSchema` | `ZodTypeAny` | Input schema (Zod) |
+| `outputSchema` | `ZodTypeAny` | Output schema (Zod) |
+| `knowledge` | `function` | Knowledge retriever |
 
 #### props for the knowledge function
 
-| Property      | Type           | Description                                   |
-|---------------|----------------|-----------------------------------------------|
-| `input`       | `z.infer<T>`   | Input data as defined in inputSchema          |
-| `id`          | `string`       | ID of the companion                            |
-| `companions`  | `Map<string, string>` | List of currently connected companions     |
-| `sendQuery`   | `function`     | Function to send a Query to the client       |
-| `companionAgent` | `CompanionAgent` | Instance of the companion agent               |
+| Property | Type | Description |
+|----------|------|-------------|
+| `input` | `z.infer<T>` | Input from schema |
+| `id` | `string` | Companion ID |
+| `companions` | `Map<string, string>` | Connected companions |
+| `sendQuery` | `function` | Query sender |
+| `companionAgent` | `CompanionAgent` | Agent instance |
 
 ## Implementation Example
 
 ### 1. companionNetworkKnowledge
 
-A Knowledge tool that retrieves a list of companions currently on the same network.
+A Knowledge tool that retrieves a list of companions currently on the same
+network.
 
 ```typescript
 export const companionNetworkKnowledge = createCompanionKnowledge({
@@ -96,7 +103,8 @@ export const companionNetworkKnowledge = createCompanionKnowledge({
 
 ## Registration with CompanionCard
 
-The created Knowledge tool should be registered in the `knowledge` field of a `CompanionCard`.
+The created Knowledge tool should be registered in the `knowledge` field of a
+`CompanionCard`.
 
 ```typescript
 export const companionCard: CompanionCard = {
@@ -111,4 +119,5 @@ export const companionCard: CompanionCard = {
 };
 ```
 
-The LLM will automatically execute the registered Knowledge tools as needed.
+The LLM will automatically execute the registered Knowledge tools as
+needed.

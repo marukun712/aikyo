@@ -2,7 +2,9 @@
 title: Firehose
 description: API Reference for the Firehose Class
 ---
-`Firehose` is a server that bridges WebSocket clients with libp2p Pubsub, enabling browsers and Node.js clients to participate in a P2P network.
+
+`Firehose` is a server that bridges WebSocket clients with libp2p Pubsub,
+enabling browsers and Node.js clients to participate in a P2P network.
 
 ## Import
 
@@ -18,10 +20,10 @@ constructor(port: number, libp2pConfig?: Libp2pOptions<Services>)
 
 ### Parameters
 
-| Parameter | Type          | Description                               |
-|-----------|---------------|-------------------------------------------|
-| `port`    | `number`      | Port number for the WebSocket server     |
-| `libp2pConfig` | `Libp2pOptions<Services>` | Optional. Custom configuration for the libp2p node                   |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `port` | `number` | Port number for the WebSocket server |
+| `libp2pConfig` | `Libp2pOptions<Services>` | Custom libp2p config |
 
 ### Usage Example
 
@@ -173,7 +175,8 @@ private topicHandlers: {
 }
 ```
 
-Object managing handler functions for each topic, providing type-safe event handling.
+Object managing handler functions for each topic, providing type-safe event
+handling.
 
 ```typescript
 type TopicPayloads = {
@@ -184,7 +187,8 @@ type TopicPayloads = {
 };
 ```
 
-Multiple handlers can be registered for each topic and will be executed sequentially when messages are received.
+Multiple handlers can be registered for each topic and will be executed
+sequentially when messages are received.
 
 ### libp2pConfig
 
@@ -192,7 +196,8 @@ Multiple handlers can be registered for each topic and will be executed sequenti
 private libp2pConfig?: Libp2pOptions<Services>
 ```
 
-Optional. Custom configuration for the libp2p node. If not specified, default settings will be used.
+Optional. Custom configuration for the libp2p node.
+If not specified, default settings will be used.
 
 ## Methods
 
@@ -214,9 +219,12 @@ type ReceiveHandler = (
 ) => RequestData | Promise<RequestData>;
 ```
 
-Configured via the `setReceiveHandler()` method. When a handler is set, all incoming data from WebSockets will pass through this handler, and the returned `RequestData` will be published to libp2p pubsub.
+Configured via the `setReceiveHandler()` method. When a handler is set, all
+incoming data from WebSockets will pass through this handler, and the returned
+`RequestData` will be published to libp2p pubsub.
 
-If no handler is configured, the received data will be parsed according to the `RequestSchema` and published directly (default behavior).
+If no handler is configured, the received data will be parsed according to the
+`RequestSchema` and published directly (default behavior).
 
 ### start()
 
@@ -234,7 +242,7 @@ async start(): Promise<void>
 
 **Example Output:**
 
-```
+```text
 aikyo firehose server running on ws://localhost:8080
 ```
 
@@ -251,10 +259,15 @@ async subscribe<K extends keyof TopicPayloads>(
 
 **Parameters:**
 
-| Parameter | Type          | Description                               |
-|-----------|---------------|-------------------------------------------|
-| `topic`   | `keyof TopicPayloads` | Name of the topic to subscribe to ("messages", "queries", "actions", "states") |
-| `handler` | `function`    | Optional. Handler function to execute when messages are received                 |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `topic` | `keyof TopicPayloads` | Topic to subscribe to |
+| `handler` | `function` | Handler for messages |
+
+**Topic Details:**
+
+- `topic`: One of "messages", "queries", "actions", or "states"
+- `handler`: Optional. Executed when messages are received
 
 **Usage Example:**
 
@@ -282,10 +295,10 @@ addHandler<K extends keyof TopicPayloads>(
 
 **Parameters:**
 
-| Parameter | Type          | Description                               |
-|-----------|---------------|-------------------------------------------|
-| `topic`   | `keyof TopicPayloads` | Topic name                                |
-| `handler` | `function`    | Handler function to execute when messages are received                       |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `topic` | `keyof TopicPayloads` | Topic name |
+| `handler` | `function` | Handler for messages |
 
 **Usage Example:**
 
@@ -307,7 +320,12 @@ setReceiveHandler(handler: ReceiveHandler): void
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `handler` | `(data: Record<string, unknown>) => RequestData \| Promise<RequestData>` | Function that transforms arbitrary WebSocket payloads into `RequestData` |
+| `handler` | `ReceiveHandler` | Transforms WebSocket data |
+
+**Handler Type:**
+
+- `(data: Record<string, unknown>) => RequestData | Promise<RequestData>`
+- Transforms arbitrary WebSocket payloads into `RequestData`
 
 **Type Definitions:**
 

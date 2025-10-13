@@ -2,14 +2,20 @@
 title: Query (query system)
 description: aikyo's client ↔ companion bidirectional communication system
 ---
-**Query** is a mechanism enabling bidirectional communication between companions and clients. It allows companions to request information from clients and receive the results.
+
+**Query** is a mechanism enabling bidirectional communication between
+companions and clients. It allows companions to request information from
+clients and receive the results.
 
 ## Features of Queries
 
-- **Bidirectional Communication**: Roundtrip communication from companion → client → companion
-- **Asynchronous Processing**: Results are awaited using Promise-based mechanisms
+- **Bidirectional Communication**: Roundtrip communication from companion →
+  client → companion
+- **Asynchronous Processing**: Results are awaited using Promise-based
+  mechanisms
 - **Timeout Functionality**: Automatically times out if no response is received
-- **Flexible Data Handling**: Supports sending and receiving requests/responses in any JSON format
+- **Flexible Data Handling**: Supports sending and receiving requests/responses
+  in any JSON format
 
 ## Query and QueryResult Types
 
@@ -79,11 +85,13 @@ The `sendQuery` function sends a Query and waits for a QueryResult.
 
 ### Timeout Handling
 
-If no response is received from the client within the specified `timeout` period, the Promise will be rejected.
+If no response is received from the client within the specified `timeout`
+period, the Promise will be rejected.
 
 ## Managing pendingQueries
 
-The `CompanionServer` maintains the state of pending queries using a `pendingQueries` Map.
+The `CompanionServer` maintains the state of pending queries using a
+`pendingQueries` Map.
 
 **Processing upon receiving a QueryResult:**
 

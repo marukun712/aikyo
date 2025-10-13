@@ -19,7 +19,8 @@ LLMが過去5メッセージを分析し、内容の類似度を評価します�
 
 ## CompanionAgentでの統合
 
-`CompanionAgent`は初期化時に`RepetitionJudge`を作成します。デフォルトで重複検出は有効(`enableRepetitionJudge: true`)です。
+`CompanionAgent`は初期化時に`RepetitionJudge`を作成します。
+デフォルトで重複検出は有効(`enableRepetitionJudge: true`)です。
 
 ## State生成時の評価
 

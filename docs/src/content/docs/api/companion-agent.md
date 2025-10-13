@@ -2,7 +2,10 @@
 title: Companion Agent
 description: API Reference for the CompanionAgent class
 ---
-The `CompanionAgent` class manages the core logic for an AI companion. It integrates the agent, memory, workflow, and duplicate detection to handle message processing and state generation.
+
+The `CompanionAgent` class manages the core logic for an AI companion.
+It integrates the agent, memory, workflow, and duplicate detection to handle
+message processing and state generation.
 
 ## Imports
 
@@ -23,14 +26,21 @@ constructor(
 
 ### Parameters
 
-| Parameter       | Type                  | Description                                                                           | Default    |
-|-----------------|-----------------------|--------------------------------------------------------------------------------------|------------|
-| `companion`     | `CompanionCard`       | Companion configuration including metadata, tools, and events                        | -          |
-| `model`         | `LanguageModel`       | LLM model to be used (retrieved from `@ai-sdk/*`)                                    | -          |
-| `history`       | `Message[]`           | Conversation history array (reference)                                             | -          |
-| `config`        | `object`              | Configuration settings                                                      | `{ maxTurn: null, enableRepetitionJudge: true }` |
-| `config.maxTurn` | `number \| null`      | Maximum number of turns before forced termination                                    | `null` (no limit) |
-| `config.enableRepetitionJudge` | `boolean`             | Enabled/disabled duplicate detection                                                 | `true`     |
+| Parameter | Type | Description | Default |
+|-----------|------|-------------|---------|
+| `companion` | `CompanionCard` | Companion configuration | - |
+| `model` | `LanguageModel` | LLM model from `@ai-sdk/*` | - |
+| `history` | `Message[]` | Conversation history array | - |
+| `config` | `object` | Configuration settings | See below |
+| `config.maxTurn` | `number \| null` | Max turns | `null` |
+| `config.enableRepetitionJudge` | `boolean` | Enable dup. check | `true` |
+
+**Configuration Details:**
+
+- `companion`: Includes metadata, tools, and events
+- `model`: Language model instance from AI SDK providers
+- `history`: Array reference to conversation messages
+- `config`: Default is `{ maxTurn: null, enableRepetitionJudge: true }`
 
 ### Usage Example
 
@@ -52,7 +62,7 @@ const companion = new CompanionAgent(
 );
 ```
 
-**Tested LLM Providers**
+### Tested LLM Providers
 
 - **Anthropic**: `@ai-sdk/anthropic`
 - **Google**: `@ai-sdk/google`
@@ -81,7 +91,8 @@ An instance of the Mastra Agent responsible for managing interactions with the L
 repetitionJudge: RepetitionJudge
 ```
 
-A judge for detecting conversation duplicates. See [Duplicate Detection](/core/repetition) for details.
+A judge for detecting conversation duplicates.
+See [Duplicate Detection](/core/repetition) for details.
 
 ### stateJudge
 
@@ -89,7 +100,8 @@ A judge for detecting conversation duplicates. See [Duplicate Detection](/core/r
 stateJudge: StateJudge
 ```
 
-A judge that generates the companion's state (State) based on conversation history. Used for turn-taking management.
+A judge that generates the companion's state (State) based on conversation
+history. Used for turn-taking management.
 
 ### history
 
@@ -170,7 +182,8 @@ Configuration passed to the constructor.
 
 ### generateToolInstruction()
 
-Generates a tool execution instruction by evaluating CEL expressions based on the received message.
+Generates a tool execution instruction by evaluating CEL expressions based on
+the received message.
 
 ```typescript
 async generateToolInstruction(input: Message): Promise<string>
@@ -182,7 +195,8 @@ async generateToolInstruction(input: Message): Promise<string>
 
 **Returns:**
 
-- `string`: Tool execution instruction (e.g., "Introduce yourself. Use the tool to respond.")
+- `string`: Tool execution instruction
+  (e.g., "Introduce yourself. Use the tool to respond.")
   or `"failed"` if event execution fails
 
 **Process Flow:**
@@ -205,7 +219,8 @@ None (internally references `this.history`)
 
 **Returns:**
 
-- `State`: State information including speak/listen, importance, selected, and closing statuses
+- `State`: State information including speak/listen, importance, selected,
+  and closing statuses
 
 **Process Flow:**
 

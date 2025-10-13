@@ -2,12 +2,17 @@
 title: Action (Behavior Tool)
 description: Details and API specifications for aikyo's Action (behavioral tool)
 ---
-**Actions** are tools that give your AI companion a physical presence. They enable communication and interaction with the external environment by sending messages or actions to P2P networks and clients.
+
+**Actions** are tools that give your AI companion a physical presence. They
+enable communication and interaction with the external environment by sending
+messages or actions to P2P networks and clients.
 
 ## Key Features of Actions
 
-- **Notification to Clients**: Has the ability to influence external systems, such as sending messages to P2P networks or notifying clients.
-- **Declarative Execution**: Defines tool execution through CEL expressions using declarative syntax.
+- **Notification to Clients**: Has the ability to influence external systems,
+  such as sending messages to P2P networks or notifying clients.
+- **Declarative Execution**: Defines tool execution through CEL expressions
+  using declarative syntax.
 
 ## createCompanionAction API
 
@@ -43,23 +48,23 @@ export interface CompanionActionConfig<T extends z.ZodSchema> {
 }
 ```
 
-| Field           | Type       | Description                               |
-|-----------------|------------|-------------------------------------------|
-| `id`            | `string`   | Unique identifier for the tool            |
-| `description`   | `string`   | Tool description (referenced by LLM during tool selection) |
-| `inputSchema`   | `ZodTypeAny` | Input schema defined using Zod Schema     |
-| `topic`         | `"actions"` \| `"messages"`               | Publication topic                       |
-| `publish`       | `function` | Message generation function               |
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Tool unique identifier |
+| `description` | `string` | Tool description for LLM |
+| `inputSchema` | `ZodTypeAny` | Input schema (Zod) |
+| `topic` | `"actions"` \| `"messages"` | Publication topic |
+| `publish` | `function` | Message generator |
 
 #### publish Function Props
 
-| Property       | Type       | Description                               |
-|----------------|------------|-------------------------------------------|
-| `input`        | `z.infer<T>` | Input data as defined in inputSchema       |
-| `id`           | `string`   | Companion's ID                            |
-| `companions`   | `Map<string, string>` | List of connected companions              |
-| `sendQuery`    | `function` | Function to send Queries to clients       |
-| `companionAgent` | `CompanionAgent` | Instance of the companion agent           |
+| Property | Type | Description |
+|----------|------|-------------|
+| `input` | `z.infer<T>` | Input from schema |
+| `id` | `string` | Companion's ID |
+| `companions` | `Map<string, string>` | Connected companions |
+| `sendQuery` | `function` | Query sender |
+| `companionAgent` | `CompanionAgent` | Agent instance |
 
 #### Return Type (Output)
 
@@ -86,7 +91,11 @@ export const speakTool = createCompanionAction({
     message: z.string(),
     to: z
       .array(z.string())
-      .describe("Recipient of this message. Always specify the companion's ID. Be sure to include all companions who have participated in the conversation unless you're addressing a specific one. Additionally, actively involve the user in conversations."),
+      .describe(
+        "Recipient of this message. Always specify the companion's ID. " +
+        "Include all companions who participated unless addressing " +
+        "specific ones. Actively involve users in conversations."
+      ),
     emotion: z.enum(["happy", "sad", "angry", "neutral"]),
   }),
   topic: "messages",
@@ -121,7 +130,8 @@ export const speakTool = createCompanionAction({
 **Operation:**
 
 1. Obtains `message`, `to`, and `emotion` from the input
-2. Generates and sends a Query with `type: "speak"` to the client (used for voice synthesis, etc.)
+2. Generates and sends a Query with `type: "speak"` to the client
+   (used for voice synthesis, etc.)
 3. Generates data in the `Message` type format
 4. Publishes to the `messages` topic
 

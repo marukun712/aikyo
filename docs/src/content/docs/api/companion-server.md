@@ -2,7 +2,10 @@
 title: Companion Server
 description: API reference for the CompanionServer class
 ---
-The `CompanionServer` class provides the P2P server functionality for companions. It integrates management of libp2p nodes, messaging, turn-taking, and metadata exchange.
+
+The `CompanionServer` class provides the P2P server functionality for
+companions. It integrates management of libp2p nodes, messaging, turn-taking,
+and metadata exchange.
 
 ## Imports
 
@@ -23,13 +26,20 @@ constructor(
 
 ### Parameters
 
-| Parameter | Type                   | Description                                               | Default Value |
-|-----------|------------------------|-----------------------------------------------------------|---------------|
-| `companionAgent` | `CompanionAgent`       | Instance of the companion agent                           | -             |
-| `history` | `Message[]`            | Array of conversation history (must reference the same array as CompanionAgent) | -             |
-| `config` | `object`               | Configuration settings                           | `{ timeoutDuration: 5000 }` |
-| `config.timeoutDuration` | `number` | Delay in milliseconds before allowing another turn after a turn-taking event | `5000`       |
-| `libp2pConfig` | `Libp2pOptions<Services>` | Optional: Custom configuration for the libp2p node           | -             |
+| Parameter | Type | Description | Default |
+|-----------|------|-------------|---------|
+| `companionAgent` | `CompanionAgent` | Companion agent instance | - |
+| `history` | `Message[]` | Conversation history array | - |
+| `config` | `object` | Configuration settings | See below |
+| `config.timeoutDuration` | `number` | Turn delay in milliseconds | `5000` |
+| `libp2pConfig` | `Libp2pOptions<Services>` | Custom libp2p config | - |
+
+**Parameter Details:**
+
+- `history`: Must reference the same array as CompanionAgent
+- `config`: Default is `{ timeoutDuration: 5000 }`
+- `config.timeoutDuration`: Delay before allowing another turn after
+  a turn-taking event
 
 ### Usage Example
 
@@ -200,7 +210,8 @@ Map managing the state of pending queries to clients. For details, see [Query](/
 libp2pConfig?: Libp2pOptions<Services>
 ```
 
-Optional: Custom configuration for the libp2p node. If omitted, default settings are used.
+Optional: Custom configuration for the libp2p node.
+If omitted, default settings are used.
 
 ## Methods
 
