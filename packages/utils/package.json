@@ -31,6 +31,7 @@
     "ai": "^5.0.44",
     "libp2p": "2.9.0",
     "pino": "catalog:",
+    "pino-pretty": "catalog:",
     "zod": "catalog:"
   },
   "peerDependencies": {

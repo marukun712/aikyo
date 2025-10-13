@@ -42,6 +42,7 @@
     "helia": "catalog:",
     "libp2p": "2.9.0",
     "pino": "catalog:",
+    "pino-pretty": "catalog:",
     "zod": "catalog:",
     "zod-from-json-schema": "catalog:"
   },

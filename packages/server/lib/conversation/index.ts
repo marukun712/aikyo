@@ -85,10 +85,9 @@ export class TurnTakingManager implements ITurnTakingManager {
   private async executeSpeaker(messageId: string, speaker: State) {
     logger.info(
       {
-        from: speaker.params.from,
         importance: speaker.params.importance,
       },
-      "Speaker selected",
+      "I was selected as the speaker...",
     );
     if (speaker.params.from === this.companionAgent.companion.metadata.id) {
       try {

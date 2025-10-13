@@ -34,6 +34,7 @@
     "helia": "catalog:",
     "libp2p": "^2.9.0",
     "pino": "catalog:",
+    "pino-pretty": "catalog:",
     "ws": "catalog:",
     "zod": "catalog:"
   },
