@@ -150,15 +150,13 @@ export class CompanionAgent implements ICompanionAgent {
       }
     }
 
-    //stateを取得
-    const state = await this.stateJudge.evaluate(
-      this.companion.metadata.id,
-      this.history,
-    );
+    const [state, res] = await Promise.all([
+      // stateを取得
+      this.stateJudge.evaluate(this.companion.metadata.id, this.history),
 
-    //closingの判定
-    const res = await this.agent.generate(
-      `
+      // closingの判定
+      this.agent.generate(
+        `
       今までの会話を振り返り、今の会話の終了状態を以下の４つの状態で判定してください。
 
       状態一覧:
@@ -171,15 +169,16 @@ export class CompanionAgent implements ICompanionAgent {
       ${closingInstruction}
       また、この判断の内容は発言内容に絶対に含めないでください。
     `,
-      {
-        runtimeContext: this.runtimeContext,
-        output: z.object({
-          closing: z.enum(["none", "pre-closing", "closing", "terminal"]),
-        }),
-        resourceId: "main",
-        threadId: "thread",
-      },
-    );
+        {
+          runtimeContext: this.runtimeContext,
+          output: z.object({
+            closing: z.enum(["none", "pre-closing", "closing", "terminal"]),
+          }),
+          resourceId: "main",
+          threadId: "thread",
+        },
+      ),
+    ]);
 
     let closing = res.object.closing;
     logger.info({ closing }, "Closing state");
