@@ -1,3 +1,4 @@
+import { anthropic } from "@ai-sdk/anthropic";
 import {
   CompanionAgent,
   type CompanionCard,
@@ -9,7 +10,6 @@ import {
   speakTool,
   visionKnowledge,
 } from "@aikyo/utils";
-import { openrouter } from "@openrouter/ai-sdk-provider";
 
 export const companionCard: CompanionCard = {
   metadata: {
@@ -65,9 +65,7 @@ async function main() {
   const history: Message[] = [];
   const companion = new CompanionAgent(
     companionCard,
-    openrouter("google/gemini-2.5-flash", {
-      provider: { require_parameters: true },
-    }),
+    anthropic("claude-3-5-haiku-latest"),
     history,
     { enableRepetitionJudge: false },
   );

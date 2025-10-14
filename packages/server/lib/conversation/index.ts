@@ -85,7 +85,7 @@ export class TurnTakingManager implements ITurnTakingManager {
   private async executeSpeaker(messageId: string, speaker: State) {
     logger.info(
       {
-        importance: speaker.params.from,
+        id: speaker.params.from,
       },
       "Speaker selected",
     );
