@@ -1,5 +1,12 @@
 # @aikyo/server
 
+## 1.4.6
+
+### Patch Changes
+
+- 4804f37: 不正確な log を修正
+- ad58fc9: typo を修正
+
 ## 1.4.5
 
 ### Patch Changes
