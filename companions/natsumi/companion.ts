@@ -72,7 +72,7 @@ async function main() {
     { enableRepetitionJudge: false },
   );
   const server = new CompanionServer(companion, history, {
-    timeoutDuration: 1000,
+    timeoutDuration: 0,
   });
   await server.start();
 }
