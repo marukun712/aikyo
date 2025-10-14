@@ -1,5 +1,13 @@
 # @aikyo/utils
 
+## 1.4.4
+
+### Patch Changes
+
+- Updated dependencies [4804f37]
+- Updated dependencies [ad58fc9]
+  - @aikyo/server@1.4.6
+
 ## 1.4.3
 
 ### Patch Changes
