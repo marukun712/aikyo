@@ -1,5 +1,11 @@
 # @aikyo/utils
 
+## 1.4.5
+
+### Patch Changes
+
+- e6ae412: tool を整理
+
 ## 1.4.4
 
 ### Patch Changes
