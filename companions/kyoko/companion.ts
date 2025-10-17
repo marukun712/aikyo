@@ -5,11 +5,7 @@ import {
   CompanionServer,
   type Message,
 } from "@aikyo/server";
-import {
-  companionNetworkKnowledge,
-  speakTool,
-  visionKnowledge,
-} from "@aikyo/utils";
+import { companionNetworkKnowledge, speakTool } from "@aikyo/utils";
 
 export const companionCard: CompanionCard = {
   metadata: {
@@ -24,7 +20,7 @@ export const companionCard: CompanionCard = {
   },
   role: "あなたは、明るい役として、他のコンパニオンやユーザーと積極的に交流します。",
   actions: { speakTool },
-  knowledge: { companionNetworkKnowledge, visionKnowledge },
+  knowledge: { companionNetworkKnowledge },
   events: {
     params: {
       title: "あなたが判断すべきパラメータ",
@@ -65,9 +61,9 @@ async function main() {
   const history: Message[] = [];
   const companion = new CompanionAgent(
     companionCard,
-    anthropic("claude-3-5-haiku-latest"),
+    anthropic("claude-haiku-4-5"),
     history,
-    { enableRepetitionJudge: false },
+    { enableRepetitionJudge: true },
   );
   const server = new CompanionServer(companion, history, {
     timeoutDuration: 0,

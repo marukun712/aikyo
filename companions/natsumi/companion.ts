@@ -1,15 +1,11 @@
+import { anthropic } from "@ai-sdk/anthropic";
 import {
   CompanionAgent,
   type CompanionCard,
   CompanionServer,
   type Message,
 } from "@aikyo/server";
-import {
-  companionNetworkKnowledge,
-  speakTool,
-  visionKnowledge,
-} from "@aikyo/utils";
-import { openrouter } from "@openrouter/ai-sdk-provider";
+import { companionNetworkKnowledge, speakTool } from "@aikyo/utils";
 
 export const companionCard: CompanionCard = {
   metadata: {
@@ -24,7 +20,7 @@ export const companionCard: CompanionCard = {
   },
   role: "あなたは、ツッコミ役として、他のコンパニオンやユーザーと積極的に交流します。",
   actions: { speakTool },
-  knowledge: { companionNetworkKnowledge, visionKnowledge },
+  knowledge: { companionNetworkKnowledge },
   events: {
     params: {
       title: "あなたが判断すべきパラメータ",
@@ -65,11 +61,9 @@ async function main() {
   const history: Message[] = [];
   const companion = new CompanionAgent(
     companionCard,
-    openrouter("google/gemini-2.5-flash", {
-      provider: { require_parameters: true },
-    }),
+    anthropic("claude-haiku-4-5"),
     history,
-    { enableRepetitionJudge: false },
+    { enableRepetitionJudge: true },
   );
   const server = new CompanionServer(companion, history, {
     timeoutDuration: 0,
