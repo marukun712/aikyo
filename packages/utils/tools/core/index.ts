@@ -35,7 +35,7 @@ export const speakTool = createCompanionAction({
 });
 
 export const speakQueryTool = createCompanionAction({
-  id: "speak",
+  id: "speak-query",
   description: "発言する。",
   inputSchema: z.object({
     message: z.string(),
