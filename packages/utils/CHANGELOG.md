@@ -1,5 +1,11 @@
 # @aikyo/utils
 
+## 1.4.6
+
+### Patch Changes
+
+- 0afd001: 残っていた visionTool の export を削除
+
 ## 1.4.5
 
 ### Patch Changes
