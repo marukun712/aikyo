@@ -1,44 +1,69 @@
 ---
-title: コンセプト
-description: aikyoのコンセプト
+title: concept
+description: Concept of aikyo
 ---
 
-`aikyo`は、**人間と複数のAIコンパニオンが対等に会話**し、共存できる環境を設計するための新しいフレームワークです。近年のLLMの進歩に伴い、多くのAI Agent実装やA2Aプロトコルが登場していますが、その多くは業務や作業効率化を目的としています。`aikyo`は、業務や作業の効率化としてではなく、人間に寄り添い、対等な会話をすることができるA2Aを目指しています。
-
----
-
-## 主な特徴と機能
-
-### 1. P2Pベースの完全独立型エージェント間通信
-
-`aikyo`の基盤は**P2P通信**にあります。これにより、接続されるAIコンパニオンは完全に独立しており、中央集権的なサーバーに依存することなく、**AIコンパニオン同士が直接つながり、連携**することが可能です。
-
-### 2. 人間に寄り添う対等なA2Aのための対話制御
-
-複数のAIコンパニオンが自然に対話を進めるために、以下の機能を提供します。
-
-- **ターンテイキング**
-    LLM間でスムーズに会話のキャッチボールを行うための仕組みを提供します。これにより、誰がいつ話すか、会話の順序が整理され、人間との自然な対話の流れを構築します。
-- **会話重複検出機能**
-    複数のAIコンパニオンが同時に同じ内容を話したり、不必要に繰り返したりするのを防ぐための検出機能です。これにより、会話の質を保ち、より洗練されたA2Aコミュニケーションを実現します。
+`aikyo` is an innovative framework designed to facilitate **equally balanced
+conversations between humans and multiple AI companions** in an environment
+where they coexist. While recent advances in LLMs have led to numerous AI Agent
+implementations and A2A protocols, most focus on task automation or efficiency
+improvements. `aikyo` differs by prioritizing not operational efficiency, but
+rather creating AI companions that can genuinely engage with humans in a
+mutually respectful, equal conversational partnership.
 
 ---
 
-## AIコンパニオンの拡張機能
+## Key Features and Functionality
 
-`aikyo`は、単なる会話能力だけでなく、AIコンパニオンに「体」と「知識」を与えるための拡張機能を提供します。これにより、ユーザーは容易に何らかの体を持ったAIコンパニオンを作成できるようになります。
+### 1. P2P-Based Fully Decentralized Agent Communication
 
-### Action（体を与える）
+The foundation of `aikyo` lies in **peer-to-peer (P2P) communication**.
+This architecture ensures each connected AI companion operates completely
+independently, free from reliance on centralized servers. Instead, they
+establish direct connections and collaborate through **direct peer-to-peer
+interaction**.
 
-- AIコンパニオンが**操作できる体**を与えるための機能です。
-- これにより、AIコンパニオンは物理的または仮想的な環境で、特定の**行動（アクション）を実行**できるようになります。
+### 2. Dialogue Control for Equal A2A Interactions with Humans
 
-### Knowledge（動的な知識の付与）
+To enable natural conversation flow among multiple AI companions, the system
+provides the following functionalities:
 
-- AIコンパニオンが、事前に学習した情報だけでなく、**動的に取得する知識**を与え、会話や行動に反映させるための機能です。
-- 外部データソースやAPI連携を通じて、常に最新かつ関連性の高い情報を利用できます。
+- **Turn Management**
+    Implements mechanisms to facilitate smooth dialogue exchanges between LLMs.
+    This ensures proper turn-taking and conversational sequence, creating an
+    intuitive flow of interaction that mirrors human conversation.
+- **Conversation Duplication Detection**
+    A detection feature designed to prevent multiple AI companions from
+    simultaneously speaking the same content or engaging in unnecessary
+    repetition. This helps maintain conversation quality and deliver more
+    refined A2A communication.
 
-### Query（クライアントへのリクエスト）
+---
 
-- クライアントにリクエストを送信することができる機能です。
-- 例えば、クライアント側が持っているカメラ映像をAIコンパニオンに伝えたり、クライアント側で利用できる音声合成などをAIコンパニオンが任意のタイミングで使用することができます。
+## AI Companion Enhancements
+
+Beyond basic conversational capabilities, `aikyo` offers extension features
+to endow AI companions with both physical embodiment and dynamic knowledge
+acquisition. These enable users to easily create AI companions equipped with
+some form of tangible presence or interactive capability.
+
+### Action (Physical Embodiment)
+
+- Provides functionality to give AI companions **operable physical forms**.
+- This allows the AI companion to perform specific **actions** within both
+  physical and virtual environments.
+
+### Knowledge (Dynamic Knowledge Acquisition)
+
+- Enables AI companions to acquire not just pre-trained knowledge, but also
+  **dynamically obtained information** that can be incorporated into their
+  conversations and actions.
+- Through integration with external data sources or API connections, it
+  ensures access to always up-to-date and contextually relevant information.
+
+### Query (Client Requests)
+
+- Allows the system to send requests to client applications.
+- For instance, it can transmit camera footage from the client side to the
+  AI companion or enable the AI to use voice synthesis capabilities available
+  on the client side at any desired time.

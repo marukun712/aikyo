@@ -9,12 +9,16 @@ export default defineConfig({
     starlight({
       title: "aikyo",
       locales: {
-        root: {
+        ja: {
           label: "日本語",
           lang: "ja",
         },
+        root: {
+          label: "English",
+          lang: "en",
+        },
       },
-      defaultLocale: "ja",
+      defaultLocale: "root",
       social: [
         {
           icon: "github",
@@ -24,30 +28,70 @@ export default defineConfig({
       ],
       sidebar: [
         {
-          label: "はじめる",
+          label: "Getting Started",
+          translations: { ja: "はじめる" },
           items: [
-            { label: "コンセプト", slug: "concept" },
-            { label: "クイックスタート", slug: "quick-start" },
+            {
+              label: "Concept",
+              translations: { ja: "コンセプト" },
+              slug: "concept",
+            },
+            {
+              label: "Quick Start",
+              translations: { ja: "クイックスタート" },
+              slug: "quick-start",
+            },
           ],
         },
         {
-          label: "学ぶ",
+          label: "Learn",
+          translations: { ja: "学ぶ" },
           items: [
             {
-              label: "会話制御",
+              label: "Conversation Control",
+              translations: { ja: "会話制御" },
               items: [
-                { label: "ターンテイキング", slug: "core/turn-taking" },
-                { label: "会話クロージング", slug: "core/closing" },
-                { label: "重複検出", slug: "core/repetition" },
-                { label: "P2P通信", slug: "core/p2p" },
+                {
+                  label: "Turn-Taking",
+                  translations: { ja: "ターンテイキング" },
+                  slug: "core/turn-taking",
+                },
+                {
+                  label: "Conversation Closing",
+                  translations: { ja: "会話クロージング" },
+                  slug: "core/closing",
+                },
+                {
+                  label: "Repetition Detection",
+                  translations: { ja: "重複検出" },
+                  slug: "core/repetition",
+                },
+                {
+                  label: "P2P Communication",
+                  translations: { ja: "P2P通信" },
+                  slug: "core/p2p",
+                },
               ],
             },
             {
-              label: "ツール",
+              label: "Tools",
+              translations: { ja: "ツール" },
               items: [
-                { label: "Knowledge（知識ツール）", slug: "tools/knowledge" },
-                { label: "Action（行動ツール）", slug: "tools/action" },
-                { label: "Query（クエリシステム）", slug: "tools/query" },
+                {
+                  label: "Knowledge",
+                  translations: { ja: "Knowledge（知識ツール）" },
+                  slug: "tools/knowledge",
+                },
+                {
+                  label: "Action",
+                  translations: { ja: "Action（行動ツール）" },
+                  slug: "tools/action",
+                },
+                {
+                  label: "Query System",
+                  translations: { ja: "Query（クエリシステム）" },
+                  slug: "tools/query",
+                },
               ],
             },
           ],

@@ -1,20 +1,25 @@
 ---
-title: Query（クエリシステム）
-description: aikyoのクライアント⇔コンパニオン双方向通信システム
+title: Query (query system)
+description: aikyo's client ↔ companion bidirectional communication system
 ---
 
-**Query**は、コンパニオンとクライアント間で双方向通信を行うための仕組みです。コンパニオンからクライアントに情報を要求し、結果を受け取ることができます。
+**Query** is a mechanism enabling bidirectional communication between
+companions and clients. It allows companions to request information from
+clients and receive the results.
 
-## Queryの特徴
+## Features of Queries
 
-- **双方向通信**: コンパニオン→クライアント→コンパニオンの往復通信
-- **非同期処理**: Promiseベースで結果を待機
-- **タイムアウト機能**: 応答がない場合は自動的にタイムアウト
-- **柔軟なデータ**: 任意のJSON形式でリクエスト・レスポンスを送受信
+- **Bidirectional Communication**: Roundtrip communication from companion →
+  client → companion
+- **Asynchronous Processing**: Results are awaited using Promise-based
+  mechanisms
+- **Timeout Functionality**: Automatically times out if no response is received
+- **Flexible Data Handling**: Supports sending and receiving requests/responses
+  in any JSON format
 
-## Query型とQueryResult型
+## Query and QueryResult Types
 
-### Query型
+### Query Type
 
 ```typescript
 export const QuerySchema = z.object({
@@ -30,16 +35,16 @@ export const QuerySchema = z.object({
 export type Query = z.infer<typeof QuerySchema>;
 ```
 
-| フィールド | 型 | 説明 |
-|-----------|-----|------|
-| `jsonrpc` | `"2.0"` | JSON-RPCバージョン |
-| `method` | `"query.send"` | メソッド名 |
-| `id` | `string` | クエリの一意なID（レスポンスと紐付け） |
-| `params.from` | `string` | 送信元コンパニオンのID |
-| `params.type` | `string` | クエリのタイプ（例: `"vision"`, `"speak"`) |
-| `params.body` | `object` | 追加データ（オプション） |
+| Field       | Type     | Description                          |
+|-------------|---------|--------------------------------------|
+| `jsonrpc`   | `"2.0"` | JSON-RPC version                     |
+| `method`    | `"query.send"` | Method name                          |
+| `id`        | `string`   | Unique query identifier (linked to response) |
+| `params.from` | `string` | Identifier of the sending companion      |
+| `params.type` | `string` | Type of query (e.g., `"vision"`, `"speak"`)    |
+| `params.body` | `object` | Additional data (optional)            |
 
-### QueryResult型
+### QueryResult Type
 
 ```typescript
 export const QueryResultSchema = z.object({
@@ -51,44 +56,46 @@ export const QueryResultSchema = z.object({
       body: z.record(z.string(), z.any()),
     })
     .optional(),
-  error: z.string().optional().describe("エラーメッセージ"),
+  error: z.string().optional().describe("Error message"),
 });
 export type QueryResult = z.infer<typeof QueryResultSchema>;
 ```
 
-| フィールド | 型 | 説明 |
-|-----------|-----|------|
-| `jsonrpc` | `"2.0"` | JSON-RPCバージョン |
-| `id` | `string` | クエリのID（Queryと一致） |
-| `result` | `object` | 成功時のレスポンス（オプション） |
-| `result.success` | `boolean` | 成功/失敗フラグ |
-| `result.body` | `object` | レスポンスデータ |
-| `error` | `string` | エラー時のメッセージ（オプション） |
+| Field       | Type     | Description                          |
+|-------------|---------|--------------------------------------|
+| `jsonrpc`   | `"2.0"` | JSON-RPC version                     |
+| `id`        | `string` | Query identifier (matches Query)       |
+| `result`    | `object` | Success response data (optional)      |
+| `result.success` | `boolean` | Success/failure flag               |
+| `result.body` | `object` | Response data                        |
+| `error`     | `string` | Error message (optional)              |
 
-## sendQuery関数
+## sendQuery Function
 
-`sendQuery`は、Queryを送信してQueryResultを待機する関数です。
+The `sendQuery` function sends a Query and waits for a QueryResult.
 
-**引数:**
+**Parameters:**
 
-- `query`: 送信するQuery
-- `timeout`: タイムアウト時間（ミリ秒、デフォルト30000）
+- `query`: The Query to be sent
+- `timeout`: Timeout duration in milliseconds (default 30000)
 
-**戻り値:**
+**Return Value:**
 
-- `Promise<QueryResult>`: クライアントからのレスポンス
+- `Promise<QueryResult>`: Response from the client
 
-### タイムアウト処理
+### Timeout Handling
 
-クライアントからのレスポンスが`timeout`時間内に到着しない場合、Promiseはrejectされます。
+If no response is received from the client within the specified `timeout`
+period, the Promise will be rejected.
 
-## pendingQueries管理
+## Managing pendingQueries
 
-`CompanionServer`は`pendingQueries` Mapでクエリの待機状態を管理します。
+The `CompanionServer` maintains the state of pending queries using a
+`pendingQueries` Map.
 
-**QueryResult受信時の処理:**
+**Processing upon receiving a QueryResult:**
 
-1. `queries`トピックでQueryResultを受信
-2. `pendingQueries`から対応するクエリを検索
-3. `resolve`を呼び出してPromiseを完了
-4. `pendingQueries`から削除
+1. Receives the QueryResult on the `queries` topic
+2. Searches for the corresponding query in the `pendingQueries` map
+3. Callers `resolve` to complete the Promise
+4. Removes the entry from the `pendingQueries` map

@@ -1,55 +1,64 @@
 ---
-title: P2P通信
-description: aikyoのP2P通信アーキテクチャと実装詳細
+title: Peer-to-peer communication
+description: Aikyo's P2P Communication Architecture and Implementation Details
 ---
 
-aikyoは**libp2p**を基盤としたP2Pネットワーク上で動作します。これにより、中央サーバーに依存せず、コンパニオン同士が直接通信できる完全分散型のアーキテクチャを実現しています。
+aikyo operates on a P2P network built upon **libp2p**. This enables a fully
+decentralized architecture where companions can communicate directly without
+relying on central servers.
 
-## libp2pによるP2Pネットワーク
+## P2P Network Using libp2p
 
-### ネットワーク構成
+### Network Architecture
 
-各コンパニオンとFirehoseサーバーは、libp2pノードとしてP2Pネットワークに参加します。
+Each companion and the Firehose server participate as libp2p nodes in the P2P network.
 
-デフォルトでは、以下の機能が有効化されます：
-- TCP/IP通信
-- mDNSピア発見
-- Gossipsub Pubsubメッセージング
-- Noise暗号化
-- Yamuxストリームマルチプレクサ
+By default, the following features are enabled:
 
-### ピア発見と接続
+- TCP/IP communication
+- mDNS peer discovery
+- Gossipsub Pubsub messaging
+- Noise encryption
+- Yamux stream multiplexing
 
-mDNSにより、同じローカルネットワーク上のコンパニオンを自動的に発見し、接続を試みます。
+### Peer Discovery and Connection
 
-### メタデータ交換
+mDNS automatically discovers and attempts to connect to companions on the same
+local network.
 
-ピア接続時にカスタムプロトコルを使用してメタデータを交換します。
+### Metadata Exchange
 
-接続したピアから相手のコンパニオンメタデータ（id、name、personality等）を取得し、`companionList`に保存します。
+Custom protocols are used during peer connections to exchange metadata.
 
-## Gossipsub通信
+Upon establishing a connection, the system retrieves the companion's metadata
+(including ID, name, and personality) from the connected peer and stores it in
+the `companionList`.
 
-aikyoでは3つの主要トピックを使用してGossipsubメッセージングを行います。
+## Gossipsub Communication
 
-### トピック一覧
+aikyo utilizes four primary topics for Gossipsub messaging:
 
-| トピック | 用途 | メッセージ型 |
-|---------|------|------------|
-| `messages` | コンパニオン間の会話メッセージ | `Message` |
-| `states` | ターンテイキング用の状態通知 | `State` |
-| `queries` | クエリリクエスト・レスポンス | `Query`, `QueryResult` |
-| `actions` | クライアント向けアクション通知 | `Action` |
+### Topic List
 
-## Firehoseサーバー
+| Topic | Purpose | Message Type |
+|-------|---------|--------------|
+| `messages` | Conversation messages | `Message` |
+| `states` | Turn-taking states | `State` |
+| `queries` | Query requests/responses | `Query`, `QueryResult` |
+| `actions` | Action notifications | `Action` |
 
-Firehoseは、WebSocketクライアントとlibp2pネットワークをブリッジする役割を持ちます。
+## Firehose Server
 
-WebSocketがつながる環境であればどこでもP2Pネットワークに参加できます。
+The Firehose serves as a bridge between WebSocket clients and the libp2p
+network.
 
-## JSON-RPC 2.0プロトコル
+It allows participation in the P2P network from any environment capable of
+establishing a WebSocket connection.
 
-aikyoでは全てのメッセージをJSON-RPC 2.0形式で統一しています。
+## JSON-RPC 2.0 Protocol
+
+aikyo standardizes all messages using the JSON-RPC 2.0 format for
+consistency.
 
 ```typescript
 export const MessageSchema = z.object({
@@ -65,4 +74,5 @@ export const MessageSchema = z.object({
 });
 ```
 
-この統一により、クライアント・サーバー間で一貫したメッセージ処理が可能になります。
+This standardization ensures consistent message handling between clients and
+the server.

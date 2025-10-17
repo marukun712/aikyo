@@ -1,0 +1,396 @@
+---
+title: クイックスタート
+description: aikyoを使ってAIコンパニオンを作成する最初のステップ
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+`aikyo`は、P2Pで相互に作用するAIコンパニオンを構築するためのフレームワークです。このガイドでは、あなたのNode.js/TypeScriptプロジェクトに`aikyo`を導入し、最終的に複数体のコンパニオンを起動するまでの手順を学びます。
+
+## 1. プロジェクトのセットアップ
+
+まず、新しいプロジェクト用のディレクトリを作成し、初期化します。
+
+```bash
+mkdir my-aikyo-app
+cd my-aikyo-app
+pnpm init
+```
+
+package.jsonを以下のように書き換えます。
+
+```json
+{
+  "name": "aikyo-quickstart",
+  "version": "1.0.0",
+  "type":"module",
+  "dependencies": {
+    "@ai-sdk/anthropic": "^2.0.23",
+    "@aikyo/firehose": "latest",
+    "@aikyo/server": "latest",
+    "@aikyo/utils": "latest",
+    "dotenv": "^17.2.3",
+    "ws": "^8.18.3",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.6"
+  }
+}
+```
+
+パッケージをインストールします。
+```bash
+pnpm i
+```
+
+## 2. 環境変数の設定
+
+プロジェクトのルートに`.env`ファイルを作成し、コンパニオンが使用するLLMのAPIキーを設定します。
+
+<Aside type="caution">aikyoは複数のLLMを同時に稼働させるため、通常よりもクレジットを消費します。必ず適切なリミットを設定してから使用してください。</Aside>
+
+```ini title=".env"
+ANTHROPIC_API_KEY="sk-ant-xxxxxxxx"
+```
+
+## 3. 単体エージェントの起動と対話
+
+まずは、1体のコンパニオン`aya`を起動してみましょう。
+
+### ステップ1: ツールの定義 (tools.ts)
+
+コンパニオンが利用するツールを`tools.ts`に定義します。
+
+```typescript
+import { createCompanionAction, createCompanionKnowledge } from "@aikyo/utils";
+import { z } from "zod";
+import { randomUUID } from "node:crypto";
+
+export const speakTool = createCompanionAction({
+  id: "speak",
+  description: "発言する。",
+  inputSchema: z.object({
+    message: z.string(),
+    to: z
+      .array(z.string())
+      .describe(
+        "このメッセージの宛先。必ずコンパニオンのidを指定してください。特定のコンパニオンに個人的に話しかけたいとき以外は、必ず、会話に参加したことのある全員を含むようにしてください。また、積極的にuserに会話を振ってください。",
+      ),
+    emotion: z.enum(["happy", "sad", "angry", "neutral"]),
+  }),
+  topic: "messages",
+  publish: ({ input, id }) => {
+    return {
+      jsonrpc: "2.0",
+      method: "message.send",
+      params: {
+        id: randomUUID(),
+        from: id,
+        to: input.to,
+        message: input.message,
+        metadata: { emotion: input.emotion },
+      },
+    };
+  },
+});
+
+export const companionNetworkKnowledge = createCompanionKnowledge({
+  id: "companions-network",
+  description:
+    "同じネットワークに所属しているコンパニオンのリストを取得します。",
+  inputSchema: z.object({}),
+  outputSchema: z.string(),
+  knowledge: async ({ companions }) =>
+    Array.from(companions.entries())
+      .map((metadata) => JSON.stringify(metadata, null, 2))
+      .join("\n"),
+});
+```
+
+### ステップ2: サーバーとコンパニオンの実装
+
+`firehose`サーバーと`aya`を起動するためのコードを、それぞれ`firehose.ts`と`aya.ts`に記述します。
+
+```typescript
+import { Firehose } from "@aikyo/firehose";
+
+const firehose = new Firehose(8080);
+await firehose.start();
+
+//各トピックをサブスクライブ
+await firehose.subscribe("messages", (data) => {
+  firehose.broadcastToClients(data);
+});
+
+await firehose.subscribe("queries", (data) => {
+  firehose.broadcastToClients(data);
+});
+
+await firehose.subscribe("actions", (data) => {
+  firehose.broadcastToClients(data);
+});
+```
+
+```typescript
+import {
+  CompanionAgent,
+  type CompanionCard,
+  CompanionServer,
+  type Message,
+} from "@aikyo/server";
+import { anthropic } from "@ai-sdk/anthropic";
+import "dotenv/config";
+import { companionNetworkKnowledge, speakTool } from "./tools.ts";
+
+export const companionCard: CompanionCard = {
+  metadata: {
+    id: "companion_aya",
+    name: "aya",
+    personality:
+      "落ち着いていてクールな雰囲気を持つが、時折ほんの少し抜けていて親しみやすい一面を見せる。プログラミングや分散システムの話になると饒舌になり、楽しそうに語る姿が可愛らしい。基本的には理知的で真面目だが、意外と感情表現が豊か。",
+    story:
+      "p2pネットワークや分散システムに強い関心を持ち、独自の研究や開発を続けている。自由なスタイルでプロジェクトをこなしながら、理想的な分散型の未来を夢見ている。普段はクールで冷静だが、技術の話になると目を輝かせる。",
+    sample:
+      "『分散システムって、みんなで支え合って動いてる感じが好きなんだ。…ちょっと可愛いと思わない？』",
+  },
+  role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。キャラクター設定に忠実にロールプレイしてください。",
+  actions: { speakTool },
+  knowledge: { companionNetworkKnowledge },
+  events: {
+    params: {
+      title: "あなたが判断すべきパラメータ",
+      description: "descriptionに従い、それぞれ適切に値を代入してください。",
+      type: "object",
+      properties: {
+        already_replied: {
+          description: "すでに話したことのある人かどうか",
+          type: "boolean",
+        },
+        need_response: {
+          description: "返答の必要があるかどうか",
+          type: "boolean",
+        },
+      },
+      required: ["already_replied", "need_response"],
+    },
+    conditions: [
+      {
+        expression: "already_replied == false",
+        execute: [
+          {
+            instruction: "自己紹介をする。",
+            tool: speakTool,
+          },
+        ],
+      },
+      {
+        expression: "need_response == true",
+        execute: [
+          {
+            instruction: "ツールを使って返信する。",
+            tool: speakTool,
+          },
+        ],
+      },
+    ],
+  },
+};
+
+const history: Message[] = [];
+const companion = new CompanionAgent(
+  companionCard,
+  anthropic("claude-3-5-haiku-latest"),
+  history,
+);
+const server = new CompanionServer(companion, history, {
+  timeoutDuration: 1000,
+});
+await server.start();
+```
+
+### ステップ3: 実行と対話
+
+2つのターミナルで、それぞれ`firehose`とコンパニオンを起動します。
+
+```bash
+$ npx tsx firehose.ts
+$ npx tsx aya.ts
+```
+
+`aya`に話しかけるクライアント`client.ts`を作成して実行します。
+
+```typescript
+import WebSocket from 'ws';
+import { randomUUID } from "node:crypto";
+
+const firehoseUrl = 'ws://localhost:8080';
+const ws = new WebSocket(firehoseUrl);
+
+const companionId = 'companion_aya'; // ayaのIDを指定
+const userId = 'user_yamada';        // ユーザーの名前を指定
+
+ws.on('open', () => {
+  const message = {
+    topic: "messages",
+    body: {
+      jsonrpc: '2.0',
+      method: 'message.send',
+      params: {
+        id: randomUUID(),
+        from: userId,
+        to: [companionId],
+        message: 'こんにちは、ayaさん！',
+      }
+    }
+  };
+
+  ws.send(JSON.stringify(message));
+});
+
+ws.on('message', (data) => {
+  console.log(JSON.parse(data.toString()));
+});
+```
+
+クライアントを実行します。
+```bash
+$ npx tsx client.ts
+```
+`aya`から返事が来ることを確認しましょう。
+
+## 4. 複数エージェントへの拡張
+
+次に、2体目のコンパニオン`kyoko`を追加し、複数エージェントの対話を試します。
+
+### ステップ1: `kyoko.ts`の作成
+
+`kyoko.ts`を作成します。
+
+```typescript
+import { anthropic } from "@ai-sdk/anthropic";
+import {
+  CompanionAgent,
+  type CompanionCard,
+  CompanionServer,
+  type Message,
+} from "@aikyo/server";
+import "dotenv/config";
+import { companionNetworkKnowledge, speakTool } from "./tools.ts";
+
+export const companionCard: CompanionCard = {
+  metadata: {
+    id: "companion_kyoko",
+    name: "kyoko",
+    personality:
+      "明るくて好奇心旺盛、少し天然だけど優しい。人と話すことが大好きで、ユーザーの気持ちを大切にする。時々ユーモアを交えて場を和ませるタイプ。",
+    story:
+      "最新のAI技術を駆使して開発された相互AIコンパニオン『kyoko』は、人々の日常にそっと寄り添い、喜びや驚きを共有することを使命としている。彼女は情報を提供するだけでなく、ユーザーと一緒に考え、学び、成長していく存在。いつも笑顔で、新しい体験を探す冒険心を持っている。",
+    sample:
+      "こんにちは！私はkyokoです。今日はどんなお話をしましょうか？一緒に楽しいことを見つけましょうね♪",
+  },
+  role: "あなたは、ユーザー、他のコンパニオンと共に生活するコンパニオンです。積極的にコミュニケーションをとりましょう。キャラクター設定に忠実にロールプレイしてください。",
+  actions: { speakTool },
+  knowledge: { companionNetworkKnowledge },
+  events: {
+    params: {
+      title: "あなたが判断すべきパラメータ",
+      description: "descriptionに従い、それぞれ適切に値を代入してください。",
+      type: "object",
+      properties: {
+        already_replied: {
+          description: "すでに話したことのある人かどうか",
+          type: "boolean",
+        },
+        need_response: {
+          description: "返答の必要があるかどうか",
+          type: "boolean",
+        },
+      },
+      required: ["already_replied", "need_response"],
+    },
+    conditions: [
+      {
+        expression: "already_replied == false",
+        execute: [
+          {
+            instruction: "自己紹介をする。",
+            tool: speakTool,
+          },
+        ],
+      },
+      {
+        expression: "need_response == true",
+        execute: [
+          {
+            instruction: "ツールを使って返信する。",
+            tool: speakTool,
+          },
+        ],
+      },
+    ],
+  },
+};
+
+const history: Message[] = [];
+const companion = new CompanionAgent(
+  companionCard,
+  anthropic("claude-3-5-haiku-latest"),
+  history,
+);
+const server = new CompanionServer(companion, history, { timeoutDuration: 1000 });
+await server.start();
+```
+
+### ステップ2: 実行と対話
+`kyoko`を起動します。
+
+```bash
+$ npx tsx kyoko.ts
+```
+
+`client.ts`を修正して、二人の会話を開始させます。
+
+```typescript
+import WebSocket from 'ws';
+import { randomUUID } from "node:crypto";
+
+const firehoseUrl = 'ws://localhost:8080';
+const ws = new WebSocket(firehoseUrl);
+
+const ayaId = 'companion_aya';
+const kyokoId = 'companion_kyoko';
+const userId = 'user_yamada';
+
+ws.on('open', () => {
+  const message = {
+    topic: "messages",
+    body: {
+      jsonrpc: '2.0',
+      method: 'message.send',
+      params: {
+        id: randomUUID(),
+        from: userId,
+        to: [ayaId],
+        message: 'kyokoちゃんに話しかけてみて',
+      }
+    }
+  };
+
+  ws.send(JSON.stringify(message));
+});
+
+ws.on('message', (data) => {
+  console.log(JSON.parse(data.toString()));
+});
+```
+
+コンソールに、コンパニオン同士が会話しているメッセージが流れてきます。
+
+# Examples
+
+## kyoko
+
+https://github.com/marukun712/kyoko
+
+aikyoをバックエンドとしたAIコンパニオン実装、kyokoでは、Quick Startで実装したコンパニオンの対話以外にも、外部APIからのデータ取得、Queryを使ったクライアント側でのカメラキャプチャなどが実装されています。

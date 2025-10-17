@@ -268,6 +268,13 @@ firehose.addHandler("messages", (data) => {
 
 ## Development Guidelines
 
+### ドキュメントの変更
+
+**重要**: `docs/`ディレクトリのドキュメントを変更する際は、**必ず日本語版と英語版の両方を更新してください**。
+
+- 日本語版: `docs/src/content/docs/ja/`
+- 英語版: `docs/src/content/docs/`（ルート）
+
 ### カスタムツールの作成
 
 `companions/tools/`ディレクトリにツールを追加：
