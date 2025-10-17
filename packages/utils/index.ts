@@ -7,4 +7,3 @@ export {
   type CompanionKnowledgeConfig,
   createCompanionKnowledge,
 } from "./tools/createCompanionKnowledge.js";
-export { visionKnowledge } from "./tools/query-tool/index.js";
