@@ -1,5 +1,11 @@
 # @aikyo/utils
 
+## 1.4.7
+
+### Patch Changes
+
+- b212cac: fix: speakQueryTool を export
+
 ## 1.4.6
 
 ### Patch Changes
