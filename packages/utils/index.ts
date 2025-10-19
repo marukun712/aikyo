@@ -1,4 +1,8 @@
-export { companionNetworkKnowledge, speakTool } from "./tools/core/index.js";
+export {
+  companionNetworkKnowledge,
+  speakQueryTool,
+  speakTool,
+} from "./tools/core/index.js";
 export {
   type CompanionActionConfig,
   createCompanionAction,
