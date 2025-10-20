@@ -7,6 +7,7 @@
     "companion": "tsx ./scripts/companion.ts",
     "firehose": "tsx ./scripts/firehose.ts",
     "aituberkit": "tsx ./scripts/aituberkit-bridge.ts",
+    "translate": "tsx ./scripts/translate-docs.ts",
     "format": "biome format ./",
     "format:fix": "biome format --write ./",
     "lint": "biome lint ./",
@@ -24,6 +25,7 @@
     "@biomejs/biome": "2.2.3",
     "@changesets/cli": "^2.29.7",
     "@types/node": "catalog:",
+    "glob": "^11.0.3",
     "tsup": "catalog:",
     "tsx": "^4.20.5"
   }

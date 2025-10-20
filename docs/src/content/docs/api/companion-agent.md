@@ -1,17 +1,19 @@
 ---
-title: CompanionAgent
-description: CompanionAgentクラスのAPIリファレンス
+title: Companion Agent
+description: API Reference for the CompanionAgent class
 ---
 
-`CompanionAgent`は、AIコンパニオンのコアロジックを管理するクラスです。エージェント、メモリ、ワークフロー、重複検出を統合し、メッセージ処理と状態生成を行います。
+The `CompanionAgent` class manages the core logic for an AI companion.
+It integrates the agent, memory, workflow, and duplicate detection to handle
+message processing and state generation.
 
-## インポート
+## Imports
 
 ```typescript
 import { CompanionAgent } from "@aikyo/server";
 ```
 
-## コンストラクタ
+## Constructor
 
 ```typescript
 constructor(
@@ -22,18 +24,25 @@ constructor(
 )
 ```
 
-### パラメータ
+### Parameters
 
-| パラメータ | 型 | 説明 | デフォルト |
-|-----------|-----|------|-----------|
-| `companion` | `CompanionCard` | コンパニオンの設定（メタデータ、ツール、イベントなど） | - |
-| `model` | `LanguageModel` | 使用するLLMモデル（`@ai-sdk/*`から取得） | - |
-| `history` | `Message[]` | 会話履歴の配列（参照渡し） | - |
-| `config` | `object` | オプション設定 | `{ maxTurn: null, enableRepetitionJudge: true }` |
-| `config.maxTurn` | `number \| null` | 最大ターン数（超えると強制終了） | `null`（制限なし） |
-| `config.enableRepetitionJudge` | `boolean` | 重複検出の有効/無効 | `true` |
+| Parameter | Type | Description | Default |
+|-----------|------|-------------|---------|
+| `companion` | `CompanionCard` | Companion configuration | - |
+| `model` | `LanguageModel` | LLM model from `@ai-sdk/*` | - |
+| `history` | `Message[]` | Conversation history array | - |
+| `config` | `object` | Configuration settings | See below |
+| `config.maxTurn` | `number \| null` | Max turns | `null` |
+| `config.enableRepetitionJudge` | `boolean` | Enable dup. check | `true` |
 
-### 使用例
+**Configuration Details:**
+
+- `companion`: Includes metadata, tools, and events
+- `model`: Language model instance from AI SDK providers
+- `history`: Array reference to conversation messages
+- `config`: Default is `{ maxTurn: null, enableRepetitionJudge: true }`
+
+### Usage Example
 
 ```typescript
 import { CompanionAgent } from "@aikyo/server";
@@ -47,18 +56,18 @@ const companion = new CompanionAgent(
   anthropic("claude-3-5-haiku-latest"),
   history,
   {
-    maxTurn: 20,                    // 20ターンで強制終了
-    enableRepetitionJudge: true     // 重複検出を有効化
+    maxTurn: 20,                    // Terminate after 20 turns
+    enableRepetitionJudge: true     // Enable duplicate detection
   }
 );
 ```
 
-**動作確認済みLLMプロバイダー**
+### Tested LLM Providers
 
 - **Anthropic**: `@ai-sdk/anthropic`
 - **Google**: `@ai-sdk/google`
 
-## プロパティ
+## Properties
 
 ### companion
 
@@ -66,7 +75,7 @@ const companion = new CompanionAgent(
 companion: CompanionCard
 ```
 
-コンパニオンの設定カード。
+The companion configuration card.
 
 ### agent
 
@@ -74,7 +83,7 @@ companion: CompanionCard
 agent: Agent
 ```
 
-Mastra Agentのインスタンス。LLMとの対話を管理します。
+An instance of the Mastra Agent responsible for managing interactions with the LLM.
 
 ### repetitionJudge
 
@@ -82,7 +91,8 @@ Mastra Agentのインスタンス。LLMとの対話を管理します。
 repetitionJudge: RepetitionJudge
 ```
 
-会話の重複を検出するジャッジ。詳細は[重複検出](../core/repetition)を参照。
+A judge for detecting conversation duplicates.
+See [Duplicate Detection](/core/repetition) for details.
 
 ### stateJudge
 
@@ -90,7 +100,8 @@ repetitionJudge: RepetitionJudge
 stateJudge: StateJudge
 ```
 
-会話履歴を元にコンパニオンの状態（State）を生成するジャッジ。ターンテイキングに使用されます。
+A judge that generates the companion's state (State) based on conversation
+history. Used for turn-taking management.
 
 ### history
 
@@ -98,7 +109,7 @@ stateJudge: StateJudge
 history: Message[]
 ```
 
-会話履歴の配列（参照）。
+Conversation history array (reference).
 
 ### memory
 
@@ -106,22 +117,22 @@ history: Message[]
 memory: Memory
 ```
 
-長期記憶とワーキングメモリを管理する`Memory`インスタンス。
+An instance of the `Memory` class managing long-term and working memory.
 
-**永続化:**
+**Persistence:**
 
-- `db/<companion_id>.db`にLibSQLデータベースを作成
-- LibSQLStoreによるストレージとLibSQLVectorによるベクトルストアを使用
-- ベクトルストアによる類似検索が可能
+- Creates a LibSQL database at `db/<companion_id>.db`
+- Utilizes LibSQLStore for storage and LibSQLVector for vector store
+- Supports similarity searches using the vector store
 
-**ワーキングメモリスキーマ:**
+**Working Memory Schema:**
 
 ```typescript
 export const MemorySchema = z.object({
   messages: z.array(
     z.object({
-      from: z.string().describe("メッセージを送信したコンパニオンのid"),
-      content: z.string().describe("メッセージ内容を要約したもの"),
+      from: z.string().describe("ID of the companion who sent the message"),
+      content: z.string().describe("Summary of the message content"),
     }),
   ),
 });
@@ -133,15 +144,15 @@ export const MemorySchema = z.object({
 runtimeContext: RuntimeContext
 ```
 
-ツール実行時に参照されるランタイムコンテキスト。以下の情報が格納されます:
+The runtime context referenced during tool execution. Contains the following information:
 
-| キー | 型 | 説明 |
-|------|-----|------|
-| `id` | `string` | コンパニオンのID |
-| `libp2p` | `Libp2p` | libp2pインスタンス |
-| `companions` | `Map<string, Metadata>` | 接続中のコンパニオンリスト |
-| `pendingQueries` | `Map` | 待機中のクエリ |
-| `agent` | `CompanionAgent` | エージェント自身 |
+| Key           | Type       | Description                               |
+|---------------|------------|-------------------------------------------|
+| `id`          | `string`   | Companion's ID                            |
+| `libp2p`      | `Libp2p`   | libp2p instance                           |
+| `companions`  | `Map<string, Metadata>` | List of connected companions    |
+| `pendingQueries` | `Map` | Pending queries                           |
+| `agent`       | `CompanionAgent` | The agent itself                          |
 
 ### run
 
@@ -149,7 +160,7 @@ runtimeContext: RuntimeContext
 run: Run
 ```
 
-`createToolInstructionWorkflow`で生成されたワークフローのRun instance。
+A Run instance of the workflow generated by `createToolInstructionWorkflow`.
 
 ### count
 
@@ -157,7 +168,7 @@ run: Run
 count: number
 ```
 
-現在のターンカウント（`maxTurn`設定時に使用）。
+Current turn count (used when `maxTurn` configuration is set).
 
 ### config
 
@@ -165,72 +176,75 @@ count: number
 config: { maxTurn: number | null; enableRepetitionJudge: boolean }
 ```
 
-コンストラクタで渡された設定。
+Configuration passed to the constructor.
 
-## メソッド
+## Methods
 
 ### generateToolInstruction()
 
-メッセージを受け取り、CEL式を評価してツール実行の指示文を生成します。
+Generates a tool execution instruction by evaluating CEL expressions based on
+the received message.
 
 ```typescript
 async generateToolInstruction(input: Message): Promise<string>
 ```
 
-**パラメータ:**
+**Parameters:**
 
-- `input`: 受信したメッセージ
+- `input`: The received message
 
-**戻り値:**
+**Returns:**
 
-- `string`: ツール実行指示（例: "自己紹介をする。ツールを使って返信する。"）
-- または `"failed"`: イベント実行失敗時
+- `string`: Tool execution instruction
+  (e.g., "Introduce yourself. Use the tool to respond.")
+  or `"failed"` if event execution fails
 
-**処理フロー:**
+**Process Flow:**
 
-1. Workflowの`evaluateStep`でLLMが`params`スキーマを評価
-2. `runStep`でCEL式に基づいて条件をチェック
-3. マッチした条件の`instruction`を結合して返す
+1. In Workflow's `evaluateStep`, the LLM evaluates the `params` schema
+2. In `runStep`, checks conditions are evaluated based on CEL expressions
+3. Concatenates and returns the `instruction` of the matched condition
 
 ### generateState()
 
-会話履歴全体を元に、自分の状態（State）を生成します。
+Generates the companion's state (State) based on the complete conversation history.
 
 ```typescript
 async generateState(): Promise<State>
 ```
 
-**パラメータ:**
+**Parameters:**
 
-なし（内部で`this.history`を参照）
+None (internally references `this.history`)
 
-**戻り値:**
+**Returns:**
 
-- `State`: 状態情報（speak/listen、importance、selected、closingなど）
+- `State`: State information including speak/listen, importance, selected,
+  and closing statuses
 
-**処理フロー:**
+**Process Flow:**
 
-1. 重複検出を実行（`enableRepetitionJudge`が`true`の場合）
-2. スコア > 0.7ならクロージング指示を追加
-3. `StateJudge`を使用してStateを生成
-4. `maxTurn`チェック（設定時）
+1. Performs duplicate detection if `enableRepetitionJudge` is `true`
+2. Adds closing instructions if score > 0.7
+3. Generates State using `StateJudge`
+4. Checks for `maxTurn` limit (if configured)
 
-詳細は[ターンテイキング](../core/turn-taking#state状態の生成)を参照。
+For details, see [Turn-Taking](/core/turn-taking#generating-state).
 
 ### input()
 
-メッセージを受け取り、ツール実行指示に基づいてLLMを実行します。
+Receives a message and executes the LLM based on the tool execution instruction.
 
 ```typescript
 async input(message: Message): Promise<void>
 ```
 
-**パラメータ:**
+**Parameters:**
 
-- `message`: 受信したメッセージ
+- `message`: The received message
 
-**処理フロー:**
+**Process Flow:**
 
-1. `generateToolInstruction`でツール実行指示を取得
-2. LLMに指示とメッセージを渡して実行
-3. LLMが必要に応じてツールを自動実行
+1. Retrieves a tool execution instruction using `generateToolInstruction`
+2. Executes the LLM with the instruction and message
+3. The LLM automatically executes tools as needed

@@ -1,30 +1,31 @@
 ---
 title: Firehose
-description: FirehoseクラスのAPIリファレンス
+description: API Reference for the Firehose Class
 ---
 
-`Firehose`は、WebSocketクライアントとlibp2p Pubsubをブリッジするサーバーです。ブラウザやNode.jsクライアントがP2Pネットワークに参加できるようにします。
+`Firehose` is a server that bridges WebSocket clients with libp2p Pubsub,
+enabling browsers and Node.js clients to participate in a P2P network.
 
-## インポート
+## Import
 
 ```typescript
 import { Firehose } from "@aikyo/firehose";
 ```
 
-## コンストラクタ
+## Constructor
 
 ```typescript
 constructor(port: number, libp2pConfig?: Libp2pOptions<Services>)
 ```
 
-### パラメータ
+### Parameters
 
-| パラメータ | 型 | 説明 |
-|-----------|-----|------|
-| `port` | `number` | WebSocketサーバーのポート番号 |
-| `libp2pConfig` | `Libp2pOptions<Services>` | オプション。libp2pノードのカスタム設定 |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `port` | `number` | Port number for the WebSocket server |
+| `libp2pConfig` | `Libp2pOptions<Services>` | Custom libp2p config |
 
-### 使用例
+### Usage Example
 
 ```typescript
 import { Firehose } from "@aikyo/firehose";
@@ -32,7 +33,7 @@ import { Firehose } from "@aikyo/firehose";
 const firehose = new Firehose(8080);
 await firehose.start();
 
-//各トピックをサブスクライブ
+// Subscribe to each topic
 await firehose.subscribe("messages", (data) => {
   firehose.broadcastToClients(data);
 });
@@ -46,15 +47,17 @@ await firehose.subscribe("actions", (data) => {
 });
 ```
 
-クライアント例
+Client Example:
+
 ```typescript
 import WebSocket from 'ws';
+import { randomUUID } from "node:crypto";
 
 const firehoseUrl = 'ws://localhost:8080';
 const ws = new WebSocket(firehoseUrl);
 
-const companionId = 'companion_aya'; // ayaのIDを指定
-const userId = 'user_yamada';        // ユーザーの名前を指定
+const companionId = 'companion_aya'; // Specify Aya's ID
+const userId = 'user_yamada';        // Specify the user's name
 
 ws.on('open', () => {
   const message = {
@@ -63,10 +66,10 @@ ws.on('open', () => {
       jsonrpc: '2.0',
       method: 'message.send',
       params: {
-        id: crypto.randomUUID(),
+        id: randomUUID(),
         from: userId,
         to: [companionId],
-        message: 'こんにちは、ayaさん！',
+        message: 'Hello Aya!',
       }
     }
   };
@@ -79,7 +82,7 @@ ws.on('message', (data) => {
 });
 ```
 
-カスタムlibp2p設定を使用する場合は、完全な設定を提供する必要があります。
+For using custom libp2p configuration, you must provide complete settings.
 
 ```typescript
 import { Firehose } from "@aikyo/firehose";
@@ -104,7 +107,7 @@ const customFirehose = new Firehose(8080, {
 await customFirehose.start();
 ```
 
-## プロパティ
+## Properties
 
 ### libp2p
 
@@ -112,7 +115,7 @@ await customFirehose.start();
 private libp2p: Libp2p<Services>
 ```
 
-libp2pノードのインスタンス（CompanionServerと同じ構成）。
+Instance of the libp2p node (configured similarly to CompanionServer).
 
 ```typescript
 this.libp2p = await createLibp2p({
@@ -136,7 +139,7 @@ this.libp2p = await createLibp2p({
 private wss: WebSocketServer
 ```
 
-WebSocketサーバーのインスタンス。
+Instance of the WebSocket server.
 
 ```typescript
 this.wss = new WebSocketServer({ port: this.port });
@@ -148,13 +151,13 @@ this.wss = new WebSocketServer({ port: this.port });
 private clients: Set<WebSocket>
 ```
 
-接続中のWebSocketクライアントを管理するSet。
+Set managing connected WebSocket clients.
 
 ```typescript
 this.clients = new Set();
 ```
 
-新しいクライアントが接続すると追加され、切断時に削除されます。
+New clients are added when they connect and removed when disconnecting.
 
 ### port
 
@@ -162,7 +165,7 @@ this.clients = new Set();
 private readonly port: number
 ```
 
-WebSocketサーバーのポート番号。
+Port number for the WebSocket server.
 
 ### topicHandlers
 
@@ -172,7 +175,8 @@ private topicHandlers: {
 }
 ```
 
-トピックごとのハンドラー関数を管理するオブジェクト。型安全なイベント処理を提供します。
+Object managing handler functions for each topic, providing type-safe event
+handling.
 
 ```typescript
 type TopicPayloads = {
@@ -183,7 +187,8 @@ type TopicPayloads = {
 };
 ```
 
-各トピックに対して複数のハンドラーを登録でき、メッセージ受信時に順次実行されます。
+Multiple handlers can be registered for each topic and will be executed
+sequentially when messages are received.
 
 ### libp2pConfig
 
@@ -191,7 +196,10 @@ type TopicPayloads = {
 private libp2pConfig?: Libp2pOptions<Services>
 ```
 
-オプション。libp2pノードのカスタム設定。指定しない場合はデフォルト設定が使用されます。
+Optional. Custom configuration for the libp2p node.
+If not specified, default settings will be used.
+
+## Methods
 
 ### receiveHandler
 
@@ -199,9 +207,9 @@ private libp2pConfig?: Libp2pOptions<Services>
 private receiveHandler?: ReceiveHandler
 ```
 
-WebSocketクライアントから受信したデータを処理するハンドラ関数。
+The handler function that processes data received from the WebSocket client.
 
-**型定義:**
+**Type Definition:**
 
 ```typescript
 const RequestSchema = z.object({ topic: z.string(), body: z.record(z.any()) });
@@ -211,35 +219,36 @@ type ReceiveHandler = (
 ) => RequestData | Promise<RequestData>;
 ```
 
-`setReceiveHandler()`メソッドで設定します。ハンドラが設定されている場合、WebSocketから受信した全てのデータがこのハンドラを通過し、返り値の`RequestData`がlibp2p pubsubにpublishされます。
+Configured via the `setReceiveHandler()` method. When a handler is set, all
+incoming data from WebSockets will pass through this handler, and the returned
+`RequestData` will be published to libp2p pubsub.
 
-ハンドラが設定されていない場合は、受信データを`RequestSchema`でパースして直接publishします（デフォルト動作）。
-
-## メソッド
+If no handler is configured, the received data will be parsed according to the
+`RequestSchema` and published directly (default behavior).
 
 ### start()
 
-Firehoseサーバーを起動します。
+Starts the Firehose server.
 
 ```typescript
 async start(): Promise<void>
 ```
 
-**処理フロー:**
+**Process Flow:**
 
-1. libp2pノードを初期化
-2. WebSocketサーバーを起動
-3. イベントリスナーを登録
+1. Initializes the libp2p node
+2. Starts the WebSocket server
+3. Registers event listeners
 
-**出力例:**
+**Example Output:**
 
-```
+```text
 aikyo firehose server running on ws://localhost:8080
 ```
 
 ### subscribe()
 
-指定したトピックをサブスクライブし、オプションでハンドラーを登録します。
+Subscribes to specified topics and optionally registers handlers.
 
 ```typescript
 async subscribe<K extends keyof TopicPayloads>(
@@ -248,20 +257,25 @@ async subscribe<K extends keyof TopicPayloads>(
 ): Promise<void>
 ```
 
-**パラメータ:**
+**Parameters:**
 
-| パラメータ | 型 | 説明 |
-|-----------|-----|------|
-| `topic` | `keyof TopicPayloads` | サブスクライブするトピック名（`"messages"`, `"queries"`, `"actions"`, `"states"`） |
-| `handler` | `function` | オプション。メッセージ受信時に実行するハンドラー関数 |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `topic` | `keyof TopicPayloads` | Topic to subscribe to |
+| `handler` | `function` | Handler for messages |
 
-**使用例:**
+**Topic Details:**
+
+- `topic`: One of "messages", "queries", "actions", or "states"
+- `handler`: Optional. Executed when messages are received
+
+**Usage Example:**
 
 ```typescript
-// トピックのサブスクライブのみ
+// Subscribe to a topic only
 await firehose.subscribe("messages");
 
-// ハンドラー付きでサブスクライブ
+// Subscribe with a handler
 await firehose.subscribe("messages", (data) => {
   console.log("Message received:", data);
   firehose.broadcastToClients(data);
@@ -270,7 +284,7 @@ await firehose.subscribe("messages", (data) => {
 
 ### addHandler()
 
-既存のトピックにハンドラーを追加します。
+Adds a handler to an existing topic.
 
 ```typescript
 addHandler<K extends keyof TopicPayloads>(
@@ -279,14 +293,14 @@ addHandler<K extends keyof TopicPayloads>(
 ): void
 ```
 
-**パラメータ:**
+**Parameters:**
 
-| パラメータ | 型 | 説明 |
-|-----------|-----|------|
-| `topic` | `keyof TopicPayloads` | トピック名 |
-| `handler` | `function` | メッセージ受信時に実行するハンドラー関数 |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `topic` | `keyof TopicPayloads` | Topic name |
+| `handler` | `function` | Handler for messages |
 
-**使用例:**
+**Usage Example:**
 
 ```typescript
 firehose.addHandler("actions", (action) => {
@@ -296,31 +310,36 @@ firehose.addHandler("actions", (action) => {
 
 ### setReceiveHandler()
 
-WebSocketクライアントから受信したデータを処理するハンドラを設定します。
+Configure a handler to process data received from WebSocket clients.
 
 ```typescript
 setReceiveHandler(handler: ReceiveHandler): void
 ```
 
-**パラメータ:**
+**Parameters:**
 
-| パラメータ | 型 | 説明 |
-|-----------|-----|------|
-| `handler` | `(data: Record<string,unknown>) => RequestData \| Promise<RequestData>` | WebSocketから受信した任意の型のデータを`RequestData`に変換する関数 |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `handler` | `ReceiveHandler` | Transforms WebSocket data |
 
-**型定義:**
+**Handler Type:**
+
+- `(data: Record<string, unknown>) => RequestData | Promise<RequestData>`
+- Transforms arbitrary WebSocket payloads into `RequestData`
+
+**Type Definitions:**
 
 ```typescript
 const RequestSchema = z.object({ topic: z.string(), body: z.record(z.any()) });
 type RequestData = z.infer<typeof RequestSchema>;
 ```
 
-**使用例:**
+**Usage Example:**
 
 ```typescript
-// カスタムデータ処理を行うハンドラを設定
+// Register a custom data-processing handler
 firehose.setReceiveHandler(async (rawData) => {
-  // ユーザー定義の検証や変換処理
+  // Perform custom validation or transformation
   const validated = await validateAndTransform(rawData);
 
   return {
@@ -333,30 +352,29 @@ firehose.setReceiveHandler(async (rawData) => {
   };
 });
 
-// ハンドラが設定されている場合、WebSocketから送信されるデータは
-// RequestSchemaに従う必要はなく、任意の形式で送信可能
+// When a handler is set, the upstream payload can be any shape
 ws.send(JSON.stringify({
   customField: "value",
   anotherField: 123
 }));
 ```
 
-**動作:**
+**Behavior:**
 
-- ハンドラが設定されている場合、WebSocketから受信した全データがハンドラを通過します
-- ハンドラの返り値（`RequestData`）がlibp2p pubsubにpublishされます
-- ハンドラが設定されていない場合、従来通り`RequestSchema`でパースして直接publishします
+- When configured, every inbound WebSocket payload is routed through the handler.
+- The handler's return value (`RequestData`) is published to libp2p pubsub.
+- Without a handler, the payload is parsed via `RequestSchema` and published as-is.
 
 ### broadcastToClients()
 
-接続中の全WebSocketクライアントにデータをブロードキャストします。
+Broadcasts data to all connected WebSocket clients.
 
 ```typescript
 broadcastToClients(data: unknown): void
 ```
 
-**パラメータ:**
+**Parameters:**
 
-| パラメータ | 型 | 説明 |
-|-----------|-----|------|
-| `data` | `unknown` | ブロードキャストするデータ（JSON.stringifyされます） |
+| Parameter | Type          | Description                               |
+|-----------|---------------|-------------------------------------------|
+| `data`    | `unknown`     | Data to broadcast (will be JSON.stringified) |
