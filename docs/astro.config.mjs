@@ -41,6 +41,11 @@ export default defineConfig({
               translations: { ja: "クイックスタート" },
               slug: "quick-start",
             },
+            {
+              label: "Tutorial",
+              translations: { ja: "チュートリアル" },
+              slug: "tutorial",
+            },
           ],
         },
         {
