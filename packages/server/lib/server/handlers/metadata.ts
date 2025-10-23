@@ -1,7 +1,6 @@
 import type { Connection, Libp2p, PeerId, Stream } from "@libp2p/interface";
 import type { LoroMap } from "loro-crdt";
 import { type Metadata, MetadataSchema } from "../../../schema/index.js";
-import { logger } from "../../logger.js";
 import type { Services } from "../companionServer.js";
 
 export const METADATA_PROTOCOL = "/aikyo/metadata/1.0.0";
@@ -30,7 +29,6 @@ export async function requestMetadata(
   if (chunks.length) {
     const msg = JSON.parse(new TextDecoder().decode(chunks[0]));
     const parsed = MetadataSchema.safeParse(msg);
-    logger.debug({ parsed }, "Received metadata from peer");
     if (parsed.success) companions.set(id, parsed.data);
   }
   stream.close();

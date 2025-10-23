@@ -1,21 +1,17 @@
 import type { Message } from "@libp2p/interface";
-import type { LoroDoc } from "loro-crdt";
 import type {
   Message as AikyoMessage,
   Metadata,
   QueryResult,
 } from "../../../schema/index.js";
-import {
-  MessageSchema,
-  QueryResultSchema,
-  StateSchema,
-} from "../../../schema/index.js";
+import { MessageSchema, QueryResultSchema } from "../../../schema/index.js";
 import { logger } from "../../logger.js";
+import type { CompanionServer } from "../companionServer.js";
 
 export const handlePubSubMessage = async (
+  self: CompanionServer,
   history: AikyoMessage[],
   metadata: Metadata,
-  doc: LoroDoc,
   pendingQueries: Map<
     string,
     {
@@ -43,15 +39,8 @@ export const handlePubSubMessage = async (
             return to === metadata.id;
           })
         ) {
-          doc.getList("messages").push(body);
+          self.onMessage(body);
         }
-        break;
-      }
-      case "states": {
-        const parsed = StateSchema.safeParse(data);
-        if (!parsed.success) return;
-        const state = parsed.data;
-        doc.getList("states").push(state);
         break;
       }
       case "queries": {

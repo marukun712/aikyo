@@ -44,6 +44,7 @@ export class CompanionServer implements ICompanionServer {
       reject: (reason: string) => void;
     }
   >();
+  private turnTakingManager: TurnTakingManager;
   private libp2p!: Libp2p<Services>;
   private companionAgent: CompanionAgent;
   private libp2pConfig?: Libp2pOptions<Services>;
@@ -59,7 +60,7 @@ export class CompanionServer implements ICompanionServer {
     this.history = history;
     this.companion = companionAgent.companion;
 
-    new TurnTakingManager(
+    this.turnTakingManager = new TurnTakingManager(
       this.doc,
       this.companionAgent,
       config ? config.timeoutDuration : 5000,
@@ -132,9 +133,9 @@ export class CompanionServer implements ICompanionServer {
           handleCRDTSync(this.doc, evt);
         } else {
           handlePubSubMessage(
+            this,
             this.history,
             this.companion.metadata,
-            this.doc,
             this.pendingQueries,
             evt,
           );
@@ -164,6 +165,10 @@ export class CompanionServer implements ICompanionServer {
     this.companionAgent.runtimeContext.set("libp2p", this.libp2p);
     this.companionAgent.runtimeContext.set("agent", this.companionAgent);
     this.companionAgent.runtimeContext.set(
+      "companions",
+      new Map([...this.doc.getMap("companions").entries()]),
+    );
+    this.companionAgent.runtimeContext.set(
       "pendingQueries",
       this.pendingQueries,
     );
@@ -172,6 +177,23 @@ export class CompanionServer implements ICompanionServer {
     setupCRDTSync(this.doc, (topic, data) =>
       this.libp2p.services.pubsub.publish(topic, data),
     );
+  }
+
+  async onMessage(message: AikyoMessage) {
+    if (this.turnTakingManager.hasPending()) {
+      this.turnTakingManager.cancelPending();
+    }
+    this.turnTakingManager.addPending(message);
+    const state = await this.companionAgent.generateState();
+    const currentMessage = this.turnTakingManager.getMessage();
+    if (currentMessage && currentMessage.params.id === state.params.messageId) {
+      this.libp2p.services.pubsub.publish(
+        "states",
+        new TextEncoder().encode(JSON.stringify(state)),
+      );
+      this.doc.getList("states").push(state);
+      this.doc.commit();
+    }
   }
 
   async start() {

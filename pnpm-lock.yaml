@@ -39,6 +39,9 @@ catalogs:
     helia:
       specifier: ^5.5.1
       version: 5.5.1
+    loro-crdt:
+      specifier: ^1.8.4
+      version: 1.8.4
     ollama-ai-provider:
       specifier: ^1.2.0
       version: 1.2.0
@@ -238,7 +241,7 @@ importers:
         specifier: 2.9.0
         version: 2.9.0
       loro-crdt:
-        specifier: ^1.8.4
+        specifier: 'catalog:'
         version: 1.8.4
       pino:
         specifier: 'catalog:'

@@ -41,7 +41,7 @@
     "dotenv": "^17.2.2",
     "helia": "catalog:",
     "libp2p": "2.9.0",
-    "loro-crdt": "^1.8.4",
+    "loro-crdt": "catalog:",
     "pino": "catalog:",
     "pino-pretty": "catalog:",
     "zod": "catalog:",
