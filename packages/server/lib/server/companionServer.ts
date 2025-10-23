@@ -22,6 +22,7 @@ import {
 } from "./handlers/metadata.js";
 import { onPeerConnect, onPeerDisconnect } from "./handlers/peer.js";
 import { handlePubSubMessage } from "./handlers/pubsub.js";
+import { handleCRDTSync, setupCRDTSync } from "./handlers/sync.js";
 
 export type Services = {
   pubsub: ReturnType<ReturnType<typeof gossipsub>>;
@@ -121,17 +122,24 @@ export class CompanionServer implements ICompanionServer {
     this.libp2p.services.pubsub.subscribe("messages");
     this.libp2p.services.pubsub.subscribe("states");
     this.libp2p.services.pubsub.subscribe("queries");
+    this.libp2p.services.pubsub.subscribe("crdt-sync");
 
     this.libp2p.services.pubsub.addEventListener(
       "message",
-      (evt: CustomEvent<Message>) =>
-        handlePubSubMessage(
-          this.history,
-          this.companion.metadata,
-          this.doc,
-          this.pendingQueries,
-          evt,
-        ),
+      (evt: CustomEvent<Message>) => {
+        const topic = evt.detail.topic;
+        if (topic === "crdt-sync") {
+          handleCRDTSync(this.doc, evt);
+        } else {
+          handlePubSubMessage(
+            this.history,
+            this.companion.metadata,
+            this.doc,
+            this.pendingQueries,
+            evt,
+          );
+        }
+      },
     );
 
     await this.libp2p.handle(METADATA_PROTOCOL, (data) =>
@@ -158,6 +166,11 @@ export class CompanionServer implements ICompanionServer {
     this.companionAgent.runtimeContext.set(
       "pendingQueries",
       this.pendingQueries,
+    );
+
+    // CRDT同期の設定
+    setupCRDTSync(this.doc, (topic, data) =>
+      this.libp2p.services.pubsub.publish(topic, data),
     );
   }
 
