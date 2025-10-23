@@ -1,14 +1,28 @@
 import type { Message } from "@libp2p/interface";
+import type { LoroDoc } from "loro-crdt";
+import type {
+  Message as AikyoMessage,
+  Metadata,
+  QueryResult,
+} from "../../../schema/index.js";
 import {
   MessageSchema,
   QueryResultSchema,
   StateSchema,
 } from "../../../schema/index.js";
 import { logger } from "../../logger.js";
-import type { CompanionServer } from "../companionServer.js";
 
 export const handlePubSubMessage = async (
-  self: CompanionServer,
+  history: AikyoMessage[],
+  metadata: Metadata,
+  doc: LoroDoc,
+  pendingQueries: Map<
+    string,
+    {
+      resolve: (value: QueryResult) => void;
+      reject: (reason: string) => void;
+    }
+  >,
   message: CustomEvent<Message>,
 ) => {
   const topic = message.detail.topic;
@@ -20,16 +34,16 @@ export const handlePubSubMessage = async (
         if (!parsed.success) return;
         const body = parsed.data;
         //一時会話履歴にpush
-        self.history.push(parsed.data);
-        if (self.history.length > 5) {
-          self.history.shift();
+        history.push(parsed.data);
+        if (history.length > 5) {
+          history.shift();
         }
         if (
           body.params.to.find((to) => {
-            return to === self.companion.metadata.id;
+            return to === metadata.id;
           })
         ) {
-          await self.handleMessageReceived(body);
+          doc.getList("messages").push(body);
         }
         break;
       }
@@ -37,16 +51,16 @@ export const handlePubSubMessage = async (
         const parsed = StateSchema.safeParse(data);
         if (!parsed.success) return;
         const state = parsed.data;
-        await self.turnTakingManager.handleStateReceived(state);
+        doc.getList("states").push(state);
         break;
       }
       case "queries": {
         const parsed = QueryResultSchema.safeParse(data);
         if (!parsed.success) return;
         const result = parsed.data;
-        const pendingQuery = self.pendingQueries.get(result.id);
+        const pendingQuery = pendingQueries.get(result.id);
         if (pendingQuery) {
-          self.pendingQueries.delete(result.id);
+          pendingQueries.delete(result.id);
           pendingQuery.resolve(result);
         }
         break;

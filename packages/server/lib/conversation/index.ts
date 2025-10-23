@@ -1,27 +1,22 @@
+import type { LoroDoc } from "loro-crdt";
 import type { Message, State } from "../../schema/index.js";
 import { setsAreEqual } from "../../utils/array.js";
 import type { CompanionAgent } from "../agents/index.js";
 import { logger } from "../logger.js";
 
-export interface ITurnTakingManager {
-  addPending(message: Message): Promise<void>;
-  handleStateReceived(state: State): Promise<void>;
-  cancelPending(): void;
-  hasPending(): boolean;
-}
-
-export class TurnTakingManager implements ITurnTakingManager {
+export class TurnTakingManager {
+  private doc: LoroDoc;
   private companionAgent: CompanionAgent;
-  private pending: Map<
-    string,
-    { participants: Set<string>; message: Message; states: State[] }
-  >;
   private timeoutDuration: number;
   private abortController: AbortController;
 
-  constructor(companionAgent: CompanionAgent, timeoutDuration: number) {
+  constructor(
+    doc: LoroDoc,
+    companionAgent: CompanionAgent,
+    timeoutDuration: number,
+  ) {
+    this.doc = doc;
     this.companionAgent = companionAgent;
-    this.pending = new Map();
     this.timeoutDuration = timeoutDuration;
     this.abortController = new AbortController();
   }
@@ -31,7 +26,7 @@ export class TurnTakingManager implements ITurnTakingManager {
       message.params.to.filter((id) => id.startsWith("companion_")),
     );
 
-    this.pending.set(message.params.id, {
+    this.doc.getMap("pending").set(message.params.id, {
       participants,
       message,
       states: [],
@@ -39,28 +34,27 @@ export class TurnTakingManager implements ITurnTakingManager {
   }
 
   cancelPending(): void {
-    if (this.pending.size > 0) {
+    if (this.doc.getMap("pending").size > 0) {
       logger.info(
-        { pendingCount: this.pending.size },
+        { pendingCount: this.doc.getMap("pending").size },
         "Canceling pending state aggregation due to new message",
       );
-      this.pending.clear();
+      this.doc.getMap("pending").clear();
       this.abortController.abort();
       this.abortController = new AbortController();
     }
   }
 
   hasPending(): boolean {
-    return this.pending.size > 0;
+    return this.doc.getMap("pending").size > 0;
   }
 
   async handleStateReceived(state: State) {
     const messageId = state.params.messageId;
-    if (!this.pending.has(messageId)) {
+    const pending = this.doc.getMap("pending").get(messageId);
+    if (!pending) {
       return;
     }
-
-    const pending = this.pending.get(messageId);
     if (!pending) return;
     pending.states.push(state);
     const voted = new Set<string>();

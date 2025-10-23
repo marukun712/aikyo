@@ -22,30 +22,24 @@ config();
 export interface ICompanionAgent {
   companion: CompanionCard;
   agent: Agent;
-  repetitionJudge: RepetitionJudge;
-  history: Message[];
-  memory: Memory;
   runtimeContext: RuntimeContext;
-  run: Run;
-  count: number;
-  config: { maxTurn?: number; enableRepetitionJudge?: boolean };
 
-  generateToolInstruction(input: Message): Promise<string>;
-  generateState(): Promise<State>;
   input(message: Message): Promise<void>;
+  generateState(): Promise<State>;
 }
 
 export class CompanionAgent implements ICompanionAgent {
   companion: CompanionCard;
   agent: Agent;
-  repetitionJudge: RepetitionJudge;
-  stateJudge: StateJudge;
-  history: Message[];
-  memory: Memory;
   runtimeContext: RuntimeContext;
-  run: Run;
-  count: number;
-  config: { maxTurn?: number; enableRepetitionJudge?: boolean };
+
+  private repetitionJudge: RepetitionJudge;
+  private stateJudge: StateJudge;
+  private history: Message[];
+  private memory: Memory;
+  private run: Run;
+  private count: number;
+  private config: { maxTurn?: number; enableRepetitionJudge?: boolean };
 
   constructor(
     companion: CompanionCard,
@@ -124,7 +118,7 @@ export class CompanionAgent implements ICompanionAgent {
     };
   }
 
-  async generateToolInstruction(input: Message) {
+  private async generateToolInstruction(input: Message) {
     //toolの使用指示を取得
     const res = await this.run.start({
       inputData: { message: input, history: this.history },

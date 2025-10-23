@@ -7,10 +7,10 @@ import { mdns } from "@libp2p/mdns";
 import { tcp } from "@libp2p/tcp";
 import type { Libp2p, Libp2pOptions } from "libp2p";
 import { createLibp2p } from "libp2p";
+import { LoroDoc } from "loro-crdt";
 import type {
   Message as AikyoMessage,
   CompanionCard,
-  Metadata,
   QueryResult,
 } from "../../schema/index.js";
 import type { CompanionAgent } from "../agents/index.js";
@@ -29,39 +29,23 @@ export type Services = {
 };
 
 export interface ICompanionServer {
-  companionAgent: CompanionAgent;
-  history: AikyoMessage[];
-  turnTakingManager: TurnTakingManager;
-  companion: CompanionCard;
-  libp2p: Libp2p<Services>;
-  companionList: Map<string, Metadata>;
-  pendingQueries: Map<
-    string,
-    {
-      resolve: (value: QueryResult) => void;
-      reject: (reason: string) => void;
-    }
-  >;
-  libp2pConfig?: Libp2pOptions<Services>;
-
   start(): Promise<void>;
 }
 
 export class CompanionServer implements ICompanionServer {
-  companionAgent: CompanionAgent;
-  history: AikyoMessage[];
-  turnTakingManager: TurnTakingManager;
-  companion: CompanionCard;
-  libp2p!: Libp2p<Services>;
-  companionList = new Map<string, Metadata>();
-  pendingQueries = new Map<
+  private doc: LoroDoc;
+  private history: AikyoMessage[];
+  private companion: CompanionCard;
+  private pendingQueries = new Map<
     string,
     {
       resolve: (value: QueryResult) => void;
       reject: (reason: string) => void;
     }
   >();
-  libp2pConfig?: Libp2pOptions<Services>;
+  private libp2p!: Libp2p<Services>;
+  private companionAgent: CompanionAgent;
+  private libp2pConfig?: Libp2pOptions<Services>;
 
   constructor(
     companionAgent: CompanionAgent,
@@ -69,14 +53,17 @@ export class CompanionServer implements ICompanionServer {
     config?: { timeoutDuration: number },
     libp2pConfig?: Libp2pOptions<Services>,
   ) {
+    this.doc = new LoroDoc();
     this.companionAgent = companionAgent;
     this.history = history;
     this.companion = companionAgent.companion;
-    this.turnTakingManager = new TurnTakingManager(
+
+    new TurnTakingManager(
+      this.doc,
       this.companionAgent,
       config ? config.timeoutDuration : 5000,
     );
-    this.companionList.set(this.companion.metadata.id, this.companion.metadata);
+
     this.libp2pConfig = libp2pConfig;
   }
 
@@ -137,41 +124,40 @@ export class CompanionServer implements ICompanionServer {
 
     this.libp2p.services.pubsub.addEventListener(
       "message",
-      (evt: CustomEvent<Message>) => handlePubSubMessage(this, evt),
+      (evt: CustomEvent<Message>) =>
+        handlePubSubMessage(
+          this.history,
+          this.companion.metadata,
+          this.doc,
+          this.pendingQueries,
+          evt,
+        ),
     );
 
     await this.libp2p.handle(METADATA_PROTOCOL, (data) =>
-      handleMetadataProtocol(this, data),
+      handleMetadataProtocol(
+        this.companion.metadata,
+        this.doc.getMap("companions"),
+        data,
+      ),
     );
 
     this.libp2p.addEventListener(
       "peer:identify",
-      async (evt: CustomEvent<IdentifyResult>) => onPeerConnect(this, evt),
+      async (evt: CustomEvent<IdentifyResult>) =>
+        onPeerConnect(this.doc.getMap("companions"), this.libp2p, evt),
     );
     this.libp2p.addEventListener(
       "peer:disconnect",
-      async (evt: CustomEvent<PeerId>) => onPeerDisconnect(this, evt),
+      async (evt: CustomEvent<PeerId>) =>
+        onPeerDisconnect(this.doc.getMap("companions"), evt),
     );
+
     this.companionAgent.runtimeContext.set("libp2p", this.libp2p);
-    this.companionAgent.runtimeContext.set("companions", this.companionList);
+    this.companionAgent.runtimeContext.set("agent", this.companionAgent);
     this.companionAgent.runtimeContext.set(
       "pendingQueries",
       this.pendingQueries,
-    );
-    this.companionAgent.runtimeContext.set("agent", this.companionAgent);
-  }
-
-  async handleMessageReceived(message: AikyoMessage) {
-    // 新しいメッセージが来たら既存の投票を中断
-    if (this.turnTakingManager.hasPending()) {
-      this.turnTakingManager.cancelPending();
-    }
-
-    this.turnTakingManager.addPending(message);
-    const state = await this.companionAgent.generateState();
-    this.libp2p.services.pubsub.publish(
-      "states",
-      new TextEncoder().encode(JSON.stringify(state)),
     );
   }
 
