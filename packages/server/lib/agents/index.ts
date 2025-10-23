@@ -22,30 +22,24 @@ config();
 export interface ICompanionAgent {
   companion: CompanionCard;
   agent: Agent;
-  repetitionJudge: RepetitionJudge;
-  history: Message[];
-  memory: Memory;
   runtimeContext: RuntimeContext;
-  run: Run;
-  count: number;
-  config: { maxTurn?: number; enableRepetitionJudge?: boolean };
 
-  generateToolInstruction(input: Message): Promise<string>;
-  generateState(): Promise<State>;
   input(message: Message): Promise<void>;
+  generateState(): Promise<State>;
 }
 
 export class CompanionAgent implements ICompanionAgent {
   companion: CompanionCard;
   agent: Agent;
-  repetitionJudge: RepetitionJudge;
-  stateJudge: StateJudge;
-  history: Message[];
-  memory: Memory;
   runtimeContext: RuntimeContext;
-  run: Run;
-  count: number;
-  config: { maxTurn?: number; enableRepetitionJudge?: boolean };
+
+  private repetitionJudge: RepetitionJudge;
+  private stateJudge: StateJudge;
+  private history: Message[];
+  private memory: Memory;
+  private run: Run;
+  private count: number;
+  private config: { maxTurn?: number; enableRepetitionJudge?: boolean };
 
   constructor(
     companion: CompanionCard,
@@ -124,7 +118,7 @@ export class CompanionAgent implements ICompanionAgent {
     };
   }
 
-  async generateToolInstruction(input: Message) {
+  private async generateToolInstruction(input: Message) {
     //toolの使用指示を取得
     const res = await this.run.start({
       inputData: { message: input, history: this.history },
@@ -181,7 +175,6 @@ export class CompanionAgent implements ICompanionAgent {
     ]);
 
     let closing = res.object.closing;
-    logger.info({ closing }, "Closing state");
     //ターン上限が設けられている場合;
     if (this.config.maxTurn) {
       //会話が終了したらターンカウントを0に
@@ -204,18 +197,24 @@ export class CompanionAgent implements ICompanionAgent {
   }
 
   // メッセージ生成
-  async input(message: Message) {
+  async input(message: Message, config?: { signal?: AbortSignal }) {
     // CEL式を評価し、Instructionを取得
-    const instructions = await this.generateToolInstruction(message);
-    if (typeof instructions !== "string" || instructions === "failed") {
-      throw new Error("イベント実行に失敗しました。");
-    }
-    logger.info({ instructions }, "Generated tool instructions");
+    const abortPromise = new Promise((_, reject) => {
+      config?.signal?.addEventListener("abort", () => {
+        reject(new Error("割り込み発話が検出されました。"));
+      });
+    });
+    const instructionsPromise = this.generateToolInstruction(message);
+    const instructions = await Promise.race([
+      instructionsPromise,
+      abortPromise,
+    ]);
     //メタデータとツール指示をコンテキストに含める
     const res = await this.agent.generate(JSON.stringify(message, null, 2), {
       runtimeContext: this.runtimeContext,
       resourceId: "main",
       threadId: "thread",
+      abortSignal: config?.signal,
       context: [
         { role: "system", content: instructions },
         {
