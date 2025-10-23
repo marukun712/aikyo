@@ -162,6 +162,11 @@ export class CompanionServer implements ICompanionServer {
   }
 
   async handleMessageReceived(message: AikyoMessage) {
+    // 新しいメッセージが来たら既存の投票を中断
+    if (this.turnTakingManager.hasPending()) {
+      this.turnTakingManager.cancelPending();
+    }
+
     this.turnTakingManager.addPending(message);
     const state = await this.companionAgent.generateState();
     this.libp2p.services.pubsub.publish(

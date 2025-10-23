@@ -48,7 +48,7 @@ export const companionCard: CompanionCard = {
         expression: "true",
         execute: [
           {
-            instruction: "ツールを使って返信する。",
+            instruction: "ツールを使って短く自然なメッセージを返信する。",
             tool: speakTool,
           },
         ],
@@ -61,7 +61,7 @@ async function main() {
   const history: Message[] = [];
   const companion = new CompanionAgent(
     companionCard,
-    anthropic("claude-haiku-4-5"),
+    anthropic("claude-3-5-haiku-latest"),
     history,
     { enableRepetitionJudge: true },
   );

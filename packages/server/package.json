@@ -43,6 +43,8 @@
     "libp2p": "2.9.0",
     "pino": "catalog:",
     "pino-pretty": "catalog:",
+    "y-libp2p": "^0.0.2",
+    "yjs": "^13.6.27",
     "zod": "catalog:",
     "zod-from-json-schema": "catalog:"
   },

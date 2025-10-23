@@ -6,6 +6,8 @@ import { logger } from "../logger.js";
 export interface ITurnTakingManager {
   addPending(message: Message): Promise<void>;
   handleStateReceived(state: State): Promise<void>;
+  cancelPending(): void;
+  hasPending(): boolean;
 }
 
 export class TurnTakingManager implements ITurnTakingManager {
@@ -15,11 +17,13 @@ export class TurnTakingManager implements ITurnTakingManager {
     { participants: Set<string>; message: Message; states: State[] }
   >;
   private timeoutDuration: number;
+  private abortController: AbortController;
 
   constructor(companionAgent: CompanionAgent, timeoutDuration: number) {
     this.companionAgent = companionAgent;
     this.pending = new Map();
     this.timeoutDuration = timeoutDuration;
+    this.abortController = new AbortController();
   }
 
   async addPending(message: Message) {
@@ -34,11 +38,28 @@ export class TurnTakingManager implements ITurnTakingManager {
     });
   }
 
+  cancelPending(): void {
+    if (this.pending.size > 0) {
+      logger.info(
+        { pendingCount: this.pending.size },
+        "Canceling pending state aggregation due to new message",
+      );
+      this.pending.clear();
+      this.abortController.abort();
+      this.abortController = new AbortController();
+    }
+  }
+
+  hasPending(): boolean {
+    return this.pending.size > 0;
+  }
+
   async handleStateReceived(state: State) {
     const messageId = state.params.messageId;
     if (!this.pending.has(messageId)) {
       return;
     }
+
     const pending = this.pending.get(messageId);
     if (!pending) return;
     pending.states.push(state);
@@ -46,6 +67,7 @@ export class TurnTakingManager implements ITurnTakingManager {
     pending.states.forEach((state) => {
       voted.add(state.params.from);
     });
+    logger.info({ pending });
     //参加者全員の投票が集まった場合
     if (setsAreEqual(voted, pending.participants)) {
       await this.decideNextSpeaker(messageId, pending.states);
@@ -117,7 +139,9 @@ export class TurnTakingManager implements ITurnTakingManager {
             }, this.timeoutDuration);
           });
           //agentにinput
-          await this.companionAgent.input(pending.message);
+          await this.companionAgent.input(pending.message, {
+            signal: this.abortController.signal,
+          });
         } else {
           logger.warn(
             { messageId },

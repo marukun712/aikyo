@@ -181,7 +181,6 @@ export class CompanionAgent implements ICompanionAgent {
     ]);
 
     let closing = res.object.closing;
-    logger.info({ closing }, "Closing state");
     //ターン上限が設けられている場合;
     if (this.config.maxTurn) {
       //会話が終了したらターンカウントを0に
@@ -204,18 +203,24 @@ export class CompanionAgent implements ICompanionAgent {
   }
 
   // メッセージ生成
-  async input(message: Message) {
+  async input(message: Message, config?: { signal?: AbortSignal }) {
     // CEL式を評価し、Instructionを取得
-    const instructions = await this.generateToolInstruction(message);
-    if (typeof instructions !== "string" || instructions === "failed") {
-      throw new Error("イベント実行に失敗しました。");
-    }
-    logger.info({ instructions }, "Generated tool instructions");
+    const abortPromise = new Promise((_, reject) => {
+      config?.signal?.addEventListener("abort", () => {
+        reject(new Error("割り込み発話が検出されました。"));
+      });
+    });
+    const instructionsPromise = this.generateToolInstruction(message);
+    const instructions = await Promise.race([
+      instructionsPromise,
+      abortPromise,
+    ]);
     //メタデータとツール指示をコンテキストに含める
     const res = await this.agent.generate(JSON.stringify(message, null, 2), {
       runtimeContext: this.runtimeContext,
       resourceId: "main",
       threadId: "thread",
+      abortSignal: config?.signal,
       context: [
         { role: "system", content: instructions },
         {
