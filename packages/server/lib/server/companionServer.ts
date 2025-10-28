@@ -72,6 +72,27 @@ export class CompanionServer implements ICompanionServer {
     this.turnTakingManager = new TurnTakingManager(
       this.companionAgent,
       config ? config.timeoutDuration : 5000,
+      async (_message) => {
+        //処理開始時にrefresh()を実行
+        await this.companionAgent.refresh();
+
+        //refresh()で生成されたStateをpublish
+        if (this.companionAgent.state) {
+          const stateJson = JSON.stringify(this.companionAgent.state);
+          this.libp2p.services.pubsub.publish(
+            "states",
+            new TextEncoder().encode(stateJson),
+          );
+          logger.info(
+            {
+              from: this.companionAgent.state.params.from,
+              state: this.companionAgent.state.params.state,
+              importance: this.companionAgent.state.params.importance,
+            },
+            "State published",
+          );
+        }
+      },
     );
     this.companionList.set(this.companion.metadata.id, this.companion.metadata);
     this.libp2pConfig = libp2pConfig;
@@ -121,8 +142,8 @@ export class CompanionServer implements ICompanionServer {
   }
 
   async handleMessageReceived(message: AikyoMessage) {
-    this.turnTakingManager.addPending(message);
-    await this.companionAgent.refresh();
+    //メッセージをキューに追加（processNextMessage()のコールバックでrefresh()が呼ばれる）
+    await this.turnTakingManager.addPending(message);
   }
 
   async start() {

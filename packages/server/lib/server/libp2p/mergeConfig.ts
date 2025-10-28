@@ -7,7 +7,9 @@ import { tcp } from "@libp2p/tcp";
 import type { Libp2pOptions } from "libp2p";
 import type { Services } from "../companionServer";
 
-export function mergeConfig(libp2pConfig: Libp2pOptions<Services> | undefined) {
+export function mergeConfig(
+  libp2pConfig: Libp2pOptions<Services> | undefined,
+): Libp2pOptions<Services> {
   const defaultConfig: Libp2pOptions<Services> = {
     addresses: { listen: ["/ip4/0.0.0.0/tcp/0"] },
     transports: [tcp()],
@@ -26,7 +28,7 @@ export function mergeConfig(libp2pConfig: Libp2pOptions<Services> | undefined) {
   if (!defaultConfig.services)
     throw new Error("Error: Gossipsubの設定が構成されていません！");
 
-  return {
+  const mergedConfig: Libp2pOptions<Services> = {
     ...defaultConfig,
     ...libp2pConfig,
     addresses: {
@@ -43,4 +45,6 @@ export function mergeConfig(libp2pConfig: Libp2pOptions<Services> | undefined) {
       ...libp2pConfig?.services,
     },
   };
+
+  return mergedConfig;
 }
