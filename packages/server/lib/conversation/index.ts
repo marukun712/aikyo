@@ -1,5 +1,4 @@
 import type { Message, State } from "../../schema/index.js";
-import { setsAreEqual } from "../../utils/array.js";
 import type { CompanionAgent } from "../agents/index.js";
 import { logger } from "../logger.js";
 
@@ -10,15 +9,14 @@ export interface ITurnTakingManager {
 
 export class TurnTakingManager implements ITurnTakingManager {
   private companionAgent: CompanionAgent;
-  private pending: Map<
-    string,
-    { participants: Set<string>; message: Message; states: State[] }
-  >;
+  private participants: Set<string>;
+  private states: Map<string, State>;
   private timeoutDuration: number;
 
   constructor(companionAgent: CompanionAgent, timeoutDuration: number) {
     this.companionAgent = companionAgent;
-    this.pending = new Map();
+    this.participants = new Set();
+    this.states = new Map();
     this.timeoutDuration = timeoutDuration;
   }
 
@@ -26,33 +24,14 @@ export class TurnTakingManager implements ITurnTakingManager {
     const participants = new Set(
       message.params.to.filter((id) => id.startsWith("companion_")),
     );
-
-    this.pending.set(message.params.id, {
-      participants,
-      message,
-      states: [],
-    });
+    this.participants = participants;
   }
 
   async handleStateReceived(state: State) {
-    const messageId = state.params.messageId;
-    if (!this.pending.has(messageId)) {
-      return;
-    }
-    const pending = this.pending.get(messageId);
-    if (!pending) return;
-    pending.states.push(state);
-    const voted = new Set<string>();
-    pending.states.forEach((state) => {
-      voted.add(state.params.from);
-    });
-    //参加者全員の投票が集まった場合
-    if (setsAreEqual(voted, pending.participants)) {
-      await this.decideNextSpeaker(messageId, pending.states);
-    }
+    this.states.set(state.params.from, state);
   }
 
-  private async decideNextSpeaker(messageId: string, states: State[]) {
+  private async decideNextSpeaker(states: State[]) {
     //selected(指名された)コンパニオンがいる場合
     const selectedAgents = states.filter((state) => state.params.selected);
     if (selectedAgents.length > 0) {
@@ -60,7 +39,7 @@ export class TurnTakingManager implements ITurnTakingManager {
       const speaker = selectedAgents.sort(
         (a, b) => b.params.importance - a.params.importance,
       );
-      await this.executeSpeaker(messageId, speaker[0]);
+      await this.executeSpeaker(speaker[0]);
       return;
     }
 
@@ -73,16 +52,13 @@ export class TurnTakingManager implements ITurnTakingManager {
       const speaker = speakAgents.sort(
         (a, b) => b.params.importance - a.params.importance,
       );
-      await this.executeSpeaker(messageId, speaker[0]);
+      await this.executeSpeaker(speaker[0]);
       return;
     }
-
-    //だれも発言の意思がない場合は、会話を終了させる
-    this.pending.delete(messageId);
   }
 
   //選出された発言者が実行
-  private async executeSpeaker(messageId: string, speaker: State) {
+  private async executeSpeaker(speaker: State) {
     logger.info(
       {
         id: speaker.params.from,
@@ -97,37 +73,22 @@ export class TurnTakingManager implements ITurnTakingManager {
         "I was selected as the speaker...",
       );
       try {
-        //反応すべきメッセージを取得
-        const pending = this.pending.get(messageId);
-        if (pending) {
-          const myState = pending.states.find((state) => {
-            return (
-              state.params.from === this.companionAgent.companion.metadata.id
-            );
-          });
-          //closingの確認(terminalなら終了)
-          if (myState && myState.params.closing === "terminal") {
-            logger.info("The conversation is over");
-            return;
-          }
-          //会話のスピードを落とすため任意のタイムアウトをあける
-          await new Promise<void>((resolve) => {
-            setTimeout(() => {
-              resolve();
-            }, this.timeoutDuration);
-          });
-          //agentにinput
-          await this.companionAgent.input(pending.message);
-        } else {
-          logger.warn(
-            { messageId },
-            "Original message not found for messageId",
-          );
+        //closingの確認(terminalなら終了)
+        if (myState && myState.params.closing === "terminal") {
+          logger.info("The conversation is over");
+          return;
         }
+        //会話のスピードを落とすため任意のタイムアウトをあける
+        await new Promise<void>((resolve) => {
+          setTimeout(() => {
+            resolve();
+          }, this.timeoutDuration);
+        });
+        //agentにinput
+        await this.companionAgent.generate();
       } catch (error) {
         logger.error({ error }, "Failed to execute speaker logic");
       }
     }
-    this.pending.delete(messageId);
   }
 }

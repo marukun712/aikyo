@@ -1,10 +1,6 @@
-import { gossipsub } from "@chainsafe/libp2p-gossipsub";
-import { noise } from "@chainsafe/libp2p-noise";
-import { yamux } from "@chainsafe/libp2p-yamux";
-import { identify } from "@libp2p/identify";
+import type { gossipsub } from "@chainsafe/libp2p-gossipsub";
+import type { identify } from "@libp2p/identify";
 import type { IdentifyResult, Message, PeerId } from "@libp2p/interface";
-import { mdns } from "@libp2p/mdns";
-import { tcp } from "@libp2p/tcp";
 import type { Libp2p, Libp2pOptions } from "libp2p";
 import { createLibp2p } from "libp2p";
 import type {
@@ -22,6 +18,7 @@ import {
 } from "./handlers/metadata.js";
 import { onPeerConnect, onPeerDisconnect } from "./handlers/peer.js";
 import { handlePubSubMessage } from "./handlers/pubsub.js";
+import { mergeConfig } from "./libp2p/mergeConfig.js";
 
 export type Services = {
   pubsub: ReturnType<ReturnType<typeof gossipsub>>;
@@ -81,45 +78,7 @@ export class CompanionServer implements ICompanionServer {
   }
 
   private async setupLibp2p() {
-    const defaultConfig: Libp2pOptions<Services> = {
-      addresses: { listen: ["/ip4/0.0.0.0/tcp/0"] },
-      transports: [tcp()],
-      peerDiscovery: [mdns()],
-      connectionEncrypters: [noise()],
-      streamMuxers: [yamux()],
-      services: {
-        pubsub: gossipsub({
-          allowPublishToZeroTopicPeers: true,
-          emitSelf: true,
-        }),
-        identify: identify(),
-      },
-    };
-
-    if (!defaultConfig.services)
-      throw new Error("Error: Gossipsubの設定が構成されていません！");
-
-    const mergedConfig: Libp2pOptions<Services> = {
-      ...defaultConfig,
-      ...this.libp2pConfig,
-      addresses: {
-        ...defaultConfig.addresses,
-        ...this.libp2pConfig?.addresses,
-      },
-      transports: this.libp2pConfig?.transports ?? defaultConfig.transports,
-      peerDiscovery:
-        this.libp2pConfig?.peerDiscovery ?? defaultConfig.peerDiscovery,
-      connectionEncrypters:
-        this.libp2pConfig?.connectionEncrypters ??
-        defaultConfig.connectionEncrypters,
-      streamMuxers:
-        this.libp2pConfig?.streamMuxers ?? defaultConfig.streamMuxers,
-      services: {
-        ...defaultConfig.services,
-        ...this.libp2pConfig?.services,
-      },
-    };
-
+    const mergedConfig = mergeConfig(this.libp2pConfig);
     this.libp2p = await createLibp2p(mergedConfig);
 
     this.libp2p.addEventListener("peer:discovery", (evt) => {
@@ -163,11 +122,7 @@ export class CompanionServer implements ICompanionServer {
 
   async handleMessageReceived(message: AikyoMessage) {
     this.turnTakingManager.addPending(message);
-    const state = await this.companionAgent.generateState();
-    this.libp2p.services.pubsub.publish(
-      "states",
-      new TextEncoder().encode(JSON.stringify(state)),
-    );
+    await this.companionAgent.refresh();
   }
 
   async start() {

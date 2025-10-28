@@ -59,7 +59,6 @@ export const MemorySchema = z
 export const StateBodySchema = z
   .object({
     from: z.string(),
-    messageId: z.string().describe("このstateが対応する元のメッセージのID"),
     state: z
       .enum(["speak", "listen"])
       .describe("次に発言をしたいか、聞く姿勢に入りたいか"),

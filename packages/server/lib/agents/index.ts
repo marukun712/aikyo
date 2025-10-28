@@ -31,16 +31,21 @@ export interface ICompanionAgent {
   config: { maxTurn?: number; enableRepetitionJudge?: boolean };
 
   generateToolInstruction(input: Message): Promise<string>;
-  generateState(): Promise<State>;
-  input(message: Message): Promise<void>;
+  refresh(): Promise<void>;
+  generate(): Promise<void>;
 }
 
 export class CompanionAgent implements ICompanionAgent {
   companion: CompanionCard;
   agent: Agent;
+
   repetitionJudge: RepetitionJudge;
   stateJudge: StateJudge;
+
   history: Message[];
+  state: State | null = null;
+  generating: boolean = false;
+
   memory: Memory;
   runtimeContext: RuntimeContext;
   run: Run;
@@ -124,15 +129,15 @@ export class CompanionAgent implements ICompanionAgent {
     };
   }
 
-  async generateToolInstruction(input: Message) {
+  async generateToolInstruction() {
     //toolの使用指示を取得
     const res = await this.run.start({
-      inputData: { message: input, history: this.history },
+      inputData: { history: this.history },
     });
     return res.status === "success" ? res.result : res.status;
   }
 
-  async generateState(): Promise<State> {
+  async refresh() {
     let closingInstruction: string = "";
 
     //繰り返し検出が有効になっている場合
@@ -196,7 +201,8 @@ export class CompanionAgent implements ICompanionAgent {
         this.count++;
       }
     }
-    return {
+
+    this.state = {
       jsonrpc: "2.0",
       method: "state.send",
       params: { ...state, closing },
@@ -204,40 +210,26 @@ export class CompanionAgent implements ICompanionAgent {
   }
 
   // メッセージ生成
-  async input(message: Message) {
-    // CEL式を評価し、Instructionを取得
-    const instructions = await this.generateToolInstruction(message);
-    if (typeof instructions !== "string" || instructions === "failed") {
-      throw new Error("イベント実行に失敗しました。");
+  async generate() {
+    if (this.generating)
+      return logger.info("Skip generation: Already generating");
+    this.generating = true;
+    try {
+      // CEL式を評価し、Instructionを取得
+      const instructions = await this.generateToolInstruction();
+      if (typeof instructions !== "string" || instructions === "failed") {
+        throw new Error("イベント実行に失敗しました。");
+      }
+      logger.info({ instructions }, "Generated tool instructions");
+      //メタデータとツール指示をコンテキストに含める
+      const res = await this.agent.generate(instructions, {
+        runtimeContext: this.runtimeContext,
+        resourceId: "main",
+        threadId: "thread",
+      });
+      logger.info({ text: res.text }, "Agent response");
+    } finally {
+      this.generating = false;
     }
-    logger.info({ instructions }, "Generated tool instructions");
-    //メタデータとツール指示をコンテキストに含める
-    const res = await this.agent.generate(JSON.stringify(message, null, 2), {
-      runtimeContext: this.runtimeContext,
-      resourceId: "main",
-      threadId: "thread",
-      context: [
-        { role: "system", content: instructions },
-        {
-          role: "system",
-          content: `
-            直近5件の発言は以下のとおりです。
-            ${this.history
-              .slice(-5)
-              .map((m) => JSON.stringify(m, null, 2))
-              .join("\n")}
-          `,
-        },
-        {
-          role: "system",
-          content: `
-            あなたのメタデータ
-            ${JSON.stringify(this.companion.metadata, null, 2)}
-            このメタデータに記載されているキャラクター情報、口調などに忠実にロールプレイをしてください。
-          `,
-        },
-      ],
-    });
-    logger.info({ text: res.text }, "Agent response");
   }
 }
