@@ -1,6 +1,6 @@
 import type { Message } from "@libp2p/interface";
-import { logger } from "lib/logger";
 import type { LoroDoc } from "loro-crdt";
+import { logger } from "../../logger";
 
 //配列の変更時に自動的にGossipsubでブロードキャスト/CRDTでマージする
 export const handleCRDTSync = async (
