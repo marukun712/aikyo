@@ -1,5 +1,16 @@
 # @aikyo/utils
 
+## 1.5.0
+
+### Minor Changes
+
+- 52c29e6: 会話が並列で展開する問題を修正/誰かが投票しなかった場合会話が止まる問題を修正
+
+### Patch Changes
+
+- Updated dependencies [52c29e6]
+  - @aikyo/server@1.5.0
+
 ## 1.4.7
 
 ### Patch Changes
