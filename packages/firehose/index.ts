@@ -161,7 +161,7 @@ export class Firehose {
    *                  an object with `topic` (string) and `body` (record) properties.
    *                  Can be synchronous or asynchronous.
    *
-   * @param handler - WebSocketクライアントから受信した生データを受け取り、
+   *                  WebSocketクライアントから受信した生データを受け取り、
    *                  `topic`（文字列）と`body`（レコード）プロパティを持つオブジェクトを
    *                  返す必要がある変換関数です。同期・非同期のどちらでも可能です。
    *
