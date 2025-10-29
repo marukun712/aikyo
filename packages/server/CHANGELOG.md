@@ -1,5 +1,11 @@
 # @aikyo/server
 
+## 1.5.1
+
+### Patch Changes
+
+- f1866a0: logger の path を修正
+
 ## 1.5.0
 
 ### Minor Changes
