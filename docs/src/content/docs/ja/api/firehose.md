@@ -279,6 +279,63 @@ firehose.addHandler("actions", (action) => {
 });
 ```
 
+### setReceiveHandler()
+
+WebSocketクライアントから受信したデータを処理するハンドラーを設定します。
+
+```typescript
+setReceiveHandler(handler: ReceiveHandler): void
+```
+
+**パラメータ:**
+
+| パラメータ | 型 | 説明 |
+|-----------|-----|------|
+| `handler` | `ReceiveHandler` | WebSocketデータを変換するハンドラー |
+
+**ハンドラーの型:**
+
+- `(data: Record<string, unknown>) => RequestData | Promise<RequestData>`
+- 任意のWebSocketペイロードを`RequestData`に変換します
+
+**型定義:**
+
+```typescript
+const RequestSchema = z.object({ topic: z.string(), body: z.record(z.any()) });
+type RequestData = z.infer<typeof RequestSchema>;
+```
+
+**使用例:**
+
+```typescript
+// カスタムデータ処理ハンドラーを登録
+firehose.setReceiveHandler(async (rawData) => {
+  // カスタムバリデーションや変換を実行
+  const validated = await validateAndTransform(rawData);
+
+  return {
+    topic: "messages",
+    body: {
+      jsonrpc: "2.0",
+      method: "message.send",
+      params: validated
+    }
+  };
+});
+
+// ハンドラーが設定されている場合、上流のペイロードは任意の形式でかまいません
+ws.send(JSON.stringify({
+  customField: "value",
+  anotherField: 123
+}));
+```
+
+**動作:**
+
+- 設定されている場合、全ての受信WebSocketペイロードはハンドラーを経由します。
+- ハンドラーの戻り値（`RequestData`）がlibp2p pubsubに公開されます。
+- ハンドラーが設定されていない場合、ペイロードは`RequestSchema`によってパースされ、そのまま公開されます。
+
 ### broadcastToClients()
 
 接続中の全WebSocketクライアントにデータをブロードキャストします。
