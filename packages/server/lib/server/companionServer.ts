@@ -183,6 +183,9 @@ export class CompanionServer implements ICompanionServer {
     const state = await this.agent.getState();
     this.states.set(this.card.metadata.id, state);
     this.doc.commit();
+    const payload = new TextEncoder().encode(JSON.stringify(state));
+    //互換性のためlibp2pにもpublish
+    this.libp2p.services.pubsub.publish("states", payload);
   }
 
   async start() {
