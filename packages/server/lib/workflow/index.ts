@@ -1,4 +1,3 @@
-import type { RuntimeContext } from "@mastra/core/runtime-context";
 import { createWorkflow } from "@mastra/core/workflows";
 import { z } from "zod";
 import { convertJsonSchemaToZod } from "zod-from-json-schema";
@@ -11,17 +10,11 @@ export type AgentType = InstanceType<typeof CompanionAgent>["agent"];
 
 export function createToolInstructionWorkflow(
   agent: AgentType,
-  runtimeContext: RuntimeContext,
   companionCard: CompanionCard,
 ) {
   const outputSchema = convertJsonSchemaToZod(companionCard.events.params);
 
-  const evaluateStep = createEvaluateStep(
-    agent,
-    runtimeContext,
-    companionCard,
-    outputSchema,
-  );
+  const evaluateStep = createEvaluateStep(agent, companionCard, outputSchema);
   const runStep = createRunStep(companionCard, outputSchema);
 
   return createWorkflow({

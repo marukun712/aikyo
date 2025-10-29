@@ -1,11 +1,8 @@
 import type { Message } from "@libp2p/interface";
-import {
-  MessageSchema,
-  QueryResultSchema,
-  StateSchema,
-} from "../../../schema/index.js";
+import { MessageSchema, QueryResultSchema } from "../../../schema/index.js";
 import { logger } from "../../logger.js";
 import type { CompanionServer } from "../companionServer.js";
+import { handleCRDTSync } from "./sync.js";
 
 export const handlePubSubMessage = async (
   self: CompanionServer,
@@ -25,18 +22,11 @@ export const handlePubSubMessage = async (
           self.history.shift();
         }
         const selected = body.params.to.find((to) => {
-          return to === self.companion.metadata.id;
+          return to === self.card.metadata.id;
         });
         if (selected) {
           await self.handleMessageReceived(body);
         }
-        break;
-      }
-      case "states": {
-        const parsed = StateSchema.safeParse(data);
-        if (!parsed.success) return;
-        const state = parsed.data;
-        await self.turnTakingManager.handleStateReceived(state);
         break;
       }
       case "queries": {
@@ -49,6 +39,9 @@ export const handlePubSubMessage = async (
           pendingQuery.resolve(result);
         }
         break;
+      }
+      case "crdt-sync": {
+        handleCRDTSync(self.doc, message);
       }
     }
   } catch (e) {

@@ -22,8 +22,12 @@ config();
 export interface ICompanionAgent {
   companion: CompanionCard;
   agent: Agent;
-  repetitionJudge: RepetitionJudge;
   history: Message[];
+  generating: boolean;
+
+  repetitionJudge: RepetitionJudge;
+  stateJudge: StateJudge;
+
   memory: Memory;
   runtimeContext: RuntimeContext;
   run: Run;
@@ -31,20 +35,18 @@ export interface ICompanionAgent {
   config: { maxTurn?: number; enableRepetitionJudge?: boolean };
 
   generateToolInstruction(input: Message): Promise<string>;
-  refresh(): Promise<void>;
+  refreshState(): Promise<State>;
   generate(): Promise<void>;
 }
 
 export class CompanionAgent implements ICompanionAgent {
   companion: CompanionCard;
   agent: Agent;
+  history: Message[];
+  generating: boolean = false;
 
   repetitionJudge: RepetitionJudge;
   stateJudge: StateJudge;
-
-  history: Message[];
-  state: State | null = null;
-  generating: boolean = false;
 
   memory: Memory;
   runtimeContext: RuntimeContext;
@@ -82,23 +84,23 @@ export class CompanionAgent implements ICompanionAgent {
     this.agent = new Agent({
       name: companion.metadata.name,
       instructions: `
-    あなたのメタデータ
-    ${JSON.stringify(companion.metadata, null, 2)}
-    このメタデータに記載されているキャラクター情報、口調などに忠実にロールプレイをしてください。
+      あなたのメタデータ
+      ${JSON.stringify(companion.metadata, null, 2)}
+      このメタデータに記載されているキャラクター情報、口調などに忠実にロールプレイをしてください。
 
-    あなたの役割は、
-    ${companion.role}です。この役割に忠実に行動してください。
+      あなたの役割は、
+      ${companion.role}です。この役割に忠実に行動してください。
 
-    あなたには、知識を得るための以下のツールが与えられています。
-    これらのツールは、あなたが知識を得たいと感じたタイミングで実行してください。
-    ${Object.values(companion.knowledge)
-      .map((value) => {
-        return `${value.id}:${value.description}`;
-      })
-      .join("\n")}
+      あなたには、知識を得るための以下のツールが与えられています。
+      これらのツールは、あなたが知識を得たいと感じたタイミングで実行してください。
+      ${Object.values(companion.knowledge)
+        .map((value) => {
+          return `${value.id}:${value.description}`;
+        })
+        .join("\n")}
 
-    必ず、定期的にワーキングメモリを更新してください。
-    `,
+      必ず、定期的にワーキングメモリを更新してください。
+      `,
       model,
       memory: this.memory,
       tools: { ...companion.actions, ...companion.knowledge },
@@ -112,11 +114,7 @@ export class CompanionAgent implements ICompanionAgent {
     this.runtimeContext.set("id", companion.metadata.id);
 
     // Workflowを初期化
-    const workflow = createToolInstructionWorkflow(
-      this.agent,
-      this.runtimeContext,
-      this.companion,
-    );
+    const workflow = createToolInstructionWorkflow(this.agent, this.companion);
     this.run = workflow.createRun();
 
     // スレッドを作成
@@ -137,7 +135,7 @@ export class CompanionAgent implements ICompanionAgent {
     return res.status === "success" ? res.result : res.status;
   }
 
-  async refresh() {
+  async refreshState() {
     let closingInstruction: string = "";
 
     //繰り返し検出が有効になっている場合
@@ -162,20 +160,19 @@ export class CompanionAgent implements ICompanionAgent {
       // closingの判定
       this.agent.generate(
         `
-      今までの会話を振り返り、今の会話の終了状態を以下の４つの状態で判定してください。
+        今までの会話を振り返り、今の会話の終了状態を以下の４つの状態で判定してください。
 
-      状態一覧:
-      closing ("none", "pre-closing", "closing", "terminal")
-      - none: 会話継続
-      - pre-closing: 会話を終わりに向ける布石
-      - closing: クロージング表現（感謝・挨拶など）
-      - terminal: 最後の別れの挨拶
+        状態一覧:
+        closing ("none", "pre-closing", "closing", "terminal")
+        - none: 会話継続
+        - pre-closing: 会話を終わりに向ける布石
+        - closing: クロージング表現（感謝・挨拶など）
+        - terminal: 最後の別れの挨拶
 
-      ${closingInstruction}
-      また、この判断の内容は発言内容に絶対に含めないでください。
-    `,
+        ${closingInstruction}
+        また、この判断の内容は発言内容に絶対に含めないでください。
+        `,
         {
-          runtimeContext: this.runtimeContext,
           output: z.object({
             closing: z.enum(["none", "pre-closing", "closing", "terminal"]),
           }),
@@ -186,7 +183,6 @@ export class CompanionAgent implements ICompanionAgent {
     ]);
 
     let closing = res.object.closing;
-    logger.info({ closing }, "Closing state");
     //ターン上限が設けられている場合;
     if (this.config.maxTurn) {
       //会話が終了したらターンカウントを0に
@@ -202,9 +198,9 @@ export class CompanionAgent implements ICompanionAgent {
       }
     }
 
-    this.state = {
-      jsonrpc: "2.0",
-      method: "state.send",
+    return {
+      jsonrpc: "2.0" as const,
+      method: "state.send" as const,
       params: { ...state, closing },
     };
   }
