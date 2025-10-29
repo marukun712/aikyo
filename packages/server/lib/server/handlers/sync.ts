@@ -1,4 +1,5 @@
 import type { Message } from "@libp2p/interface";
+import { logger } from "lib/logger";
 import type { LoroDoc } from "loro-crdt";
 
 //配列の変更時に自動的にGossipsubでブロードキャスト/CRDTでマージする
@@ -12,7 +13,7 @@ export const handleCRDTSync = async (
       doc.import(data);
     }
   } catch (e) {
-    console.error({ err: e }, "Error handling CRDT sync message");
+    logger.error({ err: e }, "Error handling CRDT sync message");
   }
 };
 
@@ -30,7 +31,7 @@ export const setupCRDTSync = (
         publish("crdt-sync", updates);
       }
     } catch (e) {
-      console.error({ err: e }, "Error in CRDT sync handler");
+      logger.error({ err: e }, "Error in CRDT sync handler");
     }
   });
 };

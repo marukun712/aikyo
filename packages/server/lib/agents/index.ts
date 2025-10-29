@@ -33,7 +33,7 @@ export interface ICompanionAgent {
   count: number;
   config: { maxTurn?: number; enableRepetitionJudge?: boolean };
 
-  generateToolInstruction(input: Message): Promise<string>;
+  generateToolInstruction(): Promise<string>;
   getState(): Promise<State>;
   generate(): Promise<void>;
 }

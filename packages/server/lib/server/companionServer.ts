@@ -112,8 +112,12 @@ export class CompanionServer implements ICompanionServer {
 
         const currentMessage = this.message.get("current");
         const parsed = MessageSchema.safeParse(currentMessage);
+        if (!parsed.success) {
+          logger.warn({ currentMessage }, "Current message parse failed, skip");
+          return;
+        }
 
-        if (parsed.success && parsed.data.params.id !== messageId) {
+        if (parsed.data.params.id !== messageId) {
           logger.info(
             {
               currentMessageId: parsed.data.params.id,

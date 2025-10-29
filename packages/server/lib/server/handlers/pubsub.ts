@@ -42,7 +42,8 @@ export const handlePubSubMessage = async (
         break;
       }
       case "crdt-sync": {
-        handleCRDTSync(self.doc, message);
+        await handleCRDTSync(self.doc, message);
+        break;
       }
     }
   } catch (e) {
