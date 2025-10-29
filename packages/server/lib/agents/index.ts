@@ -23,7 +23,6 @@ export interface ICompanionAgent {
   companion: CompanionCard;
   agent: Agent;
   history: Message[];
-  generating: boolean;
 
   repetitionJudge: RepetitionJudge;
   stateJudge: StateJudge;
@@ -43,7 +42,7 @@ export class CompanionAgent implements ICompanionAgent {
   companion: CompanionCard;
   agent: Agent;
   history: Message[];
-  generating: boolean = false;
+  private currentAbortController: AbortController | null = null;
 
   repetitionJudge: RepetitionJudge;
   stateJudge: StateJudge;
@@ -144,7 +143,6 @@ export class CompanionAgent implements ICompanionAgent {
       const formatted = this.history.map((message) => message.params.message);
       //評価
       const result = await this.repetitionJudge.evaluate(formatted);
-      logger.info({ result }, "Repetition state");
       const repetition = result.score;
       if (repetition > 0.7) {
         //プロンプトに会話の終了か転換を促すプロンプトをいれる
@@ -207,25 +205,35 @@ export class CompanionAgent implements ICompanionAgent {
 
   // メッセージ生成
   async generate() {
-    if (this.generating)
-      return logger.info("Skip generation: Already generating");
-    this.generating = true;
     try {
-      // CEL式を評価し、Instructionを取得
-      const instructions = await this.generateToolInstruction();
-      if (typeof instructions !== "string" || instructions === "failed") {
-        throw new Error("イベント実行に失敗しました。");
+      // 既存のgenerate処理をabort
+      if (this.currentAbortController) {
+        this.currentAbortController.abort();
       }
-      logger.info({ instructions }, "Generated tool instructions");
-      //メタデータとツール指示をコンテキストに含める
-      const res = await this.agent.generate(instructions, {
-        runtimeContext: this.runtimeContext,
-        resourceId: "main",
-        threadId: "thread",
-      });
-      logger.info({ text: res.text }, "Agent response");
-    } finally {
-      this.generating = false;
+
+      // 新しいAbortControllerを作成
+      this.currentAbortController = new AbortController();
+
+      try {
+        // CEL式を評価し、Instructionを取得
+        const instructions = await this.generateToolInstruction();
+        if (typeof instructions !== "string" || instructions === "failed") {
+          throw new Error("イベント実行に失敗しました。");
+        }
+        logger.info({ instructions }, "Generated tool instructions");
+        //メタデータとツール指示をコンテキストに含める
+        const res = await this.agent.generate(instructions, {
+          runtimeContext: this.runtimeContext,
+          resourceId: "main",
+          threadId: "thread",
+          abortSignal: this.currentAbortController.signal,
+        });
+        logger.info({ text: res.text }, "Agent response");
+      } finally {
+        this.currentAbortController = null;
+      }
+    } catch (e) {
+      logger.error(e);
     }
   }
 }

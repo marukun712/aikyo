@@ -48,7 +48,7 @@ export const companionCard: CompanionCard = {
         expression: "true",
         execute: [
           {
-            instruction: "ツールを使って返信する。",
+            instruction: "ツールを使って会話全体の続きを生成する。",
             tool: speakTool,
           },
         ],
@@ -65,9 +65,7 @@ async function main() {
     history,
     { enableRepetitionJudge: true },
   );
-  const server = new CompanionServer(companion, history, {
-    timeoutDuration: 0,
-  });
+  const server = new CompanionServer(companion, history);
   await server.start();
 }
 

@@ -4,12 +4,13 @@ import type { IdentifyResult, Message, PeerId } from "@libp2p/interface";
 import type { Libp2p, Libp2pOptions } from "libp2p";
 import { createLibp2p } from "libp2p";
 import { LoroDoc, type LoroMap } from "loro-crdt";
-import type {
-  Message as AikyoMessage,
-  CompanionCard,
-  Metadata,
-  QueryResult,
-  State,
+import {
+  type Message as AikyoMessage,
+  type CompanionCard,
+  MessageSchema,
+  type Metadata,
+  type QueryResult,
+  type State,
 } from "../../schema/index.js";
 import type { CompanionAgent } from "../agents/index.js";
 import { TurnTakingManager } from "../conversation/index.js";
@@ -79,7 +80,7 @@ export class CompanionServer implements ICompanionServer {
   constructor(
     companionAgent: CompanionAgent,
     history: AikyoMessage[],
-    _config?: { timeoutDuration: number },
+    config?: { timeoutDuration: number },
     libp2pConfig?: Libp2pOptions<Services>,
   ) {
     this.doc = new LoroDoc();
@@ -91,16 +92,44 @@ export class CompanionServer implements ICompanionServer {
     this.message = this.doc.getMap("message");
 
     this.history = history;
-    this.turnTakingManager = new TurnTakingManager(this.states, this.message);
+    this.turnTakingManager = new TurnTakingManager(
+      this.doc,
+      config?.timeoutDuration,
+    );
 
     this.libp2pConfig = libp2pConfig;
 
-    this.turnTakingManager.on("selected", (speaker: State) => {
-      logger.info({ speaker }, "Speaker selected");
-      if (speaker.params.from === this.card.metadata.id) {
-        this.agent.generate();
-      }
-    });
+    this.turnTakingManager.on(
+      "selected",
+      (speaker: State, messageId: string) => {
+        if (speaker.params.closing === "terminal")
+          return logger.info(
+            { speaker, messageId },
+            "The conversation is over.",
+          );
+
+        logger.info({ speaker, messageId }, "Speaker selected");
+
+        const currentMessage = this.message.get("current");
+        const parsed = MessageSchema.safeParse(currentMessage);
+
+        if (parsed.success && parsed.data.params.id !== messageId) {
+          logger.info(
+            {
+              currentMessageId: parsed.data.params.id,
+              selectedMessageId: messageId,
+            },
+            "Message ID mismatch, skipping generate",
+          );
+          return;
+        }
+
+        if (speaker.params.from === this.card.metadata.id) {
+          logger.info({ messageId }, "input");
+          this.agent.generate();
+        }
+      },
+    );
   }
 
   private async setupLibp2p() {

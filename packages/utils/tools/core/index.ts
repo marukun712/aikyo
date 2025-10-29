@@ -8,13 +8,9 @@ export const speakTool = createCompanionAction({
   inputSchema: z.object({
     message: z.string(),
     to: z
-      .array(
-        z.string().refine((val) => val.startsWith("companion_"), {
-          message: "String must start with 'companion_'",
-        }),
-      )
+      .array(z.string())
       .describe(
-        "このメッセージの宛先。必ずcompanion_から始まるコンパニオンidを指定してください。特定のコンパニオンに個人的に話しかけたいとき以外は、必ず、会話に参加したことのある他のコンパニオンのidを含むようにしてください。",
+        "このメッセージの宛先。特定のコンパニオンに個人的に話しかけたいとき以外は、必ず、会話に参加したことのある他のコンパニオンのidを含むようにしてください。",
       ),
     emotion: z.enum(["happy", "sad", "angry", "neutral"]),
   }),
@@ -40,13 +36,9 @@ export const speakQueryTool = createCompanionAction({
   inputSchema: z.object({
     message: z.string(),
     to: z
-      .array(
-        z.string().refine((val) => val.startsWith("companion_"), {
-          message: "String must start with 'companion_'",
-        }),
-      )
+      .array(z.string())
       .describe(
-        "このメッセージの宛先。必ずcompanion_から始まるコンパニオンidを指定してください。特定のコンパニオンに個人的に話しかけたいとき以外は、必ず、会話に参加したことのある他のコンパニオンのidを含むようにしてください。",
+        "このメッセージの宛先。特定のコンパニオンに個人的に話しかけたいとき以外は、必ず、会話に参加したことのある他のコンパニオンのidを含むようにしてください。",
       ),
     emotion: z.enum(["happy", "sad", "angry", "neutral"]),
   }),
