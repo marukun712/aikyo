@@ -37,8 +37,6 @@
     "@mastra/loggers": "ai-v5",
     "@mastra/mcp": "ai-v5",
     "@mastra/memory": "ai-v5",
-    "bee-queue": "^1.7.1",
-    "bullmq": "^5.62.0",
     "cel-js": "catalog:",
     "dotenv": "^17.2.2",
     "helia": "catalog:",

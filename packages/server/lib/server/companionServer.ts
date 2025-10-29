@@ -68,6 +68,7 @@ export class CompanionServer implements ICompanionServer {
     }
   >();
   states: LoroMap;
+  message: LoroMap;
 
   history: AikyoMessage[];
   turnTakingManager: TurnTakingManager;
@@ -87,13 +88,15 @@ export class CompanionServer implements ICompanionServer {
 
     this.companionList.set(this.card.metadata.id, this.card.metadata);
     this.states = this.doc.getMap("states");
+    this.message = this.doc.getMap("message");
 
     this.history = history;
-    this.turnTakingManager = new TurnTakingManager(this.states);
+    this.turnTakingManager = new TurnTakingManager(this.states, this.message);
 
     this.libp2pConfig = libp2pConfig;
 
     this.turnTakingManager.on("selected", (speaker: State) => {
+      logger.info({ speaker }, "Speaker selected");
       if (speaker.params.from === this.card.metadata.id) {
         this.agent.generate();
       }
@@ -147,8 +150,8 @@ export class CompanionServer implements ICompanionServer {
   }
 
   async handleMessageReceived(message: AikyoMessage) {
-    await this.turnTakingManager.add(message);
-    const state = await this.agent.refreshState();
+    await this.turnTakingManager.set(message);
+    const state = await this.agent.getState();
     this.states.set(this.card.metadata.id, state);
     this.doc.commit();
   }

@@ -9,10 +9,10 @@ export const handlePubSubMessage = async (
   message: CustomEvent<Message>,
 ) => {
   const topic = message.detail.topic;
-  const data = JSON.parse(new TextDecoder().decode(message.detail.data));
   try {
     switch (topic) {
       case "messages": {
+        const data = JSON.parse(new TextDecoder().decode(message.detail.data));
         const parsed = MessageSchema.safeParse(data);
         if (!parsed.success) return;
         const body = parsed.data;
@@ -30,6 +30,7 @@ export const handlePubSubMessage = async (
         break;
       }
       case "queries": {
+        const data = JSON.parse(new TextDecoder().decode(message.detail.data));
         const parsed = QueryResultSchema.safeParse(data);
         if (!parsed.success) return;
         const result = parsed.data;

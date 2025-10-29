@@ -35,7 +35,7 @@ export interface ICompanionAgent {
   config: { maxTurn?: number; enableRepetitionJudge?: boolean };
 
   generateToolInstruction(input: Message): Promise<string>;
-  refreshState(): Promise<State>;
+  getState(): Promise<State>;
   generate(): Promise<void>;
 }
 
@@ -135,7 +135,7 @@ export class CompanionAgent implements ICompanionAgent {
     return res.status === "success" ? res.result : res.status;
   }
 
-  async refreshState() {
+  async getState() {
     let closingInstruction: string = "";
 
     //繰り返し検出が有効になっている場合
@@ -166,7 +166,7 @@ export class CompanionAgent implements ICompanionAgent {
         closing ("none", "pre-closing", "closing", "terminal")
         - none: 会話継続
         - pre-closing: 会話を終わりに向ける布石
-        - closing: クロージング表現（感謝・挨拶など）
+        - closing: クロージング表現(感謝・挨拶など)
         - terminal: 最後の別れの挨拶
 
         ${closingInstruction}

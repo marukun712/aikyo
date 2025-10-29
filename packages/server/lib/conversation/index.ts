@@ -1,10 +1,9 @@
 import { EventEmitter } from "node:events";
-import { Queue, Worker } from "bullmq";
 import type { LoroMap } from "loro-crdt";
-import type { Message, State } from "../../schema/index.js";
+import { type Message, type State, StateSchema } from "../../schema/index.js";
 
 export interface ITurnTakingManager {
-  add(message: Message): Promise<void>;
+  set(message: Message): Promise<void>;
 }
 
 export class TurnTakingManager
@@ -12,27 +11,35 @@ export class TurnTakingManager
   implements ITurnTakingManager
 {
   private states: LoroMap;
-  private queue: Queue;
+  private message: LoroMap;
 
-  constructor(states: LoroMap) {
+  constructor(states: LoroMap, messages: LoroMap) {
     super();
     this.states = states;
-    this.queue = new Queue("Turn");
-    new Worker("Turn", async (job) => {
-      const states: State[] = job.data.params.to.map((id: string) => {
-        return this.states.get(id);
-      });
+    this.message = messages;
+  }
+
+  async set(message: Message) {
+    this.message.set("current", message);
+    setTimeout(() => {
+      const states = message.params.to
+        .map((id) => {
+          return this.getState(id);
+        })
+        .filter((state) => state !== null);
       const speaker = this.decideNextSpeaker(states);
-      if (!speaker) return;
-      this.emit("selected", speaker);
-    });
+      if (speaker) this.emit("selected", speaker);
+    }, 500);
   }
 
-  async add(message: Message) {
-    this.queue.add(message.params.id, message);
+  private getState(id: string) {
+    const raw = this.states.get(id);
+    const parsed = StateSchema.safeParse(raw);
+    if (!parsed.success) return null;
+    return parsed.data;
   }
 
-  private async decideNextSpeaker(states: State[]) {
+  private decideNextSpeaker(states: State[]) {
     //selected(指名された)コンパニオンがいる場合
     const selectedAgents = states.filter((state) => state.params.selected);
     if (selectedAgents.length > 0) {

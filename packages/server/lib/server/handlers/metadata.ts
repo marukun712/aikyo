@@ -12,7 +12,7 @@ export async function handleMetadataProtocol(
   const id = connection.remotePeer.toString();
   if (self.companionList.has(id)) return stream.close();
   await stream.sink([
-    new TextEncoder().encode(JSON.stringify(self.companion.metadata)),
+    new TextEncoder().encode(JSON.stringify(self.card.metadata)),
   ]);
   stream.close();
 }
