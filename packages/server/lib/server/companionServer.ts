@@ -1,17 +1,16 @@
-import { gossipsub } from "@chainsafe/libp2p-gossipsub";
-import { noise } from "@chainsafe/libp2p-noise";
-import { yamux } from "@chainsafe/libp2p-yamux";
-import { identify } from "@libp2p/identify";
+import type { gossipsub } from "@chainsafe/libp2p-gossipsub";
+import type { identify } from "@libp2p/identify";
 import type { IdentifyResult, Message, PeerId } from "@libp2p/interface";
-import { mdns } from "@libp2p/mdns";
-import { tcp } from "@libp2p/tcp";
 import type { Libp2p, Libp2pOptions } from "libp2p";
 import { createLibp2p } from "libp2p";
-import type {
-  Message as AikyoMessage,
-  CompanionCard,
-  Metadata,
-  QueryResult,
+import { LoroDoc, type LoroMap } from "loro-crdt";
+import {
+  type Message as AikyoMessage,
+  type CompanionCard,
+  MessageSchema,
+  type Metadata,
+  type QueryResult,
+  type State,
 } from "../../schema/index.js";
 import type { CompanionAgent } from "../agents/index.js";
 import { TurnTakingManager } from "../conversation/index.js";
@@ -22,6 +21,8 @@ import {
 } from "./handlers/metadata.js";
 import { onPeerConnect, onPeerDisconnect } from "./handlers/peer.js";
 import { handlePubSubMessage } from "./handlers/pubsub.js";
+import { setupCRDTSync } from "./handlers/sync.js";
+import { mergeConfig } from "./libp2p/mergeConfig.js";
 
 export type Services = {
   pubsub: ReturnType<ReturnType<typeof gossipsub>>;
@@ -29,11 +30,11 @@ export type Services = {
 };
 
 export interface ICompanionServer {
-  companionAgent: CompanionAgent;
-  history: AikyoMessage[];
-  turnTakingManager: TurnTakingManager;
-  companion: CompanionCard;
-  libp2p: Libp2p<Services>;
+  doc: LoroDoc;
+
+  agent: CompanionAgent;
+  card: CompanionCard;
+
   companionList: Map<string, Metadata>;
   pendingQueries: Map<
     string,
@@ -42,17 +43,23 @@ export interface ICompanionServer {
       reject: (reason: string) => void;
     }
   >;
+  states: LoroMap;
+
+  history: AikyoMessage[];
+  turnTakingManager: TurnTakingManager;
+
+  libp2p: Libp2p<Services>;
   libp2pConfig?: Libp2pOptions<Services>;
 
   start(): Promise<void>;
 }
 
 export class CompanionServer implements ICompanionServer {
-  companionAgent: CompanionAgent;
-  history: AikyoMessage[];
-  turnTakingManager: TurnTakingManager;
-  companion: CompanionCard;
-  libp2p!: Libp2p<Services>;
+  doc: LoroDoc;
+
+  agent: CompanionAgent;
+  card: CompanionCard;
+
   companionList = new Map<string, Metadata>();
   pendingQueries = new Map<
     string,
@@ -61,6 +68,13 @@ export class CompanionServer implements ICompanionServer {
       reject: (reason: string) => void;
     }
   >();
+  states: LoroMap;
+  message: LoroMap;
+
+  history: AikyoMessage[];
+  turnTakingManager: TurnTakingManager;
+
+  libp2p!: Libp2p<Services>;
   libp2pConfig?: Libp2pOptions<Services>;
 
   constructor(
@@ -69,57 +83,61 @@ export class CompanionServer implements ICompanionServer {
     config?: { timeoutDuration: number },
     libp2pConfig?: Libp2pOptions<Services>,
   ) {
-    this.companionAgent = companionAgent;
+    this.doc = new LoroDoc();
+    this.agent = companionAgent;
+    this.card = companionAgent.companion;
+
+    this.companionList.set(this.card.metadata.id, this.card.metadata);
+    this.states = this.doc.getMap("states");
+    this.message = this.doc.getMap("message");
+
     this.history = history;
-    this.companion = companionAgent.companion;
     this.turnTakingManager = new TurnTakingManager(
-      this.companionAgent,
-      config ? config.timeoutDuration : 5000,
+      this.doc,
+      config?.timeoutDuration,
     );
-    this.companionList.set(this.companion.metadata.id, this.companion.metadata);
+
     this.libp2pConfig = libp2pConfig;
+
+    this.turnTakingManager.on(
+      "selected",
+      (speaker: State, messageId: string) => {
+        if (speaker.params.closing === "terminal")
+          return logger.info(
+            { speaker, messageId },
+            "The conversation is over.",
+          );
+
+        logger.info({ speaker, messageId }, "Speaker selected");
+
+        const currentMessage = this.message.get("current");
+        const parsed = MessageSchema.safeParse(currentMessage);
+        if (!parsed.success) {
+          logger.warn({ currentMessage }, "Current message parse failed, skip");
+          return;
+        }
+
+        if (parsed.data.params.id !== messageId) {
+          logger.info(
+            {
+              currentMessageId: parsed.data.params.id,
+              selectedMessageId: messageId,
+            },
+            "Message ID mismatch, skipping generate",
+          );
+          return;
+        }
+
+        if (speaker.params.from === this.card.metadata.id) {
+          logger.info({ messageId }, "input");
+          this.agent.generate();
+        }
+      },
+    );
   }
 
   private async setupLibp2p() {
-    const defaultConfig: Libp2pOptions<Services> = {
-      addresses: { listen: ["/ip4/0.0.0.0/tcp/0"] },
-      transports: [tcp()],
-      peerDiscovery: [mdns()],
-      connectionEncrypters: [noise()],
-      streamMuxers: [yamux()],
-      services: {
-        pubsub: gossipsub({
-          allowPublishToZeroTopicPeers: true,
-          emitSelf: true,
-        }),
-        identify: identify(),
-      },
-    };
-
-    if (!defaultConfig.services)
-      throw new Error("Error: Gossipsubの設定が構成されていません！");
-
-    const mergedConfig: Libp2pOptions<Services> = {
-      ...defaultConfig,
-      ...this.libp2pConfig,
-      addresses: {
-        ...defaultConfig.addresses,
-        ...this.libp2pConfig?.addresses,
-      },
-      transports: this.libp2pConfig?.transports ?? defaultConfig.transports,
-      peerDiscovery:
-        this.libp2pConfig?.peerDiscovery ?? defaultConfig.peerDiscovery,
-      connectionEncrypters:
-        this.libp2pConfig?.connectionEncrypters ??
-        defaultConfig.connectionEncrypters,
-      streamMuxers:
-        this.libp2pConfig?.streamMuxers ?? defaultConfig.streamMuxers,
-      services: {
-        ...defaultConfig.services,
-        ...this.libp2pConfig?.services,
-      },
-    };
-
+    const mergedConfig = mergeConfig(this.libp2pConfig);
     this.libp2p = await createLibp2p(mergedConfig);
 
     this.libp2p.addEventListener("peer:discovery", (evt) => {
@@ -134,6 +152,7 @@ export class CompanionServer implements ICompanionServer {
     this.libp2p.services.pubsub.subscribe("messages");
     this.libp2p.services.pubsub.subscribe("states");
     this.libp2p.services.pubsub.subscribe("queries");
+    this.libp2p.services.pubsub.subscribe("crdt-sync");
 
     this.libp2p.services.pubsub.addEventListener(
       "message",
@@ -152,30 +171,33 @@ export class CompanionServer implements ICompanionServer {
       "peer:disconnect",
       async (evt: CustomEvent<PeerId>) => onPeerDisconnect(this, evt),
     );
-    this.companionAgent.runtimeContext.set("libp2p", this.libp2p);
-    this.companionAgent.runtimeContext.set("companions", this.companionList);
-    this.companionAgent.runtimeContext.set(
-      "pendingQueries",
-      this.pendingQueries,
+
+    setupCRDTSync(this.doc, (topic, data) =>
+      this.libp2p.services.pubsub.publish(topic, data),
     );
-    this.companionAgent.runtimeContext.set("agent", this.companionAgent);
+
+    this.agent.runtimeContext.set("libp2p", this.libp2p);
+    this.agent.runtimeContext.set("companions", this.companionList);
+    this.agent.runtimeContext.set("pendingQueries", this.pendingQueries);
+    this.agent.runtimeContext.set("agent", this.agent);
   }
 
   async handleMessageReceived(message: AikyoMessage) {
-    this.turnTakingManager.addPending(message);
-    const state = await this.companionAgent.generateState();
-    this.libp2p.services.pubsub.publish(
-      "states",
-      new TextEncoder().encode(JSON.stringify(state)),
-    );
+    await this.turnTakingManager.set(message);
+    const state = await this.agent.getState();
+    this.states.set(this.card.metadata.id, state);
+    this.doc.commit();
+    const payload = new TextEncoder().encode(JSON.stringify(state));
+    //互換性のためlibp2pにもpublish
+    this.libp2p.services.pubsub.publish("states", payload);
   }
 
   async start() {
     await this.setupLibp2p();
     logger.info(
       {
-        name: this.companion.metadata.name,
-        id: this.companion.metadata.id,
+        name: this.card.metadata.name,
+        id: this.card.metadata.id,
         peerId: this.libp2p.peerId.toString(),
       },
       "Companion started",

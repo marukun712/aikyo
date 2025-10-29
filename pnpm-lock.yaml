@@ -106,7 +106,7 @@ importers:
         version: link:../packages/utils
       '@openrouter/ai-sdk-provider':
         specifier: 'catalog:'
-        version: 1.2.0(ai@5.0.72(zod@3.25.76))(zod@3.25.76)
+        version: 1.2.0(ai@5.0.81(zod@3.25.76))(zod@3.25.76)
       ollama-ai-provider:
         specifier: 'catalog:'
         version: 1.2.0(zod@3.25.76)
@@ -118,13 +118,13 @@ importers:
     dependencies:
       '@astrojs/starlight':
         specifier: ^0.35.2
-        version: 0.35.3(astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1))
+        version: 0.35.3(astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(ioredis@5.8.2)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1))
       '@catppuccin/starlight':
         specifier: ^1.0.2
-        version: 1.0.2(@astrojs/starlight@0.35.3(astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1)))(astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1))
+        version: 1.0.2(@astrojs/starlight@0.35.3(astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(ioredis@5.8.2)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1)))(astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(ioredis@5.8.2)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1))
       astro:
         specifier: ^5.6.1
-        version: 5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1)
+        version: 5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(ioredis@5.8.2)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1)
       sharp:
         specifier: ^0.34.2
         version: 0.34.4
@@ -212,7 +212,7 @@ importers:
         version: 0.0.0-ai-v5-20250813235735(openapi-types@12.1.3)(zod@3.25.76)
       '@mastra/evals':
         specifier: ai-v5
-        version: 0.0.0-ai-v5-20250813235735(@mastra/core@0.0.0-ai-v5-20250813235735(openapi-types@12.1.3)(zod@3.25.76))(ai@5.0.72(zod@3.25.76))
+        version: 0.0.0-ai-v5-20250813235735(@mastra/core@0.0.0-ai-v5-20250813235735(openapi-types@12.1.3)(zod@3.25.76))(ai@5.0.81(zod@3.25.76))
       '@mastra/libsql':
         specifier: ai-v5
         version: 0.0.0-ai-v5-20250813235735(@mastra/core@0.0.0-ai-v5-20250813235735(openapi-types@12.1.3)(zod@3.25.76))
@@ -237,6 +237,9 @@ importers:
       libp2p:
         specifier: 2.9.0
         version: 2.9.0
+      loro-crdt:
+        specifier: ^1.8.5
+        version: 1.8.5
       pino:
         specifier: 'catalog:'
         version: 10.0.0
@@ -342,8 +345,8 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/gateway@1.0.40':
-    resolution: {integrity: sha512-zlixM9jac0w0jjYl5gwNq+w9nydvraAmLaZQbbh+QpHU+OPkTIZmyBcKeTq5eGQKQxhi+oquHxzCSKyJx3egGw==}
+  '@ai-sdk/gateway@2.0.2':
+    resolution: {integrity: sha512-25F1qPqZxOw9IcV9OQCL29hV4HAFLw5bFWlzQLBi5aDhEZsTMT2rMi3umSqNaUxrrw+dLRtjOL7RbHC+WjbA/A==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -374,6 +377,12 @@ packages:
 
   '@ai-sdk/provider-utils@3.0.12':
     resolution: {integrity: sha512-ZtbdvYxdMoria+2SlNarEk6Hlgyf+zzcznlD55EAl+7VZvJaSg2sqPvwArY7L6TfDEDJsnCq0fdhBSkYo0Xqdg==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
+  '@ai-sdk/provider-utils@3.0.13':
+    resolution: {integrity: sha512-aXFLBLRPTUYA853MJliItefSXeJPl+mg0KSjbToP41kJ+banBmHO8ZPGLJhNqGlCU82o11TYN7G05EREKX8CkA==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -1218,6 +1227,9 @@ packages:
     peerDependenciesMeta:
       '@types/node':
         optional: true
+
+  '@ioredis/commands@1.4.0':
+    resolution: {integrity: sha512-aFT2yemJJo+TZCmieA7qnYGQooOS7QfNmYrzGtsYd3g9j5iDP8AimYYAesf79ohjbLG12XxC4nG5DyEnC88AsQ==}
 
   '@ipld/dag-cbor@9.2.5':
     resolution: {integrity: sha512-84wSr4jv30biui7endhobYhXBQzQE4c/wdoWlFrKcfiwH+ofaPg8fwsM8okX9cOzkkrsAsNdDyH3ou+kiLquwQ==}
@@ -2982,8 +2994,8 @@ packages:
   '@upstash/redis@1.35.4':
     resolution: {integrity: sha512-WE1ZnhFyBiIjTDW13GbO6JjkiMVVjw5VsvS8ENmvvJsze/caMQ5paxVD44+U68IUVmkXcbsLSoE+VIYsHtbQEw==}
 
-  '@vercel/oidc@3.0.2':
-    resolution: {integrity: sha512-JekxQ0RApo4gS4un/iMGsIL1/k4KUBe3HmnGcDvzHuFBdQdudEJgTqcsJC7y6Ul4Yw5CeykgvQbX2XeEJd0+DA==}
+  '@vercel/oidc@3.0.3':
+    resolution: {integrity: sha512-yNEQvPcVrK9sIe637+I0jD6leluPxzwJKx/Haw6F4H77CdDsszUn5V3o96LPziXkSNE2B83+Z3mjqGKBK/R6Gg==}
     engines: {node: '>= 20'}
 
   '@webcontainer/env@1.1.1':
@@ -3033,8 +3045,8 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  ai@5.0.72:
-    resolution: {integrity: sha512-LB4APrlESLGHG/5x+VVdl0yYPpHPHpnGd5Gwl7AWVL+n7T0GYsNos/S/6dZ5CZzxLnPPEBkRgvJC4rupeZqyNg==}
+  ai@5.0.81:
+    resolution: {integrity: sha512-SB7oMC9QSpIu1VLswFTZuhhpfQfrGtFBUbWLtHBkhjWZIQskjtcdEhB+N4yO9hscdc2wYtjw/tacgoxX93QWFw==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -4434,6 +4446,10 @@ packages:
   invariant@2.2.4:
     resolution: {integrity: sha512-phJfQVBuaJM5raOpJjSfkiD6BpbCE4Ns//LaXl6wGYtUBY83nWS6Rf9tXm2e8VaK60JEjYldbPif/A2B1C2gNA==}
 
+  ioredis@5.8.2:
+    resolution: {integrity: sha512-C6uC+kleiIMmjViJINWk80sOQw5lEzse1ZmvD+S/s8p8CWapftSaC+kocGTx6xrbrJ4WmYQGC08ffHLr6ToR6Q==}
+    engines: {node: '>=12.22.0'}
+
   ip-regex@4.3.0:
     resolution: {integrity: sha512-B9ZWJxHHOHUhUjCPrMpLD4xEq35bUTClHM1S6CBU5ixQnkZmwipwgc96vAd7AAGM9TGHvJR+Uss+/Ak6UphK+Q==}
     engines: {node: '>=8'}
@@ -4829,6 +4845,12 @@ packages:
   lodash.clonedeep@4.5.0:
     resolution: {integrity: sha512-H5ZhCF25riFd9uB5UCkVKo61m3S/xZk1x4wA6yp/L3RFP6Z/eHH1ymQcGLo7J3GMPfm0V/7m1tryHuGVxpqEBQ==}
 
+  lodash.defaults@4.2.0:
+    resolution: {integrity: sha512-qjxPLHd3r5DnsdGacqOMU6pb/avJzdh9tFX2ymgoZE27BmjXrNy/y4LoaiTeAb+O3gL8AfpJGtqfX/ae2leYYQ==}
+
+  lodash.isarguments@3.1.0:
+    resolution: {integrity: sha512-chi4NHZlZqZD18a0imDHnZPrDeBbTtVN7GXMwuGdRH9qotxAjYs3aVLKc7zNOG9eddR5Ksd8rvFEBc9SsggPpg==}
+
   lodash.sortby@4.7.0:
     resolution: {integrity: sha512-HDWXG8isMntAyRF5vZ7xKuEvOhT4AhlRt/3czTSjvGUxjYCBVRQY48ViDHyfYz9VIoBkW4TMGQNapx+l3RUwdA==}
 
@@ -4850,6 +4872,9 @@ packages:
   loose-envify@1.4.0:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
+
+  loro-crdt@1.8.5:
+    resolution: {integrity: sha512-sWWOjzV05RT/NrD42THaihg8kQGNTzPzroyEap7PzyXYIg9JPlTA6MWqt8gLqhpWKhYD2niisljB2+4iwGUZWA==}
 
   lru-cache@10.4.3:
     resolution: {integrity: sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==}
@@ -5867,6 +5892,14 @@ packages:
   recma-stringify@1.0.0:
     resolution: {integrity: sha512-cjwII1MdIIVloKvC9ErQ+OgAtwHBmcZ0Bg4ciz78FtbT8In39aAYbaA7zvxQ61xVMSPE8WxhLwLbhif4Js2C+g==}
 
+  redis-errors@1.2.0:
+    resolution: {integrity: sha512-1qny3OExCf0UvUV/5wpYKf2YwPcOqXzkwKKSmKHiE6ZMQs5heeE/c8eXK+PNllPvmjgAbfnsbpkGZWy8cBpn9w==}
+    engines: {node: '>=4'}
+
+  redis-parser@3.0.0:
+    resolution: {integrity: sha512-DJnGAeenTdpMEH6uAJRK/uiyEIH9WVsUmoLwzudwGJUwZPp80PDBWPHXSAGNPwNvIXAbe7MSUB1zQFugFml66A==}
+    engines: {node: '>=4'}
+
   redis@5.8.2:
     resolution: {integrity: sha512-31vunZj07++Y1vcFGcnNWEf5jPoTkGARgfWI4+Tk55vdwHxhAvug8VEtW7Cx+/h47NuJTEg/JL77zAwC6E0OeA==}
     engines: {node: '>= 18'}
@@ -6215,6 +6248,9 @@ packages:
   stacktrace-parser@0.1.11:
     resolution: {integrity: sha512-WjlahMgHmCJpqzU8bIBy4qtsZdU9lRlcZE3Lvyej6t4tuOuv1vk57OW3MBrj6hXBFx/nNoC9MPMTcr5YA7NQbg==}
     engines: {node: '>=6'}
+
+  standard-as-callback@2.1.0:
+    resolution: {integrity: sha512-qoRRSyROncaz1z0mvYqIE4lCd9p2R90i6GxW3uZv5ucSu8tU7B5HXUP1gG8pVZsYNVaXjk8ClXHPttLyxAL48A==}
 
   statuses@1.5.0:
     resolution: {integrity: sha512-OpZ3zP+jT1PI7I8nemJX4AKmAX070ZkYPVWV/AaKTJl+tXCTGyVdC1a4SL8RUQYEwk/f34ZX8UTykN68FwrqAA==}
@@ -6984,11 +7020,11 @@ snapshots:
       '@ai-sdk/provider-utils': 3.0.10(zod@3.25.76)
       zod: 3.25.76
 
-  '@ai-sdk/gateway@1.0.40(zod@3.25.76)':
+  '@ai-sdk/gateway@2.0.2(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.12(zod@3.25.76)
-      '@vercel/oidc': 3.0.2
+      '@ai-sdk/provider-utils': 3.0.13(zod@3.25.76)
+      '@vercel/oidc': 3.0.3
       zod: 3.25.76
 
   '@ai-sdk/google@2.0.8(zod@3.25.76)':
@@ -7018,6 +7054,13 @@ snapshots:
       zod: 3.25.76
 
   '@ai-sdk/provider-utils@3.0.12(zod@3.25.76)':
+    dependencies:
+      '@ai-sdk/provider': 2.0.0
+      '@standard-schema/spec': 1.0.0
+      eventsource-parser: 3.0.6
+      zod: 3.25.76
+
+  '@ai-sdk/provider-utils@3.0.13(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
       '@standard-schema/spec': 1.0.0
@@ -7088,12 +7131,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@astrojs/mdx@4.3.6(astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1))':
+  '@astrojs/mdx@4.3.6(astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(ioredis@5.8.2)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1))':
     dependencies:
       '@astrojs/markdown-remark': 6.3.7
       '@mdx-js/mdx': 3.1.1
       acorn: 8.15.0
-      astro: 5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1)
+      astro: 5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(ioredis@5.8.2)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1)
       es-module-lexer: 1.7.0
       estree-util-visit: 2.0.0
       hast-util-to-html: 9.0.5
@@ -7117,17 +7160,17 @@ snapshots:
       stream-replace-string: 2.0.0
       zod: 3.25.76
 
-  '@astrojs/starlight@0.35.3(astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1))':
+  '@astrojs/starlight@0.35.3(astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(ioredis@5.8.2)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1))':
     dependencies:
       '@astrojs/markdown-remark': 6.3.7
-      '@astrojs/mdx': 4.3.6(astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1))
+      '@astrojs/mdx': 4.3.6(astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(ioredis@5.8.2)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1))
       '@astrojs/sitemap': 3.6.0
       '@pagefind/default-ui': 1.4.0
       '@types/hast': 3.0.4
       '@types/js-yaml': 4.0.9
       '@types/mdast': 4.0.4
-      astro: 5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1)
-      astro-expressive-code: 0.41.3(astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1))
+      astro: 5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(ioredis@5.8.2)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1)
+      astro-expressive-code: 0.41.3(astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(ioredis@5.8.2)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1))
       bcp-47: 2.1.0
       hast-util-from-html: 2.0.3
       hast-util-select: 6.0.4
@@ -7818,10 +7861,10 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@catppuccin/starlight@1.0.2(@astrojs/starlight@0.35.3(astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1)))(astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1))':
+  '@catppuccin/starlight@1.0.2(@astrojs/starlight@0.35.3(astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(ioredis@5.8.2)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1)))(astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(ioredis@5.8.2)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1))':
     dependencies:
-      '@astrojs/starlight': 0.35.3(astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1))
-      astro: 5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1)
+      '@astrojs/starlight': 0.35.3(astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(ioredis@5.8.2)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1))
+      astro: 5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(ioredis@5.8.2)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1)
 
   '@chainsafe/as-chacha20poly1305@0.1.0': {}
 
@@ -8383,6 +8426,9 @@ snapshots:
       iconv-lite: 0.7.0
     optionalDependencies:
       '@types/node': 24.6.2
+
+  '@ioredis/commands@1.4.0':
+    optional: true
 
   '@ipld/dag-cbor@9.2.5':
     dependencies:
@@ -9073,9 +9119,9 @@ snapshots:
     dependencies:
       '@a2a-js/sdk': 0.2.5
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.12(zod@3.25.76)
+      '@ai-sdk/provider-utils': 3.0.13(zod@3.25.76)
       '@ai-sdk/ui-utils': 1.2.11(zod@3.25.76)
-      '@mastra/schema-compat': 0.0.0-ai-v5-20250813235735(ai@5.0.72(zod@3.25.76))(zod@3.25.76)
+      '@mastra/schema-compat': 0.0.0-ai-v5-20250813235735(ai@5.0.81(zod@3.25.76))(zod@3.25.76)
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/auto-instrumentations-node': 0.62.2(@opentelemetry/api@1.9.0)(@opentelemetry/core@2.1.0(@opentelemetry/api@1.9.0))
       '@opentelemetry/core': 2.1.0(@opentelemetry/api@1.9.0)
@@ -9090,7 +9136,7 @@ snapshots:
       '@opentelemetry/sdk-trace-node': 2.1.0(@opentelemetry/api@1.9.0)
       '@opentelemetry/semantic-conventions': 1.37.0
       '@sindresorhus/slugify': 2.2.1
-      ai: 5.0.72(zod@3.25.76)
+      ai: 5.0.81(zod@3.25.76)
       cohere-ai: 7.19.0
       date-fns: 3.6.0
       dotenv: 16.6.1
@@ -9155,10 +9201,10 @@ snapshots:
       - supports-color
       - typescript
 
-  '@mastra/evals@0.0.0-ai-v5-20250813235735(@mastra/core@0.0.0-ai-v5-20250813235735(openapi-types@12.1.3)(zod@3.25.76))(ai@5.0.72(zod@3.25.76))':
+  '@mastra/evals@0.0.0-ai-v5-20250813235735(@mastra/core@0.0.0-ai-v5-20250813235735(openapi-types@12.1.3)(zod@3.25.76))(ai@5.0.81(zod@3.25.76))':
     dependencies:
       '@mastra/core': 0.0.0-ai-v5-20250813235735(openapi-types@12.1.3)(zod@3.25.76)
-      ai: 5.0.72(zod@3.25.76)
+      ai: 5.0.81(zod@3.25.76)
       compromise: 14.14.4
       difflib: 0.2.4
       fs-extra: 11.3.2
@@ -9199,9 +9245,9 @@ snapshots:
   '@mastra/memory@0.0.0-ai-v5-20250813235735(@mastra/core@0.0.0-ai-v5-20250813235735(openapi-types@12.1.3)(zod@3.25.76))':
     dependencies:
       '@mastra/core': 0.0.0-ai-v5-20250813235735(openapi-types@12.1.3)(zod@3.25.76)
-      '@mastra/schema-compat': 0.0.0-ai-v5-20250813235735(ai@5.0.72(zod@3.25.76))(zod@3.25.76)
+      '@mastra/schema-compat': 0.0.0-ai-v5-20250813235735(ai@5.0.81(zod@3.25.76))(zod@3.25.76)
       '@upstash/redis': 1.35.4
-      ai: 5.0.72(zod@3.25.76)
+      ai: 5.0.81(zod@3.25.76)
       async-mutex: 0.5.0
       js-tiktoken: 1.0.21
       json-schema: 0.4.0
@@ -9215,9 +9261,9 @@ snapshots:
     transitivePeerDependencies:
       - pg-native
 
-  '@mastra/schema-compat@0.0.0-ai-v5-20250813235735(ai@5.0.72(zod@3.25.76))(zod@3.25.76)':
+  '@mastra/schema-compat@0.0.0-ai-v5-20250813235735(ai@5.0.81(zod@3.25.76))(zod@3.25.76)':
     dependencies:
-      ai: 5.0.72(zod@3.25.76)
+      ai: 5.0.81(zod@3.25.76)
       json-schema: 0.4.0
       zod: 3.25.76
       zod-from-json-schema: 0.0.5
@@ -9354,9 +9400,9 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.19.1
 
-  '@openrouter/ai-sdk-provider@1.2.0(ai@5.0.72(zod@3.25.76))(zod@3.25.76)':
+  '@openrouter/ai-sdk-provider@1.2.0(ai@5.0.81(zod@3.25.76))(zod@3.25.76)':
     dependencies:
-      ai: 5.0.72(zod@3.25.76)
+      ai: 5.0.81(zod@3.25.76)
       zod: 3.25.76
 
   '@opentelemetry/api-logs@0.203.0':
@@ -11058,7 +11104,7 @@ snapshots:
     dependencies:
       uncrypto: 0.1.3
 
-  '@vercel/oidc@3.0.2': {}
+  '@vercel/oidc@3.0.3': {}
 
   '@webcontainer/env@1.1.1': {}
 
@@ -11108,11 +11154,11 @@ snapshots:
       '@opentelemetry/api': 1.9.0
       zod: 3.25.76
 
-  ai@5.0.72(zod@3.25.76):
+  ai@5.0.81(zod@3.25.76):
     dependencies:
-      '@ai-sdk/gateway': 1.0.40(zod@3.25.76)
+      '@ai-sdk/gateway': 2.0.2(zod@3.25.76)
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.12(zod@3.25.76)
+      '@ai-sdk/provider-utils': 3.0.13(zod@3.25.76)
       '@opentelemetry/api': 1.9.0
       zod: 3.25.76
 
@@ -11178,12 +11224,12 @@ snapshots:
 
   astring@1.9.0: {}
 
-  astro-expressive-code@0.41.3(astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1)):
+  astro-expressive-code@0.41.3(astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(ioredis@5.8.2)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1)):
     dependencies:
-      astro: 5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1)
+      astro: 5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(ioredis@5.8.2)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1)
       rehype-expressive-code: 0.41.3
 
-  astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1):
+  astro@5.14.1(@types/node@24.6.2)(@upstash/redis@1.35.4)(ioredis@5.8.2)(rollup@4.52.3)(terser@5.44.0)(tsx@4.20.6)(typescript@5.9.3)(yaml@2.8.1):
     dependencies:
       '@astrojs/compiler': 2.13.0
       '@astrojs/internal-helpers': 0.7.3
@@ -11237,7 +11283,7 @@ snapshots:
       ultrahtml: 1.6.0
       unifont: 0.5.2
       unist-util-visit: 5.0.0
-      unstorage: 1.17.1(@upstash/redis@1.35.4)
+      unstorage: 1.17.1(@upstash/redis@1.35.4)(ioredis@5.8.2)
       vfile: 6.0.3
       vite: 6.3.6(@types/node@24.6.2)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1)
       vitefu: 1.1.1(vite@6.3.6(@types/node@24.6.2)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.1))
@@ -12834,6 +12880,21 @@ snapshots:
     dependencies:
       loose-envify: 1.4.0
 
+  ioredis@5.8.2:
+    dependencies:
+      '@ioredis/commands': 1.4.0
+      cluster-key-slot: 1.1.2
+      debug: 4.4.3
+      denque: 2.1.0
+      lodash.defaults: 4.2.0
+      lodash.isarguments: 3.1.0
+      redis-errors: 1.2.0
+      redis-parser: 3.0.0
+      standard-as-callback: 2.1.0
+    transitivePeerDependencies:
+      - supports-color
+    optional: true
+
   ip-regex@4.3.0: {}
 
   ip-regex@5.0.0: {}
@@ -13298,6 +13359,12 @@ snapshots:
 
   lodash.clonedeep@4.5.0: {}
 
+  lodash.defaults@4.2.0:
+    optional: true
+
+  lodash.isarguments@3.1.0:
+    optional: true
+
   lodash.sortby@4.7.0: {}
 
   lodash.startcase@4.4.0: {}
@@ -13313,6 +13380,8 @@ snapshots:
   loose-envify@1.4.0:
     dependencies:
       js-tokens: 4.0.0
+
+  loro-crdt@1.8.5: {}
 
   lru-cache@10.4.3: {}
 
@@ -14805,6 +14874,14 @@ snapshots:
       unified: 11.0.5
       vfile: 6.0.3
 
+  redis-errors@1.2.0:
+    optional: true
+
+  redis-parser@3.0.0:
+    dependencies:
+      redis-errors: 1.2.0
+    optional: true
+
   redis@5.8.2:
     dependencies:
       '@redis/bloom': 5.8.2(@redis/client@5.8.2)
@@ -15321,6 +15398,9 @@ snapshots:
     dependencies:
       type-fest: 0.7.1
 
+  standard-as-callback@2.1.0:
+    optional: true
+
   statuses@1.5.0: {}
 
   statuses@2.0.1: {}
@@ -15714,7 +15794,7 @@ snapshots:
       pathe: 2.0.3
       picomatch: 4.0.3
 
-  unstorage@1.17.1(@upstash/redis@1.35.4):
+  unstorage@1.17.1(@upstash/redis@1.35.4)(ioredis@5.8.2):
     dependencies:
       anymatch: 3.1.3
       chokidar: 4.0.3
@@ -15726,6 +15806,7 @@ snapshots:
       ufo: 1.6.1
     optionalDependencies:
       '@upstash/redis': 1.35.4
+      ioredis: 5.8.2
 
   update-browserslist-db@1.1.3(browserslist@4.26.3):
     dependencies:

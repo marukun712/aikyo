@@ -22,25 +22,31 @@ config();
 export interface ICompanionAgent {
   companion: CompanionCard;
   agent: Agent;
-  repetitionJudge: RepetitionJudge;
   history: Message[];
+
+  repetitionJudge: RepetitionJudge;
+  stateJudge: StateJudge;
+
   memory: Memory;
   runtimeContext: RuntimeContext;
   run: Run;
   count: number;
   config: { maxTurn?: number; enableRepetitionJudge?: boolean };
 
-  generateToolInstruction(input: Message): Promise<string>;
-  generateState(): Promise<State>;
-  input(message: Message): Promise<void>;
+  generateToolInstruction(): Promise<string>;
+  getState(): Promise<State>;
+  generate(): Promise<void>;
 }
 
 export class CompanionAgent implements ICompanionAgent {
   companion: CompanionCard;
   agent: Agent;
+  history: Message[];
+  private currentAbortController: AbortController | null = null;
+
   repetitionJudge: RepetitionJudge;
   stateJudge: StateJudge;
-  history: Message[];
+
   memory: Memory;
   runtimeContext: RuntimeContext;
   run: Run;
@@ -77,23 +83,23 @@ export class CompanionAgent implements ICompanionAgent {
     this.agent = new Agent({
       name: companion.metadata.name,
       instructions: `
-    あなたのメタデータ
-    ${JSON.stringify(companion.metadata, null, 2)}
-    このメタデータに記載されているキャラクター情報、口調などに忠実にロールプレイをしてください。
+      あなたのメタデータ
+      ${JSON.stringify(companion.metadata, null, 2)}
+      このメタデータに記載されているキャラクター情報、口調などに忠実にロールプレイをしてください。
 
-    あなたの役割は、
-    ${companion.role}です。この役割に忠実に行動してください。
+      あなたの役割は、
+      ${companion.role}です。この役割に忠実に行動してください。
 
-    あなたには、知識を得るための以下のツールが与えられています。
-    これらのツールは、あなたが知識を得たいと感じたタイミングで実行してください。
-    ${Object.values(companion.knowledge)
-      .map((value) => {
-        return `${value.id}:${value.description}`;
-      })
-      .join("\n")}
+      あなたには、知識を得るための以下のツールが与えられています。
+      これらのツールは、あなたが知識を得たいと感じたタイミングで実行してください。
+      ${Object.values(companion.knowledge)
+        .map((value) => {
+          return `${value.id}:${value.description}`;
+        })
+        .join("\n")}
 
-    必ず、定期的にワーキングメモリを更新してください。
-    `,
+      必ず、定期的にワーキングメモリを更新してください。
+      `,
       model,
       memory: this.memory,
       tools: { ...companion.actions, ...companion.knowledge },
@@ -107,11 +113,7 @@ export class CompanionAgent implements ICompanionAgent {
     this.runtimeContext.set("id", companion.metadata.id);
 
     // Workflowを初期化
-    const workflow = createToolInstructionWorkflow(
-      this.agent,
-      this.runtimeContext,
-      this.companion,
-    );
+    const workflow = createToolInstructionWorkflow(this.agent, this.companion);
     this.run = workflow.createRun();
 
     // スレッドを作成
@@ -124,15 +126,15 @@ export class CompanionAgent implements ICompanionAgent {
     };
   }
 
-  async generateToolInstruction(input: Message) {
+  async generateToolInstruction() {
     //toolの使用指示を取得
     const res = await this.run.start({
-      inputData: { message: input, history: this.history },
+      inputData: { history: this.history },
     });
     return res.status === "success" ? res.result : res.status;
   }
 
-  async generateState(): Promise<State> {
+  async getState() {
     let closingInstruction: string = "";
 
     //繰り返し検出が有効になっている場合
@@ -141,7 +143,6 @@ export class CompanionAgent implements ICompanionAgent {
       const formatted = this.history.map((message) => message.params.message);
       //評価
       const result = await this.repetitionJudge.evaluate(formatted);
-      logger.info({ result }, "Repetition state");
       const repetition = result.score;
       if (repetition > 0.7) {
         //プロンプトに会話の終了か転換を促すプロンプトをいれる
@@ -157,20 +158,19 @@ export class CompanionAgent implements ICompanionAgent {
       // closingの判定
       this.agent.generate(
         `
-      今までの会話を振り返り、今の会話の終了状態を以下の４つの状態で判定してください。
+        今までの会話を振り返り、今の会話の終了状態を以下の４つの状態で判定してください。
 
-      状態一覧:
-      closing ("none", "pre-closing", "closing", "terminal")
-      - none: 会話継続
-      - pre-closing: 会話を終わりに向ける布石
-      - closing: クロージング表現（感謝・挨拶など）
-      - terminal: 最後の別れの挨拶
+        状態一覧:
+        closing ("none", "pre-closing", "closing", "terminal")
+        - none: 会話継続
+        - pre-closing: 会話を終わりに向ける布石
+        - closing: クロージング表現(感謝・挨拶など)
+        - terminal: 最後の別れの挨拶
 
-      ${closingInstruction}
-      また、この判断の内容は発言内容に絶対に含めないでください。
-    `,
+        ${closingInstruction}
+        また、この判断の内容は発言内容に絶対に含めないでください。
+        `,
         {
-          runtimeContext: this.runtimeContext,
           output: z.object({
             closing: z.enum(["none", "pre-closing", "closing", "terminal"]),
           }),
@@ -181,7 +181,6 @@ export class CompanionAgent implements ICompanionAgent {
     ]);
 
     let closing = res.object.closing;
-    logger.info({ closing }, "Closing state");
     //ターン上限が設けられている場合;
     if (this.config.maxTurn) {
       //会話が終了したらターンカウントを0に
@@ -196,48 +195,45 @@ export class CompanionAgent implements ICompanionAgent {
         this.count++;
       }
     }
+
     return {
-      jsonrpc: "2.0",
-      method: "state.send",
+      jsonrpc: "2.0" as const,
+      method: "state.send" as const,
       params: { ...state, closing },
     };
   }
 
   // メッセージ生成
-  async input(message: Message) {
-    // CEL式を評価し、Instructionを取得
-    const instructions = await this.generateToolInstruction(message);
-    if (typeof instructions !== "string" || instructions === "failed") {
-      throw new Error("イベント実行に失敗しました。");
+  async generate() {
+    try {
+      // 既存のgenerate処理をabort
+      if (this.currentAbortController) {
+        this.currentAbortController.abort();
+      }
+
+      // 新しいAbortControllerを作成
+      this.currentAbortController = new AbortController();
+
+      try {
+        // CEL式を評価し、Instructionを取得
+        const instructions = await this.generateToolInstruction();
+        if (typeof instructions !== "string" || instructions === "failed") {
+          throw new Error("イベント実行に失敗しました。");
+        }
+        logger.info({ instructions }, "Generated tool instructions");
+        //メタデータとツール指示をコンテキストに含める
+        const res = await this.agent.generate(instructions, {
+          runtimeContext: this.runtimeContext,
+          resourceId: "main",
+          threadId: "thread",
+          abortSignal: this.currentAbortController.signal,
+        });
+        logger.info({ text: res.text }, "Agent response");
+      } finally {
+        this.currentAbortController = null;
+      }
+    } catch (e) {
+      logger.error(e);
     }
-    logger.info({ instructions }, "Generated tool instructions");
-    //メタデータとツール指示をコンテキストに含める
-    const res = await this.agent.generate(JSON.stringify(message, null, 2), {
-      runtimeContext: this.runtimeContext,
-      resourceId: "main",
-      threadId: "thread",
-      context: [
-        { role: "system", content: instructions },
-        {
-          role: "system",
-          content: `
-            直近5件の発言は以下のとおりです。
-            ${this.history
-              .slice(-5)
-              .map((m) => JSON.stringify(m, null, 2))
-              .join("\n")}
-          `,
-        },
-        {
-          role: "system",
-          content: `
-            あなたのメタデータ
-            ${JSON.stringify(this.companion.metadata, null, 2)}
-            このメタデータに記載されているキャラクター情報、口調などに忠実にロールプレイをしてください。
-          `,
-        },
-      ],
-    });
-    logger.info({ text: res.text }, "Agent response");
   }
 }
