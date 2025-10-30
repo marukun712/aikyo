@@ -35,5 +35,5 @@ pnpm run dev
 $ pwd
 /home/akazdayo/projects/aikyo-template
 
-$ cat example-request.json | jq -cM . | websocat ws://localhost:8080
+$ cat example_request.json | jq -cM . | websocat ws://localhost:8080
 ```
