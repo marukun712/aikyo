@@ -151,6 +151,30 @@ export class Firehose {
     this.topicHandlers[topic].push(handler);
   }
 
+  /**
+   * Sets a custom handler for transforming incoming WebSocket messages.
+   *
+   * WebSocketから受信したメッセージを変換するカスタムハンドラーを設定します。
+   *
+   * @param handler - A function that transforms incoming data into the required RequestData format.
+   *                  The handler receives the raw data from the WebSocket client and must return
+   *                  an object with `topic` (string) and `body` (record) properties.
+   *                  Can be synchronous or asynchronous.
+   *
+   *                  WebSocketクライアントから受信した生データを受け取り、
+   *                  `topic`（文字列）と`body`（レコード）プロパティを持つオブジェクトを
+   *                  返す必要がある変換関数です。同期・非同期のどちらでも可能です。
+   *
+   * @example
+   * ```typescript
+   * firehose.setReceiveHandler((data) => {
+   *   return {
+   *     topic: data.channel as string,
+   *     body: { message: data.content }
+   *   };
+   * });
+   * ```
+   */
   setReceiveHandler(handler: ReceiveHandler) {
     this.receiveHandler = handler;
   }
