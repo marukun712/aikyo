@@ -1,5 +1,11 @@
 # @aikyo/server
 
+## 1.5.2
+
+### Patch Changes
+
+- a0da12b: abort が null になる問題を修正
+
 ## 1.5.1
 
 ### Patch Changes
