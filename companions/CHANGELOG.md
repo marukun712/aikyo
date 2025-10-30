@@ -1,5 +1,13 @@
 # companions
 
+## 1.0.16
+
+### Patch Changes
+
+- Updated dependencies [a0da12b]
+  - @aikyo/server@1.5.2
+  - @aikyo/utils@1.5.2
+
 ## 1.0.15
 
 ### Patch Changes
