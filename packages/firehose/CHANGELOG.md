@@ -1,5 +1,12 @@
 # @aikyo/firehose
 
+## 1.5.8
+
+### Patch Changes
+
+- Updated dependencies [f1866a0]
+  - @aikyo/server@1.5.1
+
 ## 1.5.7
 
 ### Patch Changes
