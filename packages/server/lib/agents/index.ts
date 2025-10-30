@@ -212,7 +212,8 @@ export class CompanionAgent implements ICompanionAgent {
       }
 
       // 新しいAbortControllerを作成
-      this.currentAbortController = new AbortController();
+      const controller = new AbortController();
+      this.currentAbortController = controller;
 
       try {
         // CEL式を評価し、Instructionを取得
@@ -226,11 +227,13 @@ export class CompanionAgent implements ICompanionAgent {
           runtimeContext: this.runtimeContext,
           resourceId: "main",
           threadId: "thread",
-          abortSignal: this.currentAbortController.signal,
+          abortSignal: controller.signal,
         });
         logger.info({ text: res.text }, "Agent response");
       } finally {
-        this.currentAbortController = null;
+        if (this.currentAbortController === controller) {
+          this.currentAbortController = null;
+        }
       }
     } catch (e) {
       logger.error(e);

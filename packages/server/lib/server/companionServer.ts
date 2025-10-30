@@ -173,7 +173,9 @@ export class CompanionServer implements ICompanionServer {
     );
 
     setupCRDTSync(this.doc, (topic, data) =>
-      this.libp2p.services.pubsub.publish(topic, data),
+      this.libp2p.services.pubsub
+        .publish(topic, data)
+        .catch((e) => logger.error(e)),
     );
 
     this.agent.runtimeContext.set("libp2p", this.libp2p);
@@ -189,7 +191,7 @@ export class CompanionServer implements ICompanionServer {
     this.doc.commit();
     const payload = new TextEncoder().encode(JSON.stringify(state));
     //互換性のためlibp2pにもpublish
-    this.libp2p.services.pubsub.publish("states", payload);
+    await this.libp2p.services.pubsub.publish("states", payload);
   }
 
   async start() {
