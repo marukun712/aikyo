@@ -73,7 +73,9 @@ export const StateBodySchema = z
     closing: z
       .enum(["none", "pre-closing", "closing", "terminal"])
       .default("none")
-      .describe("会話の収束段階:なし/事前クロージング/クロージング/終端"),
+      .describe(
+        "会話の収束段階:なし/事前クロージング/クロージング/終端。pre-closingを選択したら、必ずclosing,terminalと続けてください。",
+      ),
   })
   .strict();
 export type StateBody = z.infer<typeof StateBodySchema>;
