@@ -1,5 +1,11 @@
 # @aikyo/server
 
+## 1.6.0
+
+### Minor Changes
+
+- 486e5f4: state 集計にリーダー選出方式を利用
+
 ## 1.5.2
 
 ### Patch Changes
