@@ -9,6 +9,7 @@ import {
   type CompanionCard,
   MemorySchema,
   type Message,
+  type Metadata,
   type State,
 } from "../../schema/index.js";
 import { decideNextSpeaker } from "../conversation/index.js";
@@ -26,7 +27,7 @@ export interface ICompanionAgent {
   runtimeContext: RuntimeContext;
 
   getStates(message: Message): Promise<State[]>;
-  generate(speaker: State[]): Promise<void>;
+  generate(speaker: State[], companions: Map<string, Metadata>): Promise<void>;
 }
 
 export class CompanionAgent implements ICompanionAgent {
@@ -41,13 +42,13 @@ export class CompanionAgent implements ICompanionAgent {
   private memory: Memory;
   private run: Run;
   private count: number;
-  private config: { maxTurn?: number; enableRepetitionJudge?: boolean };
+  private config: { enableRepetitionJudge?: boolean };
 
   constructor(
     companion: CompanionCard,
     model: LanguageModel,
     history: Message[],
-    config?: { maxTurn?: number; enableRepetitionJudge?: boolean },
+    config?: { enableRepetitionJudge?: boolean },
   ) {
     // コンパニオンを初期化
     this.card = companion;
@@ -83,11 +84,9 @@ export class CompanionAgent implements ICompanionAgent {
 
       あなたには、知識を得るための以下のツールが与えられています。
       これらのツールは、あなたが知識を得たいと感じたタイミングで実行してください。
-      ${Object.values(companion.knowledge)
-        .map((value) => {
-          return `${value.id}:${value.description}`;
-        })
-        .join("\n")}
+      ${Object.values(companion.knowledge).map((value) => {
+        return `${value.id}:${value.description}`;
+      })}
 
       必ず、定期的にワーキングメモリを更新してください。
       `,
@@ -112,8 +111,7 @@ export class CompanionAgent implements ICompanionAgent {
 
     this.count = 0;
     this.config = {
-      enableRepetitionJudge: true,
-      ...(config ?? {}),
+      enableRepetitionJudge: config ? config.enableRepetitionJudge : true,
     };
   }
 
@@ -121,20 +119,6 @@ export class CompanionAgent implements ICompanionAgent {
     const state = await this.stateJudge.evaluate(id, this.history);
 
     let closing = state.closing;
-    //ターン上限が設けられている場合;
-    if (this.config.maxTurn) {
-      //会話が終了したらターンカウントを0に
-      if (closing === "terminal") {
-        this.count = 0;
-        //ターン上限を超えたら
-      } else if (this.count >= this.config.maxTurn) {
-        //強制的に会話終了の意思表示
-        closing = "terminal";
-        this.count = 0;
-      } else {
-        this.count++;
-      }
-    }
 
     //繰り返し検出が有効になっている場合
     if (this.config.enableRepetitionJudge && this.history.length >= 5) {
@@ -144,15 +128,18 @@ export class CompanionAgent implements ICompanionAgent {
       const result = await this.repetitionJudge.evaluate(formatted);
       const repetition = result.score;
       if (repetition > 0.7) {
-        switch (closing) {
-          case "none":
+        switch (this.count) {
+          case 0:
             closing = "pre-closing";
+            this.count++;
             break;
-          case "pre-closing":
+          case 1:
             closing = "closing";
+            this.count++;
             break;
-          case "closing":
+          case 2:
             closing = "terminal";
+            this.count = 0;
             break;
         }
       }
@@ -179,11 +166,15 @@ export class CompanionAgent implements ICompanionAgent {
     );
   }
 
-  async generate(states: State[]) {
+  async generate(states: State[], companions: Map<string, Metadata>) {
     try {
       if (this.generating) return;
       this.generating = true;
-      const speaker = decideNextSpeaker(states);
+      //接続されているコンパニオンでフィルタする
+      const active = Array.from(companions.values()).map(
+        (metadata) => metadata.id,
+      );
+      const speaker = decideNextSpeaker(states, active);
       if (!speaker || speaker.params.closing === "terminal")
         return logger.info("The conversation is over.");
       if (speaker.params.from === this.card.metadata.id) {

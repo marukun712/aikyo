@@ -10,10 +10,7 @@ const INSTRUCTIONS = `You are an expert in state generation. Based on the given 
 
 const generatePrompt = (id: string, memory: Message[]) => `
 Here are the last 5 messages:
-${memory
-  .slice(-5)
-  .map((m) => JSON.stringify(m, null, 2))
-  .join("\n")}
+${JSON.stringify(memory.slice(-5))}
 
 Your id is ${id}. Please assess your state. Return:
 

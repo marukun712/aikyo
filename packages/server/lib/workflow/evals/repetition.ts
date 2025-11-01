@@ -7,7 +7,7 @@ const INSTRUCTIONS = `You are a repetition detection expert. Evaluate the messag
 
 const generatePrompt = (memory: string[]) => `
 Here are the last 5 messages:
-${memory.slice(-5).join("\n")}
+${JSON.stringify(memory.slice(-5))}
 
 Evaluate how repetitive these messages are.
 

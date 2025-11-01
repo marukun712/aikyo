@@ -113,12 +113,17 @@ export class CompanionServer implements ICompanionServer {
   }
 
   private selectLeader(message: AikyoMessage) {
-    const hash = createHash("sha256")
+    const active = Array.from(this.companionList.values()).map(
+      (metadata) => metadata.id,
+    );
+    // 存在しないコンパニオンのStateを除外
+    const valid = message.params.to.filter((to) => active.includes(to));
+    const hash = createHash("md5")
       .update(JSON.stringify(message))
       .digest("hex");
     const hashNum = BigInt(`0x${hash}`);
-    const index = Number(hashNum % BigInt(message.params.to.length));
-    return message.params.to[index];
+    const index = Number(hashNum % BigInt(valid.length));
+    return valid[index];
   }
 
   async onMessage(message: AikyoMessage) {
