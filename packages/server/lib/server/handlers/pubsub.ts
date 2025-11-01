@@ -1,8 +1,12 @@
 import type { Message } from "@libp2p/interface";
-import { MessageSchema, QueryResultSchema } from "../../../schema/index.js";
+import z from "zod";
+import {
+  MessageSchema,
+  QueryResultSchema,
+  StateSchema,
+} from "../../../schema/index.js";
 import { logger } from "../../logger.js";
 import type { CompanionServer } from "../companionServer.js";
-import { handleCRDTSync } from "./sync.js";
 
 export const handlePubSubMessage = async (
   self: CompanionServer,
@@ -15,18 +19,26 @@ export const handlePubSubMessage = async (
         const data = JSON.parse(new TextDecoder().decode(message.detail.data));
         const parsed = MessageSchema.safeParse(data);
         if (!parsed.success) return;
-        const body = parsed.data;
+        const msg = parsed.data;
         //一時会話履歴にpush
         self.history.push(parsed.data);
         if (self.history.length > 5) {
           self.history.shift();
         }
-        const selected = body.params.to.find((to) => {
+        const selected = msg.params.to.find((to) => {
           return to === self.card.metadata.id;
         });
         if (selected) {
-          await self.handleMessageReceived(body);
+          await self.onMessage(msg);
         }
+        break;
+      }
+      case "states": {
+        const data = JSON.parse(new TextDecoder().decode(message.detail.data));
+        const parsed = z.array(StateSchema).safeParse(data);
+        if (!parsed.success) return;
+        const states = parsed.data;
+        await self.agent.generate(states, self.companionList);
         break;
       }
       case "queries": {
@@ -39,10 +51,6 @@ export const handlePubSubMessage = async (
           self.pendingQueries.delete(result.id);
           pendingQuery.resolve(result);
         }
-        break;
-      }
-      case "crdt-sync": {
-        await handleCRDTSync(self.doc, message);
         break;
       }
     }

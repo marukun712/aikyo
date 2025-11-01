@@ -26,7 +26,7 @@ export async function requestMetadata(self: CompanionServer, peerId: PeerId) {
   if (chunks.length) {
     const msg = JSON.parse(new TextDecoder().decode(chunks[0]));
     const parsed = MetadataSchema.safeParse(msg);
-    logger.debug({ parsed }, "Received metadata from peer");
+    logger.info({ parsed }, "Received metadata from peer");
     if (parsed.success) self.companionList.set(id, parsed.data);
   }
   stream.close();

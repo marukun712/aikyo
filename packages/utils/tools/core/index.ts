@@ -77,7 +77,5 @@ export const companionNetworkKnowledge = createCompanionKnowledge({
   inputSchema: z.object({}),
   outputSchema: z.string(),
   knowledge: async ({ companions }) =>
-    Array.from(companions.entries())
-      .map((metadata) => JSON.stringify(metadata, null, 2))
-      .join("\n"),
+    JSON.stringify(Object.fromEntries(companions)),
 });

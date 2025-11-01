@@ -66,14 +66,18 @@ export const StateBodySchema = z
       .number()
       .min(0)
       .max(10)
-      .describe("会話の文脈におけるあなたが次にしたい発言の重要度"),
+      .describe(
+        "会話の文脈におけるあなたが次にしたい発言の重要度。listenの場合や会話に参加しない場合は0",
+      ),
     selected: z
       .boolean()
       .describe("前回の発言者の発言で、あなたに発言を求められているかどうか"),
     closing: z
       .enum(["none", "pre-closing", "closing", "terminal"])
       .default("none")
-      .describe("会話の収束段階:なし/事前クロージング/クロージング/終端"),
+      .describe(
+        "会話の収束段階:なし/事前クロージング/クロージング/終端。pre-closingを選択したら、必ずclosing,terminalと続けてください。",
+      ),
   })
   .strict();
 export type StateBody = z.infer<typeof StateBodySchema>;

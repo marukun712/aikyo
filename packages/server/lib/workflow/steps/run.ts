@@ -35,10 +35,10 @@ export function createRunStep(
         return "実行するべきツールはありませんでした。";
       }
       // prompt に成形
-      const toolInstructions = Array.from(tools.entries())
-        .map(([toolName, instruction]) => `${toolName}: ${instruction}`)
-        .join("\n");
-      const result = `以下の指示に従い、必ず必要なツールを実行してください。\n${toolInstructions}`;
+      const toolInstructions = Array.from(tools.entries()).map(
+        ([toolName, instruction]) => `${toolName}:${instruction}`,
+      );
+      const result = `以下の指示に従い、必ず必要なツールを実行してください。${toolInstructions}`;
       return result;
     },
   });
