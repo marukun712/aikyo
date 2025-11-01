@@ -9,6 +9,7 @@ import {
   type CompanionCard,
   MemorySchema,
   type Message,
+  type State,
 } from "../../schema/index.js";
 import { decideNextSpeaker } from "../conversation/index.js";
 import { logger } from "../logger.js";
@@ -24,7 +25,8 @@ export interface ICompanionAgent {
   history: Message[];
   runtimeContext: RuntimeContext;
 
-  generate(message: Message): Promise<void>;
+  getStates(message: Message): Promise<State[]>;
+  generate(speaker: State[]): Promise<void>;
 }
 
 export class CompanionAgent implements ICompanionAgent {
@@ -33,7 +35,7 @@ export class CompanionAgent implements ICompanionAgent {
   history: Message[];
   runtimeContext: RuntimeContext;
 
-  private generating: boolean;
+  generating: boolean;
   private repetitionJudge: RepetitionJudge;
   private stateJudge: StateJudge;
   private memory: Memory;
@@ -171,22 +173,19 @@ export class CompanionAgent implements ICompanionAgent {
     return res.status === "success" ? res.result : res.status;
   }
 
-  private async getStates(message: Message) {
+  async getStates(message: Message) {
     return await Promise.all(
       message.params.to.map(async (to) => await this.generateState(to)),
     );
   }
 
-  async generate(message: Message) {
+  async generate(states: State[]) {
     try {
       if (this.generating) return;
       this.generating = true;
-      const states = await this.getStates(message);
-      logger.info({ states }, "states");
       const speaker = decideNextSpeaker(states);
       if (!speaker || speaker.params.closing === "terminal")
         return logger.info("The conversation is over.");
-      logger.info({ speaker }, "selected");
       if (speaker.params.from === this.card.metadata.id) {
         // CEL式を評価し、Instructionを取得
         const instructions = await this.generateToolInstruction();

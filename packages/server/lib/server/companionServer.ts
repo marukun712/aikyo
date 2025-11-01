@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { gossipsub } from "@chainsafe/libp2p-gossipsub";
 import type { identify } from "@libp2p/identify";
 import type { IdentifyResult, Message, PeerId } from "@libp2p/interface";
@@ -86,7 +87,6 @@ export class CompanionServer implements ICompanionServer {
     this.libp2p.services.pubsub.subscribe("messages");
     this.libp2p.services.pubsub.subscribe("states");
     this.libp2p.services.pubsub.subscribe("queries");
-    this.libp2p.services.pubsub.subscribe("crdt-sync");
 
     this.libp2p.services.pubsub.addEventListener(
       "message",
@@ -110,6 +110,31 @@ export class CompanionServer implements ICompanionServer {
     this.agent.runtimeContext.set("companions", this.companionList);
     this.agent.runtimeContext.set("pendingQueries", this.pendingQueries);
     this.agent.runtimeContext.set("agent", this.agent);
+  }
+
+  private selectLeader(message: AikyoMessage) {
+    const hash = createHash("sha256")
+      .update(JSON.stringify(message))
+      .digest("hex");
+    const hashNum = BigInt(`0x${hash}`);
+    const index = Number(hashNum % BigInt(message.params.to.length));
+    return message.params.to[index];
+  }
+
+  async onMessage(message: AikyoMessage) {
+    if (this.agent.generating) return;
+    const leader = this.selectLeader(message);
+    if (leader === this.card.metadata.id) {
+      this.agent.generating = true;
+      try {
+        const states = await this.agent.getStates(message);
+        logger.info({ states }, "states");
+        const payload = new TextEncoder().encode(JSON.stringify(states));
+        this.libp2p.services.pubsub.publish("states", payload);
+      } finally {
+        this.agent.generating = false;
+      }
+    }
   }
 
   async start() {

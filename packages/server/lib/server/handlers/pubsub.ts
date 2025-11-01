@@ -1,5 +1,10 @@
 import type { Message } from "@libp2p/interface";
-import { MessageSchema, QueryResultSchema } from "../../../schema/index.js";
+import z from "zod";
+import {
+  MessageSchema,
+  QueryResultSchema,
+  StateSchema,
+} from "../../../schema/index.js";
 import { logger } from "../../logger.js";
 import type { CompanionServer } from "../companionServer.js";
 
@@ -24,8 +29,16 @@ export const handlePubSubMessage = async (
           return to === self.card.metadata.id;
         });
         if (selected) {
-          await self.agent.generate(msg);
+          await self.onMessage(msg);
         }
+        break;
+      }
+      case "states": {
+        const data = JSON.parse(new TextDecoder().decode(message.detail.data));
+        const parsed = z.array(StateSchema).safeParse(data);
+        if (!parsed.success) return;
+        const states = parsed.data;
+        self.agent.generate(states);
         break;
       }
       case "queries": {
