@@ -66,7 +66,9 @@ export const StateBodySchema = z
       .number()
       .min(0)
       .max(10)
-      .describe("会話の文脈におけるあなたが次にしたい発言の重要度"),
+      .describe(
+        "会話の文脈におけるあなたが次にしたい発言の重要度。listenの場合や会話に参加しない場合は0",
+      ),
     selected: z
       .boolean()
       .describe("前回の発言者の発言で、あなたに発言を求められているかどうか"),

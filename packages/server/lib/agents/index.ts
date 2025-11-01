@@ -142,6 +142,8 @@ export class CompanionAgent implements ICompanionAgent {
             this.count = 0;
             break;
         }
+      } else {
+        this.count = 0;
       }
     }
 
@@ -168,7 +170,10 @@ export class CompanionAgent implements ICompanionAgent {
 
   async generate(states: State[], companions: Map<string, Metadata>) {
     try {
-      if (this.generating) return;
+      if (this.generating) {
+        logger.info("Skip generation: already generating");
+        return;
+      }
       this.generating = true;
       //接続されているコンパニオンでフィルタする
       const active = Array.from(companions.values()).map(
@@ -189,6 +194,14 @@ export class CompanionAgent implements ICompanionAgent {
           runtimeContext: this.runtimeContext,
           resourceId: "main",
           threadId: "thread",
+          context: [
+            {
+              role: "system",
+              content: `あなたの発言状態は以下の通りです。
+              ${JSON.stringify(speaker)}
+              `,
+            },
+          ],
         });
         logger.info({ text: res.text }, "Agent response");
       }

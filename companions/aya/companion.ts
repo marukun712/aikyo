@@ -61,7 +61,7 @@ async function main() {
   const history: Message[] = [];
   const companion = new CompanionAgent(
     companionCard,
-    anthropic("claude-3-5-haiku-latest"),
+    anthropic("claude-haiku-4-5"),
     history,
     { enableRepetitionJudge: true },
   );

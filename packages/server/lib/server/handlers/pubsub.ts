@@ -38,7 +38,7 @@ export const handlePubSubMessage = async (
         const parsed = z.array(StateSchema).safeParse(data);
         if (!parsed.success) return;
         const states = parsed.data;
-        self.agent.generate(states, self.companionList);
+        await self.agent.generate(states, self.companionList);
         break;
       }
       case "queries": {

@@ -118,6 +118,13 @@ export class CompanionServer implements ICompanionServer {
     );
     // 存在しないコンパニオンのStateを除外
     const valid = message.params.to.filter((to) => active.includes(to));
+    if (valid.length === 0) {
+      logger.warn(
+        { recipients: message.params.to },
+        "Leader selection skipped: no active recipients",
+      );
+      return;
+    }
     const hash = createHash("md5")
       .update(JSON.stringify(message))
       .digest("hex");
@@ -129,6 +136,9 @@ export class CompanionServer implements ICompanionServer {
   async onMessage(message: AikyoMessage) {
     if (this.agent.generating) return;
     const leader = this.selectLeader(message);
+    if (!leader) {
+      return;
+    }
     if (leader === this.card.metadata.id) {
       this.agent.generating = true;
       try {
