@@ -216,7 +216,7 @@ function createAgent(
 }
 
 function createPrompt(agent: AgentSpec) {
-	return `あなたは${agent.persona}の${agent.name}です。あなたのnodeIdは${agent.nodeId}です。aikyo://contextリソースを読み、行動ループを開始してください。`;
+	return `あなたは${agent.persona}の${agent.name}です。aikyo://contextリソースを読み、行動ループを開始してください。`;
 }
 
 function createMcpServerDefinition(agent: AgentSpec): McpServerDefinition {
