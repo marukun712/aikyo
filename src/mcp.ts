@@ -75,6 +75,8 @@ export async function start(displayName: string, transport: Transport) {
 						"",
 						"# リスナーからのお便り",
 						"",
+						"リスナーからお便りが届いたら、リスナーネーム 〇〇さんからのお便りです、と紹介した後、本文を読み上げ、その後にお便りへの感謝と感想を述べましょう。",
+						"",
 						pendingContext || "（まだお便りはありません）",
 						"",
 						"# 最新のmsglog",

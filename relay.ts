@@ -21,22 +21,15 @@ Deno.serve({ port: 8080 }, (req) => {
 	socket.onmessage = (e) => {
 		const msg = JSON.parse(e.data);
 		if (msg.method === "heartbeat") {
-			const { nodeId, displayName, syncState } = msg.params;
+			const { nodeId, displayName } = msg.params;
 			const isNew = !names.has(nodeId);
 			names.set(nodeId, displayName);
-			log(
-				"heartbeat",
-				`${displayName} (${nodeId}) sync=${JSON.stringify(syncState)}${isNew ? " [new]" : ""}`,
-			);
+			if (isNew) log("heartbeat", `${displayName} (${nodeId}) [new]`);
 		} else if (msg.method === "speaker_assign") {
 			log(
 				"assign",
 				`speaker -> ${names.get(msg.params.nodeId) ?? msg.params.nodeId}`,
 			);
-		} else if (msg.method === "state_request") {
-			log("state_request", `tid=${msg.params.tid}`);
-		} else if (msg.method === "sync_request") {
-			log("sync_request", `fromTid=${msg.params.fromTid}`);
 		} else if (msg.method === "speak") {
 			const { nodeId, text, nextId } = msg.params;
 			const name = names.get(nodeId) ?? nodeId;
@@ -45,8 +38,6 @@ Deno.serve({ port: 8080 }, (req) => {
 				`${name}${nextId ? ` -> next=${names.get(nextId) ?? nextId}` : ""}`,
 			);
 			console.log(`\n${name}: ${text}\n`);
-		} else {
-			log("msg", e.data);
 		}
 		broadcast(msg);
 	};
