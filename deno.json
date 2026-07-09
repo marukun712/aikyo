@@ -1,0 +1,9 @@
+{
+	"tasks": {
+		"dev": "deno run --watch --allow-net main.ts"
+	},
+	"imports": {
+		"@biomejs/biome": "npm:@biomejs/biome@^2.5.3",
+		"@std/assert": "jsr:@std/assert@1"
+	}
+}
