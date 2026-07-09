@@ -23,8 +23,8 @@ export function startSync(
 	node: Node,
 	displayName: string,
 	transport: Transport,
+	nodeId = TID.now(),
 ): { nodeId: string; members: Map<string, Member> } {
-	const nodeId = TID.now();
 	const members = new Map<string, Member>([
 		[nodeId, { displayName, lastHeartbeat: Date.now() }],
 	]);
