@@ -2,6 +2,7 @@
 	"tasks": {
 		"relay": "deno run --allow-net relay.ts",
 		"dev": "deno run --allow-net --allow-read --allow-env main.ts",
+		"demo": "deno run --allow-net --allow-env --allow-read --allow-write=/tmp --allow-run demo/start.ts",
 		"check": "deno check main.ts relay.ts && dx biome check --write src/ relay.ts main.ts"
 	},
 	"imports": {

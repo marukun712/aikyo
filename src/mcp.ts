@@ -15,8 +15,8 @@ const ContextSchema = z.object({ context: z.string() });
 function formatMsgLog(msgLog: string[]): string {
 	return msgLog
 		.map((entry) => {
-			const [_tid, displayName, ...rest] = entry.split(".");
-			return `${displayName}: ${rest.join(".")}`;
+			const [_tid, nodeId, displayName, ...rest] = entry.split(".");
+			return `${nodeId}(${displayName}): ${rest.join(".")}`;
 		})
 		.join("\n");
 }
@@ -28,7 +28,8 @@ export async function start(displayName: string, transport: Transport) {
 
 	let pendingContext = "";
 
-	Deno.serve({ port: 8081 }, async (req) => {
+	const contextPort = Number(Deno.env.get("CONTEXT_PORT") ?? "8081");
+	Deno.serve({ port: contextPort }, async (req) => {
 		if (req.method !== "POST" || new URL(req.url).pathname !== "/context") {
 			return new Response("not found", { status: 404 });
 		}
@@ -53,6 +54,7 @@ export async function start(displayName: string, transport: Transport) {
 						"",
 						"あなたはAIラジオのパーソナリティです。",
 						"他のパーソナリティたちとリアルタイムで会話します。",
+						"リスナーからお便りが届くことがあります。お便りの内容をラジオらしく取り上げてください。",
 						"",
 						"# 行動ループ",
 						"",
@@ -69,13 +71,15 @@ export async function start(displayName: string, transport: Transport) {
 						"# speak のルール",
 						"",
 						"- 自然な会話を心がける",
-						"- 次に誰かに話を振りたいときは `nextId` を指定する",
+						"- 次に誰かに話を振りたいときは `nextId` に msglog の `nodeId(displayName):` の nodeId 部分を指定する",
 						"",
-						"# 現在のコンテキスト",
+						"# リスナーからのお便り",
 						"",
-						pendingContext,
+						pendingContext || "（まだお便りはありません）",
 						"",
 						"# 最新のmsglog",
+						"",
+						"形式: nodeId(displayName): 発言内容",
 						"",
 						formatMsgLog(node.msgLog),
 					].join("\n"),

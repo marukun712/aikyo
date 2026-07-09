@@ -83,8 +83,8 @@ export function startTurn(
 			const { tid, nodeId: nid, text, nextId } = speak.data.params;
 			const dname = members.get(nid)?.displayName ?? nid;
 			const entry = nextId
-				? `${tid}.${dname}.${text}.${nextId}`
-				: `${tid}.${dname}.${text}`;
+				? `${tid}.${nid}.${dname}.${text}.${nextId}`
+				: `${tid}.${nid}.${dname}.${text}`;
 			if (!node.msgLog.includes(entry)) node.msgLog.push(entry);
 			turn.currentSpeaker = nid;
 			turn.isMyTurn = false;
