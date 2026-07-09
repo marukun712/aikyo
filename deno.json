@@ -1,9 +1,14 @@
 {
 	"tasks": {
-		"dev": "deno run --watch --allow-net main.ts"
+		"relay": "deno run --allow-net relay.ts",
+		"dev": "deno run --allow-net --allow-read --allow-env main.ts",
+		"check": "deno check main.ts relay.ts && dx biome check --write src/ relay.ts main.ts"
 	},
 	"imports": {
+		"@atcute/tid": "jsr:@atcute/tid@^1.0.2",
 		"@biomejs/biome": "npm:@biomejs/biome@^2.5.3",
-		"@std/assert": "jsr:@std/assert@1"
+		"@modelcontextprotocol/sdk": "npm:@modelcontextprotocol/sdk@^1.29.0",
+		"@std/assert": "jsr:@std/assert@1",
+		"zod": "npm:zod@^4.4.3"
 	}
 }

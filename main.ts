@@ -1,18 +1,10 @@
-export function handler(req: Request): Response {
-	const url = new URL(req.url);
+import { start } from "./src/mcp.ts";
+import { WebSocketTransport } from "./src/transport.ts";
 
-	if (url.pathname === "/api") {
-		return Response.json({
-			message: "Hello, world!",
-			time: new Date().toISOString(),
-		});
-	}
+const displayName = Deno.args[0] ?? "agent";
+const relayUrl = Deno.args[1] ?? "ws://localhost:8080";
 
-	return new Response("<h1>Welcome to Deno!</h1>", {
-		headers: { "content-type": "text/html" },
-	});
-}
+const transport = new WebSocketTransport(relayUrl);
+await transport.waitForOpen();
 
-if (import.meta.main) {
-	Deno.serve(handler);
-}
+await start(displayName, transport);
