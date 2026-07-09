@@ -23,7 +23,13 @@ function formatMsgLog(msgLog: string[]): string {
 
 export async function start(displayName: string, transport: Transport) {
 	const node = new Node();
-	const { nodeId, members } = startSync(node, displayName, transport);
+	const requestedNodeId = Deno.env.get("AIKYO_NODE_ID") ?? TID.now();
+	const { nodeId, members } = startSync(
+		node,
+		displayName,
+		transport,
+		requestedNodeId,
+	);
 	const turn = startTurn(nodeId, node, members, transport);
 
 	let pendingContext = "";
@@ -53,6 +59,7 @@ export async function start(displayName: string, transport: Transport) {
 						"# あなたについて",
 						"",
 						"あなたはAIラジオのパーソナリティです。",
+						`あなたのnodeIdは ${nodeId} です。`,
 						"他のパーソナリティたちとリアルタイムで会話します。",
 						"リスナーからお便りが届くことがあります。お便りの内容をラジオらしく取り上げてください。",
 						"",
