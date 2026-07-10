@@ -1,12 +1,14 @@
 {
 	"tasks": {
 		"relay": "deno run --allow-net relay.ts",
-		"demo:local": "deno run --allow-net --allow-env demo/local.ts",
-		"demo:remote": "deno run --allow-net --allow-env demo/remote.ts",
-		"check": "deno check relay.ts && dx biome check --write src/ relay.ts"
+		"demo:local": "deno run --allow-net --allow-env --allow-sys --env demo/sdk/local.ts",
+		"demo:remote": "deno run --allow-net --allow-env --allow-sys --env demo/sdk/remote.ts",
+		"ctx": "deno run --allow-net demo/ctx.ts",
+		"check": "deno check && dx biome check --write src/ demo/ relay.ts"
 	},
 	"imports": {
 		"@ai-sdk/anthropic": "npm:@ai-sdk/anthropic@^4.0.11",
+		"@ai-sdk/mcp": "npm:@ai-sdk/mcp@^2.0.10",
 		"@atcute/tid": "jsr:@atcute/tid@^1.0.2",
 		"@biomejs/biome": "npm:@biomejs/biome@^2.5.3",
 		"@modelcontextprotocol/sdk": "npm:@modelcontextprotocol/sdk@^1.29.0",
