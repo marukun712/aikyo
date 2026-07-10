@@ -1,15 +1,7 @@
 const clients = new Set<WebSocket>();
-const names = new Map<string, string>();
 
 function log(tag: string, msg: string) {
 	console.log(`[${new Date().toISOString()}] [${tag}] ${msg}`);
-}
-
-function broadcast(msg: unknown) {
-	const data = JSON.stringify(msg);
-	for (const client of clients) {
-		if (client.readyState === WebSocket.OPEN) client.send(data);
-	}
 }
 
 Deno.serve({ port: 8080 }, (req) => {
@@ -18,30 +10,32 @@ Deno.serve({ port: 8080 }, (req) => {
 	}
 	const { socket, response } = Deno.upgradeWebSocket(req);
 	clients.add(socket);
+	log("connect", `total=${clients.size}`);
+
 	socket.onmessage = (e) => {
 		const msg = JSON.parse(e.data);
-		if (msg.method === "heartbeat") {
-			const { nodeId, displayName } = msg.params;
-			const isNew = !names.has(nodeId);
-			names.set(nodeId, displayName);
-			if (isNew) log("heartbeat", `${displayName} (${nodeId}) [new]`);
-		} else if (msg.method === "speaker_assign") {
+		if (msg.method === "sync_announce") {
 			log(
-				"assign",
-				`speaker -> ${names.get(msg.params.nodeId) ?? msg.params.nodeId}`,
+				"announce",
+				`state=${msg.params.latestStateTid} msg=${msg.params.latestMessageTid}`,
 			);
-		} else if (msg.method === "speak") {
-			const { nodeId, text, nextId } = msg.params;
-			const name = names.get(nodeId) ?? nodeId;
-			log(
-				"speak",
-				`${name}${nextId ? ` -> next=${names.get(nextId) ?? nextId}` : ""}`,
-			);
-			console.log(`\n${name}: ${text}\n`);
+		} else if (msg.method === "sync_request") {
+			log("sync", `type=${msg.params.type} from=${msg.params.fromTid}`);
 		}
-		broadcast(msg);
+		// 全クライアントにブロードキャスト
+		const data = JSON.stringify(msg);
+		for (const client of clients) {
+			if (client !== socket && client.readyState === WebSocket.OPEN) {
+				client.send(data);
+			}
+		}
 	};
-	socket.onclose = () => clients.delete(socket);
+
+	socket.onclose = () => {
+		clients.delete(socket);
+		log("disconnect", `total=${clients.size}`);
+	};
+
 	return response;
 });
 

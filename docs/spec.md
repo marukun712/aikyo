@@ -3,13 +3,11 @@
 
 ## 概要
 
-P2P型の分散マルチエージェント会話協調システム。中央サーバーを持たず、複数のAIエージェントが自律的にターンを取り合いながらリアルタイムにテキスト会話を生成する。
+複数のAIエージェントが自律的にターンを取り合いながらリアルタイムにテキスト会話を生成する会話協調システム。LocalSession(単一サーバー)とRemoteSession(P2P分散)をインターフェースの差し替えで切り替えられる。
 
 ---
 
 ## エージェントの内部状態
-
-各エージェントはローカルに以下の内部状態を保持する。
 
 ```
 {
@@ -18,142 +16,27 @@ P2P型の分散マルチエージェント会話協調システム。中央サ�
 }
 ```
 
-他のエージェントの発話を受信するたびに、この内部状態を更新する。
-
 ---
 
-## ノード管理と差分同期
+## Session
 
-### ノードID
-
-各ノードのIDにはAT Protocol形式のTIDを使用する。参加時刻をもとに生成されるため単調増加し、辞書順ソートが時系列順になる。
-
-### メッセージログ
-
-メッセージ履歴は追記ログとして管理する。
-
-**ログ形式**
-
-```
-msg log
-  {tid}.{displayName}.{text}.{nextId(optional)}    <- tidはメッセージ固有のTID
-```
-
-エントリの先頭がTIDなので、辞書順ソート = 時系列順になる。
-
-**rootHashの計算**
+Sessionは同期されたデータストア。MCPがSessionを読んでターンを回す。
 
 ```typescript
-function computeRootHash(entries: string[]): string {
-  return createHash("sha256").update(entries.join("\n")).digest("hex");
+interface Session {
+  getStates(): Map<string, AgentState>
+  setState(nodeId: string, state: AgentState): void
+
+  getMessages(): Message[]
+  addMessage(message: Message): void
+
+  getContext(): string
+  setContext(context: string): void
 }
 ```
 
-```typescript
-type SyncState = {
-  messageRootHash: string;
-  latestMessageTid: string;
-}
-```
-
-### HEARTBEAT
-
-各ノードは定期的にHEARTBEATをブロードキャストする。HEARTBEATが「生存確認 + メンバー検出 + 同期確認」を兼ねる。
-
-```
-HEARTBEAT(nodeId: string, displayName: string, syncState: SyncState)
-```
-
-受け取ったノードは:
-- nodeIdをメンバーリストに追加(未知のノードなら)
-- displayNameをnodeIdと紐づけて保持する
-- messageRootHashが違う -> SYNC_REQUEST(fromTid: latestMessageTid)
-
-T秒以内にHEARTBEATが届かないノードはオフライン扱いでメンバーリストから除外する。JOIN/LEAVEメッセージは不要。
-
-### 差分取得
-
-```
-SYNC_REQUEST(fromTid: string)
-  -> fromTid以降のメッセージエントリを要求する
-
-SYNC_RESPONSE(entries: string[])
-  -> 要求された差分を返す
-```
-
-rootHashが一致していれば通信不要。不一致のときだけ差分を取得する。
-
----
-
-## リーダー選出
-
-ランデブーハッシュを使い、参加者数の合意なしに決定論的にリーダーを選ぶ。
-
-TIDにはAT Protocol形式のID(タイムスタンプベースで単調増加)を使用する。直前の発話メッセージのTIDを入力とする。全ノードが同じTIDと同じノードリストを持っていれば、通信なしで同じリーダーを計算できる。
-
-```typescript
-import { createHash } from "crypto";
-
-function hash(input: string): string {
-  return createHash("sha256").update(input).digest("hex");
-}
-
-function electLeader(tid: string, nodeIds: string[]): string {
-  let leader = nodeIds[0];
-  for (const nodeId of nodeIds) {
-    if (hash(tid + nodeId) < hash(tid + leader)) {
-      leader = nodeId;
-    }
-  }
-  return leader;
-}
-```
-
----
-
-## ターンテイキングフロー
-
-```
-1. 現在の話者が発話を終了する
-   (テキストベースのため、n秒の猶予を設ける)
-
-2. nextId が存在する場合
-   -> 即座にその話者に発言権を移譲。以降のフローをスキップ。
-
-3. nextId が存在しない場合、リーダー選出フローへ
-
-4. [リーダー選出]
-   各ノードがランデブーハッシュでリーダーを決定論的に計算する
-   通信不要
-
-5. リーダーになったノードが全既知ノードに state_request を送信する
-   タイムアウト内に応答しないノードはオフライン扱いとしてリストから除外する
-
-6. [発話者決定]
-   want_to_speak == true のエージェントが1人 -> その人に発言権を移譲
-   want_to_speak == true のエージェントが複数 -> importance が最も高い人に移譲
-   want_to_speak == true のエージェントが0人 -> 直前の発話者が再度発話する
-
-7. リーダーが speaker_assign をブロードキャスト
-   全ノードが speaker_assign を待ってタイムアウトした場合、リーダーがクラッシュしたとみなし
-   リーダーをリストから除外して再選出する
-
-8. 発話者が決定したタイミングで、前回話者の発言をエージェントに投げる
-   -> このタイミングで外部からコンテキストインジェクションが可能
-
-9. 発話者が発話を生成し、全エージェントに送信。1へ戻る
-```
-
----
-
-## コンテキストインジェクション
-
-外部プログラムがMCPサーバーのリソースに追加情報を書き込む。エージェントは次のポーリングでリソースを読んだときにそれを受け取る。
-
-- 会話の流れを止めない
-- ターンの境界でエージェントに届く
-- ラジオのお便り、楽曲メタデータなどを想定
-- MCPツールではなく、MCPサーバーへの外部API経由で注入する
+- **LocalSession**: 全部メモリ上の変数
+- **RemoteSession**: 裏でstate log・message logがdiff syncされる
 
 ---
 
@@ -161,27 +44,32 @@ function electLeader(tid: string, nodeIds: string[]): string {
 
 ### 構造
 
-各参加者はローカルにMCPサーバーを立てる。AIエージェントはそのMCPサーバーのクライアントとして動作する。MCPサーバーが内部状態・発言権・メッセージヒストリを管理する。
-
 ```
-[AIエージェント] --MCP tool call--> [ローカルMCPサーバー] --transport--> [他のMCPサーバー群]
+[AIエージェント] --MCP--> [MCPサーバー (ターンテイキングロジック)]
+                               |
+                          [Session]
+                          /          \
+               [LocalSession]    [RemoteSession]
+                                       |
+                                 [Transport]
 ```
 
 ### MCPリソース
 
-エージェントはMCPリソース `aikyo://context` を読むことで、使い方・現在のコンテキスト・会話履歴を一度に得る。
+**`aikyo://guide`** (静的)
 
 ```markdown
-# あなたについて
+# MCPサーバーについて
 
 あなたはAIラジオのパーソナリティです。
 他のパーソナリティたちとリアルタイムで会話します。
+↑仮、場面によって差し替える(実況 etc...)
 
 # 行動ループ
 
 以下を繰り返してください。
 
-1. このリソースを読む
+1. `aikyo://history` を読む
 2. 会話の流れとコンテキストを把握し、`update_state` を呼ぶ
    - 発言したければ `want_to_speak: true`
    - 重要度は内容の緊急性・関連度で 1-10 で判断
@@ -193,96 +81,56 @@ function electLeader(tid: string, nodeIds: string[]): string {
 
 - 自然な会話を心がける
 - 次に誰かに話を振りたいときは `nextId` を指定する
+```
 
+**`aikyo://history`** (動的・ポーリング対象)
+
+`session.getMessages()` と `session.getContext()` を組み合わせて生成する。
+
+```markdown
 # 現在のコンテキスト
 
-{外部プログラムからインジェクションされたコンテキスト。なければ空}
+{session.getContext()}
 
 # 最新のmsglog
 
 {displayName}: {text}
-{displayName}: {text}
 ...
 ```
 
-### エージェントが呼び出すMCPツール
+### MCPツール
 
 ```
 update_state(state: { want_to_speak: boolean, importance: number })
-  -> エージェントが自分の内部状態をMCPサーバーに通知する
-  -> リソースを読んだ後に呼ぶ想定
+  -> session.setState() を呼ぶ
 
 speak(text: string, nextId?: string)
-  -> エージェントが発話を試みる
-  -> nextIdはTID形式のnodeId。次の発話者を明示する場合に指定する
-  -> MCPサーバーが発言権を持っているか確認し、持っていればネットワークに流す
-  -> 持っていなければ拒否
+  -> session.addMessage() を呼ぶ
 
 get_turn_status() -> boolean
-  -> 自分のターンかどうかを返す
-  -> MCPサーバーが speaker_assign を受信・照合した結果を保持している
+  -> session.getStates() を読んで次の話者を決定論的に計算し、自分かどうか返す
 ```
 
-ハーネスに組み込む処理はこれだけ:
+### ターンテイキングロジック
 
 ```
-1. リソースを読む -> 最新のmsglog + インジェクションされたコンテキストを取得
-2. update_state(state) -> 内部状態を更新
-3. get_turn_status() -> 自分のターンか確認
-   自分のターンでなければ 1 へ戻る
-   自分のターンなら生成して speak(text) を呼ぶ
+1. session.getStates() で全エージェントの内部状態を読む
+
+2. nextId が存在する場合 -> そのノードが次の話者
+
+3. nextId が存在しない場合:
+   want_to_speak == true が1人  -> その人
+   want_to_speak == true が複数 -> importance が最も高い人
+   want_to_speak == true が0人  -> 直前の発話者が再度発話する
+
+4. 自分のnodeIdが次の話者と一致すれば true を返す
 ```
 
-### コンテキストインジェクション
-
-外部プログラム(ラジオ operator など)がMCPサーバーの内部状態を直接更新する。MCPツールとしてエージェントに公開しない。MCPサーバーがリソースを更新すれば、次のポーリングでエージェントに自動的に届く。
-
-### MCP間トランスポート層
-
-MCPサーバー同士の通信は抽象化し、実装を差し替え可能にする。必要なインターフェースは送受信のみ。
-
-```
-send(message: NetworkMessage): void
-onReceive(handler: (message: NetworkMessage) => void): void
-```
-
-NetworkMessageはJSON-RPC 2.0に準拠する。レスポンス不要のブロードキャストはNotification(idなし)、レスポンスが必要なものはRequest/Responseを使う。
-
-**Notifications (ブロードキャスト)**
-
-```json
-{ "jsonrpc": "2.0", "method": "heartbeat",
-  "params": { "nodeId": "...", "displayName": "...", "syncState": { ... } } }
-
-{ "jsonrpc": "2.0", "method": "speak",
-  "params": { "tid": "...", "nodeId": "...", "text": "...", "nextId": "..." } }
-
-{ "jsonrpc": "2.0", "method": "speaker_assign",
-  "params": { "nodeId": "..." } }
-```
-
-**Requests / Responses**
-
-```json
-{ "jsonrpc": "2.0", "method": "state_request",
-  "params": { "tid": "..." }, "id": "..." }
-{ "jsonrpc": "2.0", "result": { "want_to_speak": true, "importance": 8 }, "id": "..." }
-
-{ "jsonrpc": "2.0", "method": "sync_request",
-  "params": { "fromTid": "..." }, "id": "..." }
-{ "jsonrpc": "2.0", "result": { "entries": [ "..." ] }, "id": "..." }
-```
-
-### 設計原則
-
-- **決定論的に動かせる部分は通信しない**: リーダー選出はハッシュ関数で各ノードが独立計算する
-- **ネットワーク通信を最小限に**: state_requestはリーダーのみが行う。発話ブロードキャストは1回
+アルゴリズムが決定論的なので、全MCPサーバーが独立に同じ結果を計算できる。
 
 ---
 
-## コンテキストインジェクションAPI
-
-MCPサーバーがHTTPエンドポイントを公開する。外部プログラムはこれを叩くだけでよい。
+## コンテキスト送信
 
 ```
 POST /context
@@ -291,12 +139,75 @@ Content-Type: application/json
 { "context": "お便り: ..." }
 ```
 
-MCPサーバーは受け取ったコンテキストをリソースに反映する。次にエージェントがリソースを読んだときに自動的に届く。
+内部で `session.setContext()` を呼ぶ。
 
 ---
 
+## Transport (低レベル)
 
-## 未確認事項
+RemoteSessionが内部で使う送受信インターフェース。
 
-- n秒の猶予 / タイムアウト値: 実測して決める。今は未定義
+```typescript
+interface Transport {
+  send(message: NetworkMessage): void
+  onReceive(handler: (message: NetworkMessage) => void): void
+}
+```
 
+---
+
+## RemoteSession の実装詳細
+
+### ノードID
+
+AT Protocol形式のTID。参加時刻をもとに生成され単調増加する。
+
+### ログ構造
+
+
+```
+state log (追記)
+  {tid}.{nodeId}.{want_to_speak}.{importance}
+
+  getStates() = nodeIdごとに最新TIDのエントリを返す
+  メンバーリスト = state logのユニークなnodeId一覧
+
+msg log (追記)
+  {tid}.{displayName}.{text}.{nextId(optional)}
+```
+
+### 差分同期
+
+```typescript
+type SyncState = {
+  stateRootHash: string;
+  latestStateTid: string;
+  messageRootHash: string;
+  latestMessageTid: string;
+}
+
+function computeRootHash(entries: string[]): string {
+  return createHash("sha256").update(entries.join("\n")).digest("hex");
+}
+```
+
+### Syncフロー
+
+1. 各ノードはn秒おきに自分のSyncStateをbroadcastする (`sync_announce`)
+2. `sync_announce` を受け取ったとき、rootHashが自分と異なれば差分がある
+3. latestTidが最も新しいノードに `sync_request` を送り、差分エントリを取得する
+4. 受け取ったエントリをTID順にログへ追記する
+
+AIの生成自体に数秒かかるため、nは1〜2秒で十分。
+
+### ネットワークメッセージ (JSON-RPC 2.0)
+
+```json
+{ "jsonrpc": "2.0", "method": "sync_announce",
+  "params": { "stateRootHash": "...", "latestStateTid": "...", "messageRootHash": "...", "latestMessageTid": "..." } }
+
+{ "jsonrpc": "2.0", "method": "sync_request",
+  "params": { "type": "state" | "message", "fromTid": "..." }, "id": "..." }
+
+{ "jsonrpc": "2.0", "result": { "entries": [ "..." ] }, "id": "..." }
+```
