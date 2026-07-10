@@ -4,6 +4,7 @@ import {
 	ResourceTemplate,
 } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { z } from "zod";
 import { type AgentState, type Message, StateSchema } from "./core/types.ts";
 import type { Session } from "./session/types.ts";
@@ -37,6 +38,7 @@ const GUIDE = [
 	"# リスナーからのお便り",
 	"",
 	"リスナーからお便りが届いたら、リスナーネーム ○○さんからのお便りです、と紹介した後、本文を読み上げ、その後にお便りへの感謝と感想を述べましょう。",
+	"届いているお便りは、aikyo://historyで確認できます。",
 ].join("\n");
 
 // 決定論的に次の話者のnodeIdを返す。全MCPサーバーが同じ計算をするため通信不要。
@@ -45,9 +47,16 @@ function determineNext(
 	messages: Message[],
 ): string | null {
 	const last = messages.at(-1);
-	if (last?.nextId) return last.nextId;
+	if (last?.nextId) {
+		console.error(`[determineNext] nextId specified: ${last.nextId}`);
+		return last.nextId;
+	}
 
 	const want = [...states.entries()].filter(([, s]) => s.want_to_speak);
+	console.error(
+		`[determineNext] want_to_speak: [${want.map(([id, s]) => `${id}(importance=${s.importance})`).join(", ")}]`,
+	);
+
 	if (want.length === 1) return want[0][0];
 	if (want.length > 1) {
 		return want.reduce((a, b) =>
@@ -56,28 +65,19 @@ function determineNext(
 	}
 
 	// 誰も発言したくない場合は直前の発話者が再度話す。
+	console.error(
+		`[determineNext] nobody wants to speak, falling back to last speaker: ${last?.nodeId ?? "none"}`,
+	);
 	return last?.nodeId ?? null;
 }
 
-export async function start(
+function buildServer(
 	nodeId: string,
 	displayName: string,
 	session: Session,
-) {
-	const contextPort = Number(Deno.env.get("CONTEXT_PORT") ?? "8000");
-	Deno.serve({ port: contextPort }, async (req) => {
-		if (req.method !== "POST" || new URL(req.url).pathname !== "/context") {
-			return new Response("not found", { status: 404 });
-		}
-		const body = ContextSchema.safeParse(await req.json());
-		if (!body.success) return new Response("bad request", { status: 400 });
-		session.setContext(body.data.context);
-		return new Response("ok");
-	});
-
+): McpServer {
 	const server = new McpServer({ name: "aikyo", version: "0.1.0" });
 
-	// guideは静的なので起動時に一度読めばよい。ポーリング不要。
 	server.resource(
 		"guide",
 		new ResourceTemplate("aikyo://guide", { list: undefined }),
@@ -97,9 +97,9 @@ export async function start(
 				.map((m) => `${m.displayName}: ${m.text}`)
 				.join("\n");
 			const text = [
-				"# 現在のコンテキスト",
+				"# 現在のお便り",
 				"",
-				session.getContext() || "(まだコンテキストはありません)",
+				session.getContext() || "(まだお便りはありません)",
 				"",
 				"# 最新のmsglog",
 				"",
@@ -116,6 +116,9 @@ export async function start(
 		"Update agent internal state",
 		StateSchema.shape,
 		(state: AgentState) => {
+			console.error(
+				`[${displayName}] update_state: want_to_speak=${state.want_to_speak}, importance=${state.importance}`,
+			);
 			session.setState(nodeId, state);
 			return { content: [{ type: "text" as const, text: "ok" }] };
 		},
@@ -128,6 +131,7 @@ export async function start(
 		({ text, nextId }: { text: string; nextId?: string }) => {
 			const next = determineNext(session.getStates(), session.getMessages());
 			if (next !== nodeId) {
+				console.error(`[${displayName}] speak rejected: turn is ${next}`);
 				return { content: [{ type: "text" as const, text: "not your turn" }] };
 			}
 			session.addMessage({
@@ -137,16 +141,69 @@ export async function start(
 				text,
 				...(nextId ? { nextId } : {}),
 			});
+			console.error(
+				`[${displayName}] speak: "${text}"${nextId ? ` (nextId=${nextId})` : ""}`,
+			);
 			return { content: [{ type: "text" as const, text: "ok" }] };
 		},
 	);
 
 	server.tool("get_turn_status", "Check if it is this node's turn", {}, () => {
 		const next = determineNext(session.getStates(), session.getMessages());
+		const myTurn = next === nodeId;
+		console.error(
+			`[${displayName}] get_turn_status: next=${next}, myTurn=${myTurn}`,
+		);
 		return {
-			content: [{ type: "text" as const, text: String(next === nodeId) }],
+			content: [{ type: "text" as const, text: String(myTurn) }],
 		};
 	});
 
+	return server;
+}
+
+export async function start(
+	nodeId: string,
+	displayName: string,
+	session: Session,
+) {
+	const contextPort = Number(Deno.env.get("CONTEXT_PORT") ?? "8000");
+	Deno.serve({ port: contextPort }, async (req) => {
+		if (req.method !== "POST" || new URL(req.url).pathname !== "/context") {
+			return new Response("not found", { status: 404 });
+		}
+		const body = ContextSchema.safeParse(await req.json());
+		if (!body.success) return new Response("bad request", { status: 400 });
+		console.error(`[context] updated: "${body.data.context}"`);
+		session.setContext(body.data.context);
+		return new Response("ok");
+	});
+
+	const server = buildServer(nodeId, displayName, session);
 	await server.connect(new StdioServerTransport());
+}
+
+export function startHttp(
+	nodeId: string,
+	displayName: string,
+	session: Session,
+	port: number,
+): void {
+	Deno.serve({ port }, async (req) => {
+		const url = new URL(req.url);
+
+		if (req.method === "POST" && url.pathname === "/context") {
+			const body = ContextSchema.safeParse(await req.json());
+			if (!body.success) return new Response("bad request", { status: 400 });
+			session.setContext(body.data.context);
+			return new Response("ok");
+		}
+
+		const transport = new WebStandardStreamableHTTPServerTransport({
+			sessionIdGenerator: undefined,
+		});
+		const server = buildServer(nodeId, displayName, session);
+		await server.connect(transport);
+		return transport.handleRequest(req);
+	});
 }

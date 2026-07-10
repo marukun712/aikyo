@@ -5,6 +5,7 @@
     "jsr:@std/assert@1": "1.0.19",
     "jsr:@std/internal@^1.0.12": "1.0.14",
     "npm:@ai-sdk/anthropic@^4.0.11": "4.0.11_zod@4.4.3",
+    "npm:@ai-sdk/mcp@^2.0.10": "2.0.10_zod@4.4.3",
     "npm:@biomejs/biome@^2.5.3": "2.5.3",
     "npm:@modelcontextprotocol/sdk@^1.29.0": "1.29.0_zod@4.4.3",
     "npm:ai@^7.0.19": "7.0.19_zod@4.4.3",
@@ -39,6 +40,15 @@
         "@ai-sdk/provider",
         "@ai-sdk/provider-utils",
         "@vercel/oidc",
+        "zod"
+      ]
+    },
+    "@ai-sdk/mcp@2.0.10_zod@4.4.3": {
+      "integrity": "sha512-LP47CEk3e6BwCqXamvv4nKbgOWQ5z5T/qS/J2fola5h98KTy7JT7I1yw5LKtB89MZBLviYmEh98Ep4ovHOz/vA==",
+      "dependencies": [
+        "@ai-sdk/provider",
+        "@ai-sdk/provider-utils",
+        "pkce-challenge",
         "zod"
       ]
     },
@@ -654,6 +664,7 @@
       "jsr:@atcute/tid@^1.0.2",
       "jsr:@std/assert@1",
       "npm:@ai-sdk/anthropic@^4.0.11",
+      "npm:@ai-sdk/mcp@^2.0.10",
       "npm:@biomejs/biome@^2.5.3",
       "npm:@modelcontextprotocol/sdk@^1.29.0",
       "npm:ai@^7.0.19",
